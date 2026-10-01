@@ -71,8 +71,74 @@ kbd{display:inline-block;font-family:var(--body);font-weight:700;font-size:12px;
 .res{background:var(--panel);border:1px solid var(--line);padding:12px;display:flex;flex-direction:column;gap:4px}
 .res span{font-size:11px;letter-spacing:.14em;color:var(--dim);font-weight:700;text-transform:uppercase}
 .res b{font-family:var(--display);font-weight:400;font-size:26px;font-variant-numeric:tabular-nums}
-@media (max-width:520px){#timer{font-size:22px}.stat b{font-size:16px}}
-@media (prefers-reduced-motion:reduce){.card,#banner{transition:none}}
+/* main menu: the car does donuts behind a vignette, menu stacked in the middle */
+#overlay.attract{background:radial-gradient(ellipse at center,rgba(9,8,11,.9) 0%,rgba(9,8,11,.82) 42%,rgba(9,8,11,.4) 100%)}
+.mstats{display:flex;flex-wrap:wrap;justify-content:center;background:rgba(10,9,12,.75);border:1px solid var(--line)}
+.mstats div{display:flex;flex-direction:column;gap:2px;padding:8px 20px;border-left:1px solid var(--line)}
+.mstats div:first-child{border-left:0}
+.mstats span{font-size:10px;letter-spacing:.16em;color:var(--dim);font-weight:700;text-transform:uppercase}
+.mstats b{font-family:var(--display);font-weight:400;font-size:20px;font-variant-numeric:tabular-nums}
+.menu-list{display:flex;flex-direction:column;gap:10px;width:min(360px,100%)}
+.menu-list .btn{width:100%;margin-bottom:6px}
+.mbtn{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;background:rgba(28,26,33,.94);color:var(--fg);border:2px solid var(--line);border-left-width:6px;padding:11px 18px;font-family:var(--display);font-size:17px;cursor:pointer;transform:skewX(-10deg);transition:transform .12s,border-color .12s,background .12s}
+.mbtn>span{transform:skewX(10deg);display:flex;align-items:center;gap:10px}
+.mbtn small{font-family:var(--body);font-weight:700;font-size:12px;letter-spacing:.1em;color:var(--dim)}
+.mbtn .arr{color:var(--line);transition:color .12s}
+.mbtn:hover,.mbtn:focus-visible{border-color:var(--hazard);background:var(--panel-2);transform:skewX(-10deg) translateX(6px);outline:none}
+.mbtn:hover .arr,.mbtn:focus-visible .arr{color:var(--hazard)}
+.hint{font-size:12px;color:var(--dim);margin:0;letter-spacing:.06em}
+
+.subhead{width:100%;display:flex;flex-direction:column;align-items:center;gap:6px}
+.back{align-self:flex-start;background:none;border:1px solid var(--line);color:var(--dim);font-family:var(--body);font-weight:700;font-size:12px;letter-spacing:.14em;text-transform:uppercase;padding:6px 12px;cursor:pointer}
+.back:hover,.back:focus-visible{color:var(--fg);border-color:var(--hazard);outline:none}
+
+.achbar{width:100%;height:8px;background:var(--panel);border:1px solid var(--line)}
+.achbar i{display:block;height:100%;background:var(--hazard);box-shadow:0 0 10px rgba(255,194,26,.5)}
+.achgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px;width:100%}
+.ach{display:flex;gap:12px;align-items:flex-start;background:var(--panel);border:1px solid var(--line);padding:12px;text-align:left}
+.ach.on{border-color:rgba(255,194,26,.55);background:linear-gradient(135deg,rgba(255,194,26,.09),var(--panel) 60%)}
+.ach .info{min-width:0;flex:1;display:flex;flex-direction:column;gap:4px}
+.ach b{font-family:var(--display);font-weight:400;font-size:15px;line-height:1.1}
+.ach:not(.on) b{color:var(--dim)}
+.ach p{margin:0;color:var(--dim);font-size:13px;line-height:1.35}
+.ach .prog{height:5px;background:var(--ink);margin-top:4px}.ach .prog i{display:block;height:100%;background:var(--xp)}
+.ach .pt{font-size:11px;font-weight:700;letter-spacing:.1em;color:var(--dim);font-variant-numeric:tabular-nums}
+.ach .date{font-size:11px;font-weight:700;letter-spacing:.1em;color:var(--hazard);text-transform:uppercase}
+.badge{flex:none;width:48px;height:48px;display:grid;place-items:center;font-family:var(--display);font-size:14px;background:#2a2730;color:#5d5868;clip-path:polygon(25% 0,75% 0,100% 50%,75% 100%,25% 100%,0 50%)}
+.badge.on{background:var(--hazard);color:var(--ink)}
+
+.settings{width:min(560px,100%);display:flex;flex-direction:column;gap:8px}
+.set-row{display:flex;align-items:center;justify-content:space-between;gap:16px;background:var(--panel);border:1px solid var(--line);padding:12px 14px;text-align:left}
+.set-row b{display:block;font-size:15px;letter-spacing:.06em}
+.set-row .d{display:block;color:var(--dim);font-size:13px;margin-top:2px;line-height:1.35}
+.switch{flex:none;width:54px;height:28px;padding:0;background:var(--panel-2);border:2px solid var(--line);position:relative;cursor:pointer}
+.switch::after{content:'';position:absolute;top:3px;left:3px;width:18px;height:18px;background:var(--dim);transition:transform .15s,background .15s}
+.switch[aria-checked=true]{border-color:var(--hazard);background:rgba(255,194,26,.16)}
+.switch[aria-checked=true]::after{transform:translateX(26px);background:var(--hazard)}
+.switch:focus-visible{outline:2px solid var(--fg);outline-offset:3px}
+.range{flex:none;display:flex;align-items:center;gap:10px}
+.range input{width:min(150px,32vw);accent-color:var(--hazard);cursor:pointer}
+.range output{font-weight:700;font-variant-numeric:tabular-nums;min-width:4ch;text-align:right}
+.set-row.danger{border-color:rgba(255,59,78,.4)}
+.btn.warn{background:transparent;color:var(--hp);border:2px solid var(--hp);box-shadow:none;font-size:14px;padding:8px 16px;flex:none}
+
+.legend{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;width:100%}
+.legend .key{flex-direction:row;align-items:center;gap:10px}
+.legend i{flex:none;width:14px;height:14px;display:block}
+
+#toasts{position:fixed;right:16px;bottom:calc(env(safe-area-inset-bottom,0px) + 60px);display:flex;flex-direction:column;align-items:flex-end;gap:8px;pointer-events:none}
+.toast{display:flex;align-items:center;gap:12px;background:rgba(10,9,12,.95);border:2px solid var(--hazard);box-shadow:5px 5px 0 var(--ink);padding:8px 16px 8px 8px;max-width:calc(100vw - 32px);animation:tin .35s ease-out;transition:opacity .3s,transform .3s}
+.toast.out{opacity:0;transform:translateX(24px)}
+.toast .badge{width:40px;height:40px;font-size:12px}
+.toast small{display:block;font-size:10px;letter-spacing:.16em;font-weight:700;color:var(--hazard);text-transform:uppercase}
+.toast b{font-family:var(--display);font-weight:400;font-size:16px}
+@keyframes tin{from{opacity:0;transform:translateX(30px)}}
+.newach{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+.newach .toast{animation:none;box-shadow:none;border-width:1px}
+
+@media (max-width:520px){#timer{font-size:22px}.stat b{font-size:16px}.mstats div{padding:6px 12px}.mstats b{font-size:16px}}
+@media (hover:none){.hint{display:none}}
+@media (prefers-reduced-motion:reduce){.card,#banner,.mbtn,.toast{transition:none;animation:none}}
 </style>
 
 <canvas id="cv"></canvas>
@@ -97,15 +163,55 @@ kbd{display:inline-block;font-family:var(--body);font-weight:700;font-size:12px;
     <div class="hazard-stripe"></div>
     <h1 class="logo">Carnage<span>Loop</span></h1>
     <p class="tagline">Your car shoots on its own. You drive. Ram the small fry, outrun the big rigs, and scoop up scrap to bolt on rockets, saws and flamethrowers. Survive as long as you can.</p>
+    <div class="mstats">
+      <div><span>Best run</span><b id="mBest">00:00</b></div>
+      <div><span>Total wrecks</span><b id="mKills">0</b></div>
+      <div><span>Runs</span><b id="mRuns">0</b></div>
+    </div>
+    <nav class="menu-list" aria-label="Main menu">
+      <button class="btn" id="startBtn">Start engine</button>
+      <button class="mbtn" id="achBtn"><span>Achievements</span><span><small id="mAch">0 / 0</small><span class="arr">›</span></span></button>
+      <button class="mbtn" id="setBtn"><span>Settings</span><span class="arr">›</span></button>
+      <button class="mbtn" id="howBtn"><span>How to play</span><span class="arr">›</span></button>
+    </nav>
+    <p class="hint"><kbd>↑</kbd><kbd>↓</kbd> to choose · <kbd>Enter</kbd> to select</p>
+    <div class="hazard-stripe"></div>
+  </section>
+
+  <section id="scrAch" class="panel" hidden>
+    <div class="subhead"><button class="back">‹ Back</button><h2 class="big">Achievements</h2><p class="sub" id="achCount">0 of 0 unlocked</p></div>
+    <div class="achbar"><i id="achFill"></i></div>
+    <div class="achgrid" id="achGrid"></div>
+  </section>
+
+  <section id="scrSet" class="panel" hidden>
+    <div class="subhead"><button class="back">‹ Back</button><h2 class="big">Settings</h2></div>
+    <div class="settings">
+      <div class="set-row"><div><b>Sound</b><span class="d">Gunfire, engines and explosions</span></div><button class="switch" role="switch" data-set="sound" aria-label="Sound"></button></div>
+      <div class="set-row"><label for="volRange"><b>Volume</b><span class="d">Master level for every effect</span></label><div class="range"><input type="range" id="volRange" min="0" max="100" step="5"><output id="volOut" for="volRange">80%</output></div></div>
+      <div class="set-row"><label for="shakeRange"><b>Screen shake</b><span class="d">How hard crashes and blasts rattle the camera</span></label><div class="range"><input type="range" id="shakeRange" min="0" max="100" step="10"><output id="shakeOut" for="shakeRange">100%</output></div></div>
+      <div class="set-row"><div><b>Damage numbers</b><span class="d">Pop-up numbers when you hit a car</span></div><button class="switch" role="switch" data-set="dmgNums" aria-label="Damage numbers"></button></div>
+      <div class="set-row"><div><b>Damage flash</b><span class="d">Red screen edge when hit or low on HP</span></div><button class="switch" role="switch" data-set="flash" aria-label="Damage flash"></button></div>
+      <div class="set-row"><div><b>Auto-pause</b><span class="d">Pause when the window loses focus</span></div><button class="switch" role="switch" data-set="autoPause" aria-label="Auto-pause"></button></div>
+      <div class="set-row danger"><div><b>Reset progress</b><span class="d">Wipes best run, lifetime stats and achievements</span></div><button class="btn warn" id="resetBtn">Reset</button></div>
+    </div>
+  </section>
+
+  <section id="scrHow" class="panel" hidden>
+    <div class="subhead"><button class="back">‹ Back</button><h2 class="big">How to play</h2></div>
     <div class="keys">
       <div class="key"><b>Drive</b><span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> or arrows</span></div>
       <div class="key"><b>Handbrake drift</b><span><kbd>Space</kbd></span></div>
       <div class="key"><b>Pause</b><span><kbd>P</kbd> or <kbd>Esc</kbd></span></div>
       <div class="key"><b>Touch</b><span>Drag anywhere to steer and throttle</span></div>
     </div>
+    <div class="legend">
+      <div class="key"><i style="background:#3fe0d0;transform:rotate(45deg) scale(.75)"></i><span><b>Scrap</b> · fills your XP bar</span></div>
+      <div class="key"><i style="background:#1e7a45"></i><span><b>Wrench</b> · repairs 30 HP</span></div>
+      <div class="key"><i style="background:#6b4a2a;outline:3px solid #ffc21a;outline-offset:-5px"></i><span><b>Supply crate</b> · free bolt-on</span></div>
+      <div class="key"><i style="background:#c4321e;border-radius:50%"></i><span><b>Barrel</b> · explodes, hurts everyone</span></div>
+    </div>
     <p class="sub">Ram at full speed: you deal more and take less</p>
-    <button class="btn" id="startBtn">Start engine</button>
-    <div class="hazard-stripe"></div>
   </section>
 
   <section id="scrLevel" class="panel" hidden>
@@ -118,8 +224,9 @@ kbd{display:inline-block;font-family:var(--body);font-weight:700;font-size:12px;
     <h2 class="big">Paused</h2>
     <div class="btns">
       <button class="btn" id="resumeBtn">Resume</button>
-      <button class="btn alt" id="muteBtn">Sound: on</button>
+      <button class="btn alt" id="pSetBtn">Settings</button>
       <button class="btn alt" id="quitBtn">Restart</button>
+      <button class="btn alt" id="pMenuBtn">Main menu</button>
     </div>
   </section>
 
@@ -132,10 +239,15 @@ kbd{display:inline-block;font-family:var(--body);font-weight:700;font-size:12px;
       <div class="res"><span>Level</span><b id="rLvl">1</b></div>
       <div class="res"><span>Best run</span><b id="rBest">0:00</b></div>
     </div>
-    <button class="btn" id="againBtn">Drive again</button>
+    <div id="rAchWrap" hidden><p class="sub" style="margin-bottom:10px">Unlocked this run</p><div class="newach" id="rAch"></div></div>
+    <div class="btns">
+      <button class="btn" id="againBtn">Drive again</button>
+      <button class="btn alt" id="oMenuBtn">Main menu</button>
+    </div>
     <div class="hazard-stripe"></div>
   </section>
 </div>
+<div id="toasts" aria-live="polite"></div>
 
 <script>
 'use strict';
@@ -152,27 +264,45 @@ const d2=(ax,ay,bx,by)=>{const dx=ax-bx,dy=ay-by;return dx*dx+dy*dy};
 function angDiff(a,b){let d=b-a;while(d>Math.PI)d-=TAU;while(d<-Math.PI)d+=TAU;return d}
 function fmt(t){t=Math.floor(t);return String(Math.floor(t/60)).padStart(2,'0')+':'+String(t%60).padStart(2,'0')}
 
+/* ---------- saved settings + profile ---------- */
+function load(key,def){try{const v=JSON.parse(localStorage.getItem(key));if(v&&typeof v==='object')return Object.assign({},def,v)}catch(e){}return Object.assign({},def)}
+function save(key,v){try{localStorage.setItem(key,JSON.stringify(v))}catch(e){}}
+const S0={sound:true,vol:80,shake:100,dmgNums:true,flash:true,autoPause:true};
+const P0={runs:0,kills:0,bossKills:0,eliteKills:0,time:0,best:0,bestKills:0,bestLevel:0,bestRam:0,bestBarrels:0,bestWeapons:0,bestWlvl:0,bestBrink:0,ach:{}};
+const S=load('carnageSettings',S0);
+let P=load('carnageProfile',P0);P.ach=Object.assign({},P.ach);
+if(!P.best){try{P.best=+localStorage.getItem('carnageBest')||0}catch(e){}}
+const saveSettings=()=>save('carnageSettings',S),saveProfile=()=>save('carnageProfile',P);
+
 /* ---------- audio ---------- */
-let AC=null,muted=false;const sfxLast={};
-function initAudio(){try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();AC.resume();}catch(e){AC=null}}
-function tone(f,dur,type,vol,slide,delay=0){if(!AC||muted)return;const t=AC.currentTime+delay;const o=AC.createOscillator(),g=AC.createGain();o.type=type;o.frequency.setValueAtTime(f,t);if(slide)o.frequency.exponentialRampToValueAtTime(slide,t+dur);g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(0.0001,t+dur);o.connect(g).connect(AC.destination);o.start(t);o.stop(t+dur+0.02)}
+let AC=null,master=null;const sfxLast={};
+function initAudio(){try{if(!AC){AC=new (window.AudioContext||window.webkitAudioContext)();master=AC.createGain();master.connect(AC.destination)}AC.resume();applyVolume()}catch(e){AC=null}}
+function applyVolume(){if(master)master.gain.value=S.sound?S.vol/80:0}
+const muted=()=>!AC||!S.sound||S.vol<=0;
+function tone(f,dur,type,vol,slide,delay=0){if(muted())return;const t=AC.currentTime+delay;const o=AC.createOscillator(),g=AC.createGain();o.type=type;o.frequency.setValueAtTime(f,t);if(slide)o.frequency.exponentialRampToValueAtTime(slide,t+dur);g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(0.0001,t+dur);o.connect(g).connect(master);o.start(t);o.stop(t+dur+0.02)}
 let nbuf=null;
-function noise(dur,vol,freq){if(!AC||muted)return;if(!nbuf){nbuf=AC.createBuffer(1,AC.sampleRate,AC.sampleRate);const d=nbuf.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1}const s=AC.createBufferSource();s.buffer=nbuf;const f=AC.createBiquadFilter();f.type='lowpass';f.frequency.value=freq;const g=AC.createGain();const t=AC.currentTime;g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(0.0001,t+dur);s.connect(f).connect(g).connect(AC.destination);s.start(t);s.stop(t+dur)}
-function sfx(n){if(!AC||muted)return;const now=performance.now();const gap={shoot:70,boom:60,pick:35,hurt:120,crash:90,rocket:120,saw:90}[n]||0;if(sfxLast[n]&&now-sfxLast[n]<gap)return;sfxLast[n]=now;
+function noise(dur,vol,freq){if(muted())return;if(!nbuf){nbuf=AC.createBuffer(1,AC.sampleRate,AC.sampleRate);const d=nbuf.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1}const s=AC.createBufferSource();s.buffer=nbuf;const f=AC.createBiquadFilter();f.type='lowpass';f.frequency.value=freq;const g=AC.createGain();const t=AC.currentTime;g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(0.0001,t+dur);s.connect(f).connect(g).connect(master);s.start(t);s.stop(t+dur)}
+function sfx(n){if(muted())return;const now=performance.now();const gap={shoot:70,boom:60,pick:35,hurt:120,crash:90,rocket:120,saw:90}[n]||0;if(sfxLast[n]&&now-sfxLast[n]<gap)return;sfxLast[n]=now;
   switch(n){case'shoot':tone(260,0.05,'square',0.025,120);break;case'boom':noise(0.55,0.22,500);tone(90,0.4,'sine',0.15,35);break;case'pick':tone(900+Math.random()*200,0.06,'sine',0.035,1500);break;
   case'hurt':tone(150,0.22,'sawtooth',0.07,55);break;case'crash':noise(0.18,0.14,1400);break;case'rocket':noise(0.3,0.05,2500);break;case'saw':tone(1300,0.05,'sawtooth',0.015,900);break;
-  case'level':[523,659,784,1046].forEach((f,i)=>tone(f,0.16,'square',0.04,null,i*0.07));break;case'boss':tone(70,1.2,'sawtooth',0.12,45);break}}
+  case'level':[523,659,784,1046].forEach((f,i)=>tone(f,0.16,'square',0.04,null,i*0.07));break;case'boss':tone(70,1.2,'sawtooth',0.12,45);break;case'ach':[784,988,1175,1568].forEach((f,i)=>tone(f,0.2,'triangle',0.05,null,i*0.08));break}}
 
 /* ---------- input ---------- */
 const keys={};
 addEventListener('keydown',e=>{
   if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space'].includes(e.code)&&state==='play')e.preventDefault();
   keys[e.code]=true;
+  if(state!=='play'&&(e.code==='ArrowUp'||e.code==='ArrowDown'))menuNav(e);
+  if(SUBS.includes(cur)){if(e.code==='Escape')goBack();return}
   if(e.code==='KeyP'||e.code==='Escape')togglePause();
   if(state==='levelup'&&/^Digit[1-3]$/.test(e.code))pickChoice(+e.code.slice(5)-1);
 });
 addEventListener('keyup',e=>{keys[e.code]=false});
-addEventListener('blur',()=>{for(const k in keys)keys[k]=false;if(state==='play')togglePause()});
+addEventListener('blur',()=>{for(const k in keys)keys[k]=false;if(state==='play'&&S.autoPause)togglePause()});
+// arrow keys walk the buttons of whichever screen is open
+function menuNav(e){if(e.target&&e.target.tagName==='INPUT')return;const scr=cur&&$(cur);if(!scr)return;
+  const list=[...scr.querySelectorAll('button')].filter(b=>b.offsetParent);if(!list.length)return;e.preventDefault();
+  const i=list.indexOf(document.activeElement),n=i<0?0:(i+(e.code==='ArrowDown'?1:-1)+list.length)%list.length;list[n].focus()}
 const touch={active:false,id:null,sx:0,sy:0,x:0,y:0};
 cv.addEventListener('pointerdown',e=>{if(state!=='play')return;touch.active=true;touch.id=e.pointerId;touch.sx=touch.x=e.clientX;touch.sy=touch.y=e.clientY;try{cv.setPointerCapture(e.pointerId)}catch(_){}});
 cv.addEventListener('pointermove',e=>{if(touch.active&&e.pointerId===touch.id){touch.x=e.clientX;touch.y=e.clientY}});
@@ -205,6 +335,45 @@ const ETYPES={
   boss:{r:46,hp:2400,spd:110,turn:0.9,dmg:30,xp:80,col:'#d63434',len:104,wid:54,boss:true},
 };
 
+/* ---------- achievements: each one is a record key that must reach n ---------- */
+const ACH=[
+  {id:'first',ic:'1',name:'Fender Bender',desc:'Wreck your first car.',k:'total',n:1},
+  {id:'crew',ic:'100',name:'Wrecking Crew',desc:'Wreck 100 cars in a single run.',k:'kills',n:100},
+  {id:'derby',ic:'500',name:'Demolition Derby',desc:'Wreck 500 cars in a single run.',k:'kills',n:500},
+  {id:'roll',ic:'3m',name:'Still Rolling',desc:'Survive for 3 minutes.',k:'time',n:180,time:true},
+  {id:'iron',ic:'10m',name:'Iron Chassis',desc:'Survive for 10 minutes.',k:'time',n:600,time:true},
+  {id:'chrome',ic:'CH',name:'Chrome Polish',desc:'Wreck a Chrome Hunter.',k:'elites',n:1},
+  {id:'giant',ic:'JG',name:'Giant Slayer',desc:'Wreck a Juggernaut.',k:'bosses',n:1},
+  {id:'baron',ic:'x10',name:'Scrap Baron',desc:'Wreck 10 Juggernauts across all runs.',k:'bosses',n:10},
+  {id:'ram',ic:'RM',name:'Battering Ram',desc:'Wreck 50 cars by ramming them in a single run.',k:'ram',n:50},
+  {id:'chain',ic:'BB',name:'Chain Reaction',desc:'Blow up 10 barrels in a single run.',k:'barrels',n:10},
+  {id:'loaded',ic:'4W',name:'Fully Loaded',desc:'Bolt on 4 weapons at once.',k:'weapons',n:4},
+  {id:'overkill',ic:'V',name:'Overkill',desc:'Upgrade any weapon to level 5.',k:'wlvl',n:5},
+  {id:'gear',ic:'20',name:'Gearhead',desc:'Reach level 20 in a single run.',k:'level',n:20},
+  {id:'fumes',ic:'!',name:'Running on Fumes',desc:'Survive 60 seconds after dropping below 10% HP.',k:'brink',n:60,time:true},
+  {id:'warrior',ic:'5K',name:'Road Warrior',desc:'Wreck 5,000 cars across all runs.',k:'total',n:5000},
+  {id:'regular',ic:'25',name:'Repeat Offender',desc:'Start 25 runs.',k:'runs',n:25},
+];
+// best-ever values, folding in the run in progress
+function rec(){const L=G&&G.live?G:null,W=L?Object.values(L.weapons):[];
+  return{kills:Math.max(P.bestKills,L?L.kills:0),time:Math.max(P.best,L?L.t:0),level:Math.max(P.bestLevel,L?L.level:0),
+    total:P.kills+(L?L.kills:0),runs:P.runs,bosses:P.bossKills+(L?L.bossKills:0),elites:P.eliteKills+(L?L.eliteKills:0),
+    ram:Math.max(P.bestRam,L?L.ramKills:0),barrels:Math.max(P.bestBarrels,L?L.barrelBooms:0),
+    weapons:Math.max(P.bestWeapons,W.length),wlvl:Math.max(P.bestWlvl,...W.map(w=>w.lvl)),
+    brink:Math.max(P.bestBrink,L&&L.lowAt>=0?L.t-L.lowAt:0)}}
+function checkAch(){const r=rec();let any=false;
+  for(const a of ACH){if(P.ach[a.id]||r[a.k]<a.n)continue;P.ach[a.id]=Date.now();any=true;if(G)G.newAch.push(a);toast(a)}
+  if(any){saveProfile();sfx('ach')}}
+const badge=(a,on)=>`<div class="badge${on?' on':''}">${a.ic}</div>`;
+function toast(a){const el=document.createElement('div');el.className='toast';
+  el.innerHTML=`${badge(a,true)}<div><small>Achievement unlocked</small><b>${a.name}</b></div>`;$('toasts').appendChild(el);
+  setTimeout(()=>{el.classList.add('out');setTimeout(()=>el.remove(),350)},3800)}
+// fold a finished (or abandoned) run into the lifetime profile
+function commitRun(){const r=rec();G.live=false;
+  P.kills+=G.kills;P.bossKills+=G.bossKills;P.eliteKills+=G.eliteKills;P.time+=G.t;
+  P.best=r.time;P.bestKills=r.kills;P.bestLevel=r.level;P.bestRam=r.ram;P.bestBarrels=r.barrels;P.bestWeapons=r.weapons;P.bestWlvl=r.wlvl;P.bestBrink=r.brink;
+  saveProfile();checkAch()}
+
 /* ---------- ground art ---------- */
 const tile=document.createElement('canvas');tile.width=tile.height=256;
 (function(){const t=tile.getContext('2d');t.fillStyle='#232128';t.fillRect(0,0,256,256);
@@ -214,11 +383,10 @@ const tile=document.createElement('canvas');tile.width=tile.height=256;
 const groundPat=ctx.createPattern(tile,'repeat');
 
 /* ---------- state ---------- */
-let state='menu',G=null,choices=[],best=0;
-try{best=+localStorage.getItem('carnageBest')||0}catch(e){}
+let state='menu',G=null,choices=[];
 
 function newGame(){
-  G={t:0,kills:0,level:1,xp:0,xpNeed:6,pending:0,shake:0,hurtFlash:0,bosses:0,
+  G={t:0,kills:0,level:1,live:false,bossKills:0,eliteKills:0,ramKills:0,barrelBooms:0,lowAt:-1,newAch:[],achT:0,xp:0,xpNeed:6,pending:0,shake:0,hurtFlash:0,bosses:0,
     p:{x:ARENA/2,y:ARENA/2+200,a:-Math.PI/2,vx:0,vy:0,hp:100,maxhp:100,r:19,inv:0},
     stats:{dmg:1,cd:1,speed:1,magnet:90,ram:1,regen:0,armor:0},
     weapons:{mg:{lvl:1,cd:0.4,aim:-Math.PI/2}},passives:{},
@@ -254,16 +422,16 @@ function explode(x,y,R,dmg,hurtP){
 function showBanner(t,s){const b=$('banner');b.innerHTML=t+(s?`<small>${s}</small>`:'');b.classList.add('show');clearTimeout(showBanner.h);showBanner.h=setTimeout(()=>b.classList.remove('show'),2400)}
 
 /* ---------- combat ---------- */
-function damageEnemy(e,amt,txt=true){if(e.dead)return;e.hp-=amt;e.flash=0.07;if(txt&&amt>=1)addText(e.x,e.y-e.r,Math.round(amt),amt>=45?'#ffc21a':'#f2eef7');if(e.hp<=0)killEnemy(e)}
+function damageEnemy(e,amt,txt=true){if(e.dead)return;e.hp-=amt;e.flash=0.07;if(txt&&S.dmgNums&&amt>=1)addText(e.x,e.y-e.r,Math.round(amt),amt>=45?'#ffc21a':'#f2eef7');if(e.hp<=0)killEnemy(e)}
 function killEnemy(e){
-  e.dead=true;G.kills++;boomFx(e.x,e.y,e.r*2.4);
+  e.dead=true;G.kills++;if(e.boss)G.bossKills++;if(e.elite)G.eliteKills++;boomFx(e.x,e.y,e.r*2.4);
   let v=e.xp;const n=e.boss?8:e.elite?4:1;for(let i=0;i<n;i++)G.gems.push({x:e.x,y:e.y,v:Math.ceil(v/n),vx:rand(-1,1)*(n>1?220:40),vy:rand(-1,1)*(n>1?220:40),pull:false,sp:0});
   if(e.boss||e.elite)G.pickups.push({x:e.x,y:e.y,type:'chest',t:0});
   else if(Math.random()<0.015)G.pickups.push({x:e.x,y:e.y,type:'wrench',t:0});
   else if(Math.random()<0.004)G.pickups.push({x:e.x,y:e.y,type:'magnet',t:0});
   if(e.boss){G.boss=null;showBanner('Juggernaut down','Supply crate dropped');explode(e.x,e.y,160,0)}
 }
-function hurt(amt){const p=G.p;if(p.inv>0||state!=='play')return;p.hp-=amt*(1-G.stats.armor);p.inv=0.45;G.shake=Math.min(18,G.shake+6);G.hurtFlash=0.3;sfx('hurt');if(p.hp<=0){p.hp=0;gameOver()}}
+function hurt(amt){const p=G.p;if(p.inv>0||state!=='play')return;p.hp-=amt*(1-G.stats.armor);p.inv=0.45;G.shake=Math.min(18,G.shake+6);G.hurtFlash=0.3;sfx('hurt');if(p.hp<=0){p.hp=0;gameOver()}else if(p.hp<p.maxhp*0.1&&G.lowAt<0)G.lowAt=G.t}
 function nearestEnemy(x,y,maxD){let best=null,bd=maxD*maxD;for(const e of G.enemies){if(e.dead)continue;const d=d2(x,y,e.x,e.y);if(d<bd){bd=d;best=e}}return best}
 function addXp(v){G.xp+=v;while(G.xp>=G.xpNeed){G.xp-=G.xpNeed;G.level++;G.xpNeed=Math.floor(G.xpNeed*1.16+5);G.pending++}}
 
@@ -333,7 +501,7 @@ function updateEnemies(dt){
       const nx=-dx/d,ny=-dy/d,impact=Math.max(0,p.vx*nx+p.vy*ny),ov=rr-d;
       const wE=e.boss?0.15:0.7;e.x+=nx*ov*wE;e.y+=ny*ov*wE;p.x-=nx*ov*(1-wE);p.y-=ny*ov*(1-wE);
       if(e.ccd<=0){e.ccd=0.4;
-        damageEnemy(e,(8+impact*0.13)*s.ram);
+        damageEnemy(e,(8+impact*0.13)*s.ram);if(e.dead)G.ramKills++;
         const kb=(e.boss?0.12:1)*(140+impact*0.9);e.kx+=nx*kb;e.ky+=ny*kb;
         p.vx-=nx*impact*(e.boss?0.9:0.35);p.vy-=ny*impact*(e.boss?0.9:0.35);
         if(e.charge>0){p.vx-=nx*420;p.vy-=ny*420}
@@ -358,7 +526,7 @@ function updateWeapons(dt){
       for(let i=0;i<n;i++){const a=p.a+Math.PI+(i-(n-1)/2)*0.9;G.missiles.push({x:p.x,y:p.y,a,v:220,life:3.2,dmg:(26+12*lv+(lv>=5?20:0))*s.dmg,R:55+(lv>=3?20:0)+6*lv,t:null})}sfx('rocket')}}
   if(W.flame){const w=W.flame,lv=w.lvl,L=150+25*lv,half=lv>=4?0.58:0.4,dps=(34+16*lv)*s.dmg;const dirs=[p.a];if(lv>=5)dirs.push(p.a+Math.PI);
     w.on=false;for(const dir of dirs){const ox=p.x+Math.cos(dir)*22,oy=p.y+Math.sin(dir)*22;let any=false;
-      for(const e of G.enemies){if(e.dead)continue;if(inCone(e,ox,oy,dir,L,half)){any=true;const amt=dps*dt;e.burn+=amt;damageEnemy(e,amt,false);if(e.burn>=18&&!e.dead){addText(e.x,e.y-e.r,Math.round(e.burn),'#ff9a3a');e.burn=0}}}
+      for(const e of G.enemies){if(e.dead)continue;if(inCone(e,ox,oy,dir,L,half)){any=true;const amt=dps*dt;e.burn+=amt;damageEnemy(e,amt,false);if(e.burn>=18&&!e.dead){if(S.dmgNums)addText(e.x,e.y-e.r,Math.round(e.burn),'#ff9a3a');e.burn=0}}}
       for(const b of G.barrels)if(b.alive&&b.fuse<0&&inCone(b,ox,oy,dir,L,half))b.fuse=0.3;
       if(any){w.on=true;for(let k=0;k<4;k++){const a=dir+rand(-half,half)*.8,sp=rand(.8,1.1)*L*2.6;part(ox,oy,Math.cos(a)*sp+p.vx,Math.sin(a)*sp+p.vy,rand(.28,.4),rand(6,12),null,'fire')}}}
   }
@@ -401,7 +569,7 @@ function updateProjectiles(dt){
   for(const r of G.rings){r.r+=640*dt;for(const e of G.enemies){if(e.dead||r.hit.has(e))continue;const d=Math.hypot(e.x-r.x,e.y-r.y);if(d<r.r+e.r){r.hit.add(e);damageEnemy(e,r.dmg);const k=e.boss?40:380;e.kx+=(e.x-r.x)/(d||1)*k;e.ky+=(e.y-r.y)/(d||1)*k}}}
   G.rings=G.rings.filter(r=>r.r<r.max);
   for(const b of G.barrels){if(!b.alive){b.respawn-=dt;if(b.respawn<=0&&d2(b.x,b.y,p.x,p.y)>500*500){b.alive=true;b.fuse=-1}continue}
-    if(b.fuse>=0){b.fuse-=dt;if(b.fuse<0){b.alive=false;b.respawn=20;explode(b.x,b.y,110,70*G.stats.dmg,18)}}}
+    if(b.fuse>=0){b.fuse-=dt;if(b.fuse<0){b.alive=false;b.respawn=20;G.barrelBooms++;explode(b.x,b.y,110,70*G.stats.dmg,18)}}}
 }
 
 function updatePickups(dt){
@@ -433,6 +601,7 @@ function update(dt){
   G.enemies=G.enemies.filter(e=>!e.dead);
   updatePickups(dt);updateFx(dt);
   G.shake*=Math.exp(-7*dt);G.hurtFlash-=dt;
+  if((G.achT-=dt)<=0){G.achT=0.5;checkAch()}
   if(G.pending>0&&state==='play')openLevelup();
 }
 
@@ -464,7 +633,7 @@ function drawPlayer(){
 }
 function draw(){
   const p=G.p,c=G.cam;
-  const sx=(Math.random()-.5)*G.shake*2,sy=(Math.random()-.5)*G.shake*2;
+  const sh=G.shake*S.shake/100,sx=(Math.random()-.5)*sh*2,sy=(Math.random()-.5)*sh*2;
   ctx.setTransform(DPR,0,0,DPR,0,0);ctx.fillStyle='#0b0a0d';ctx.fillRect(0,0,VW,VH);
   const ox=VW/2-c.x+sx,oy=VH/2-c.y+sy;ctx.translate(ox,oy);
   const L=c.x-VW/2-60,T=c.y-VH/2-60,R=c.x+VW/2+60,B=c.y+VH/2+60;const vis=(x,y,m)=>x>L-m&&x<R+m&&y>T-m&&y<B+m;
@@ -521,7 +690,7 @@ function draw(){
     const a=Math.atan2(sy2-VH/2,sx2-VW/2),ex=clamp(sx2,28,VW-28),ey=clamp(sy2,90,VH-50);ctx.save();ctx.translate(ex,ey);ctx.rotate(a);ctx.fillStyle='#ffc21a';ctx.beginPath();ctx.moveTo(14,0);ctx.lineTo(-8,-10);ctx.lineTo(-8,10);ctx.closePath();ctx.fill();ctx.restore()}
   if(touch.active){ctx.strokeStyle='rgba(239,234,244,.35)';ctx.lineWidth=3;ctx.beginPath();ctx.arc(touch.sx,touch.sy,60,0,TAU);ctx.stroke();const dx=touch.x-touch.sx,dy=touch.y-touch.sy,m=Math.min(60,Math.hypot(dx,dy)),a=Math.atan2(dy,dx);ctx.fillStyle='rgba(255,194,26,.6)';ctx.beginPath();ctx.arc(touch.sx+Math.cos(a)*m,touch.sy+Math.sin(a)*m,22,0,TAU);ctx.fill()}
   const low=p.hp/p.maxhp<0.3&&state==='play';
-  if(G.hurtFlash>0||low){const al=Math.max(G.hurtFlash>0?G.hurtFlash:0,low?0.18+0.12*Math.sin(G.t*8):0);const gr=ctx.createRadialGradient(VW/2,VH/2,Math.min(VW,VH)*.3,VW/2,VH/2,Math.max(VW,VH)*.75);gr.addColorStop(0,'rgba(255,40,60,0)');gr.addColorStop(1,`rgba(255,40,60,${al})`);ctx.fillStyle=gr;ctx.fillRect(0,0,VW,VH)}
+  if(S.flash&&(G.hurtFlash>0||low)){const al=Math.max(G.hurtFlash>0?G.hurtFlash:0,low?0.18+0.12*Math.sin(G.t*8):0);const gr=ctx.createRadialGradient(VW/2,VH/2,Math.min(VW,VH)*.3,VW/2,VH/2,Math.max(VW,VH)*.75);gr.addColorStop(0,'rgba(255,40,60,0)');gr.addColorStop(1,`rgba(255,40,60,${al})`);ctx.fillStyle=gr;ctx.fillRect(0,0,VW,VH)}
 }
 
 /* ---------- HUD ---------- */
@@ -540,12 +709,32 @@ function updateLoadout(){
 }
 
 /* ---------- screens ---------- */
-function show(id){for(const s of['scrMenu','scrLevel','scrPause','scrOver'])$(s).hidden=s!==id;$('overlay').hidden=!id}
-function startGame(){initAudio();newGame();state='play';show(null);$('hud').hidden=false;updateLoadout();touch.active=false;last=performance.now()}
+const SCREENS=['scrMenu','scrLevel','scrPause','scrOver','scrAch','scrSet','scrHow'],SUBS=['scrAch','scrSet','scrHow'];
+let cur='scrMenu',backTo='scrMenu',backFocus=null;
+function show(id){cur=id;for(const s of SCREENS)$(s).hidden=s!==id;$('overlay').hidden=!id;$('overlay').classList.toggle('attract',state==='menu')}
+function openSub(id,opener){backTo=cur;backFocus=opener;if(id==='scrAch')renderAch();if(id==='scrSet')renderSettings();show(id);$(id).querySelector('.back').focus()}
+function goBack(){show(backTo);if(backTo==='scrMenu')refreshMenu();(backFocus||$(backTo).querySelector('button')).focus()}
+function refreshMenu(){const n=Object.keys(P.ach).length;
+  $('mBest').textContent=fmt(P.best);$('mKills').textContent=P.kills.toLocaleString();$('mRuns').textContent=P.runs.toLocaleString();$('mAch').textContent=n+' / '+ACH.length}
+function startGame(){if(G&&G.live)commitRun();initAudio();newGame();G.live=true;P.runs++;saveProfile();
+  state='play';show(null);$('hud').hidden=false;updateLoadout();touch.active=false;last=performance.now();checkAch()}
+function toMenu(){if(G&&G.live)commitRun();state='menu';newGame();$('hud').hidden=true;show('scrMenu');refreshMenu();$('startBtn').focus()}
 function togglePause(){if(state==='play'){state='paused';show('scrPause');$('resumeBtn').focus()}else if(state==='paused'){state='play';show(null);last=performance.now()}}
-function gameOver(){state='over';if(G.t>best){best=G.t;try{localStorage.setItem('carnageBest',String(best))}catch(e){}}
-  $('rTime').textContent=fmt(G.t);$('rKills').textContent=G.kills;$('rLvl').textContent=G.level;$('rBest').textContent=fmt(best);
-  explode(G.p.x,G.p.y,140,0);setTimeout(()=>{show('scrOver');$('againBtn').focus()},700)}
+function gameOver(){state='over';commitRun();
+  $('rTime').textContent=fmt(G.t);$('rKills').textContent=G.kills;$('rLvl').textContent=G.level;$('rBest').textContent=fmt(P.best);
+  $('rAchWrap').hidden=!G.newAch.length;$('rAch').innerHTML=G.newAch.map(a=>`<div class="toast">${badge(a,true)}<div><b>${a.name}</b></div></div>`).join('');
+  explode(G.p.x,G.p.y,140,0);setTimeout(()=>{if(state!=='over')return;show('scrOver');$('againBtn').focus()},700)}
+function renderAch(){const r=rec(),n=Object.keys(P.ach).length;
+  $('achCount').textContent=`${n} of ${ACH.length} unlocked`;$('achFill').style.width=(n/ACH.length*100)+'%';
+  const val=(a,v)=>a.time?fmt(v):Math.floor(v).toLocaleString();
+  $('achGrid').innerHTML=ACH.map(a=>{const on=P.ach[a.id],v=Math.min(r[a.k],a.n);
+    const foot=on?`<span class="date">Unlocked ${new Date(on).toLocaleDateString()}</span>`
+      :`<div class="prog"><i style="width:${(v/a.n*100).toFixed(1)}%"></i></div><span class="pt">${val(a,v)} / ${val(a,a.n)}</span>`;
+    return`<div class="ach${on?' on':''}">${badge(a,on)}<div class="info"><b>${a.name}</b><p>${a.desc}</p>${foot}</div></div>`}).join('')}
+function renderSettings(){for(const b of document.querySelectorAll('.switch'))b.setAttribute('aria-checked',String(!!S[b.dataset.set]));
+  $('volRange').value=S.vol;$('volOut').textContent=S.vol+'%';$('shakeRange').value=S.shake;$('shakeOut').textContent=S.shake+'%';
+  clearTimeout(resetArm);resetArm=0;$('resetBtn').textContent='Reset'}
+let resetArm=0;
 function buildChoices(){
   const pool=[],nW=Object.keys(G.weapons).length,nP=Object.keys(G.passives).length;
   for(const k in WDEF){const l=G.weapons[k]?G.weapons[k].lvl:0;if(l>=5)continue;if(!l&&nW>=4)continue;pool.push({kind:'w',k,next:l+1})}
@@ -569,19 +758,35 @@ function pickChoice(i){const c=choices[i];if(!c||state!=='levelup')return;
   G.pending--;updateLoadout();
   if(G.pending>0)openLevelup();else{state='play';show(null);last=performance.now()}}
 $('cards').addEventListener('click',e=>{const b=e.target.closest('.card');if(b)pickChoice(+b.dataset.i)});
-$('startBtn').onclick=startGame;$('againBtn').onclick=startGame;
+$('startBtn').onclick=startGame;$('againBtn').onclick=startGame;$('quitBtn').onclick=startGame;
+$('pMenuBtn').onclick=toMenu;$('oMenuBtn').onclick=toMenu;
 $('pauseBtn').onclick=()=>{$('pauseBtn').blur();togglePause()};$('resumeBtn').onclick=togglePause;
-$('quitBtn').onclick=startGame;
-$('muteBtn').onclick=()=>{muted=!muted;$('muteBtn').textContent='Sound: '+(muted?'off':'on')};
+$('achBtn').onclick=e=>openSub('scrAch',e.currentTarget);$('setBtn').onclick=e=>openSub('scrSet',e.currentTarget);
+$('howBtn').onclick=e=>openSub('scrHow',e.currentTarget);$('pSetBtn').onclick=e=>openSub('scrSet',e.currentTarget);
+for(const b of document.querySelectorAll('.back'))b.onclick=goBack;
+for(const b of document.querySelectorAll('.switch'))b.onclick=()=>{const k=b.dataset.set;S[k]=!S[k];saveSettings();renderSettings();
+  if(k==='sound'){initAudio();applyVolume();sfx('pick')}};
+$('volRange').oninput=e=>{S.vol=+e.target.value;$('volOut').textContent=S.vol+'%';applyVolume()};
+$('volRange').onchange=()=>{saveSettings();initAudio();sfx('pick')};
+$('shakeRange').oninput=e=>{S.shake=+e.target.value;$('shakeOut').textContent=S.shake+'%'};
+$('shakeRange').onchange=saveSettings;
+$('resetBtn').onclick=()=>{const b=$('resetBtn');
+  if(!resetArm){b.textContent='Sure?';resetArm=setTimeout(()=>{resetArm=0;b.textContent='Reset'},3000);return}
+  clearTimeout(resetArm);resetArm=0;P=Object.assign({},P0,{ach:{}});saveProfile();try{localStorage.removeItem('carnageBest')}catch(e){}b.textContent='Wiped'};
 
 /* ---------- loop ---------- */
-newGame();
+// main-menu backdrop: the car does donuts around the screen edge
+function attract(dt){G.t+=dt;const p=G.p,R=clamp(Math.min(VW,VH)*.4,160,460),w=0.5,a=G.t*w;
+  p.x=ARENA/2+Math.cos(a)*R;p.y=ARENA/2+Math.sin(a)*R*.8;p.a=Math.atan2(Math.cos(a)*.8,-Math.sin(a))+0.35;p.vx=p.vy=0;
+  if(Math.random()<.8){const fx=Math.cos(p.a),fy=Math.sin(p.a);for(const sd of[-1,1])part(p.x-fx*16-fy*sd*10,p.y-fy*16+fx*sd*10,rand(-20,20),rand(-20,20),rand(.6,1),rand(6,10),null,'smoke')}
+  updateFx(dt)}
+newGame();show('scrMenu');refreshMenu();
 let last=performance.now();
 function frame(now){
   const dt=Math.min(0.05,(now-last)/1000);last=now;
   if(state==='play'){update(dt);updateHud()}
-  else if(state==='menu'){G.t+=dt;G.p.a+=dt*.3;}
-  const c=G.cam,p=G.p,tx=p.x+p.vx*.3,ty=p.y+p.vy*.3,k=1-Math.exp(-6*dt);c.x+=(tx-c.x)*k;c.y+=(ty-c.y)*k;
+  else if(state==='menu')attract(dt);
+  const c=G.cam,p=G.p,am=state==='menu',tx=am?ARENA/2:p.x+p.vx*.3,ty=am?ARENA/2:p.y+p.vy*.3,k=1-Math.exp(-6*dt);c.x+=(tx-c.x)*k;c.y+=(ty-c.y)*k;
   draw();requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);
