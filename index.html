@@ -411,7 +411,7 @@ const S0={sound:true,vol:80,shake:100,dmgNums:true,flash:true,lowFx:false,autoPa
 const P0={runs:0,kills:0,bossKills:0,eliteKills:0,time:0,best:0,bestKills:0,bestLevel:0,bestRam:0,bestBarrels:0,bestWeapons:0,bestWlvl:0,bestBrink:0,
   acctXp:0,bought:0,lastLevel:0,ach:{},tracks:{},scrap:0,garage:{},cars:{interceptor:1},car:'interceptor',bestProps:0,powerups:0};
 const S=load('carnageSettings',S0);
-let P=load('carnageProfile',P0);P.ach=Object.assign({},P.ach);P.tracks=Object.assign({},P.tracks);P.garage=Object.assign({},P.garage);P.cars=Object.assign({interceptor:1},P.cars);
+let P=load('carnageProfile',P0);P.ach=Object.assign({},P.ach);P.tracks=Object.assign({},P.tracks);P.garage=Object.assign({},P.garage);P.cars=Object.assign({interceptor:1},P.cars);if(!P.cars[P.car])P.car='interceptor';
 if(!P.best){try{P.best=+localStorage.getItem('carnageBest')||0}catch(e){}}
 const saveSettings=()=>save('carnageSettings',S),saveProfile=()=>save('carnageProfile',P);
 
@@ -422,7 +422,7 @@ function acctInfo(xp){let lv=1;while(xp>=needFor(lv)){xp-=needFor(lv);lv++}retur
 /* ---------- canvas ---------- */
 const cv=$('cv');let ctx=cv.getContext('2d');
 let VW=0,VH=0,DPR=1;
-function resize(){DPR=S.lowFx?1:Math.min(2,window.devicePixelRatio||1);VW=innerWidth;VH=innerHeight;cv.width=Math.round(VW*DPR);cv.height=Math.round(VH*DPR);vignette=null}
+function resize(){DPR=S.lowFx?1:Math.min(2,window.devicePixelRatio||1);VW=innerWidth;VH=innerHeight;cv.width=Math.round(VW*DPR);cv.height=Math.round(VH*DPR);vignette=null;spriteCache.clear();textCache.clear()}
 addEventListener('resize',resize);
 
 /* ---------- audio ---------- */
@@ -446,6 +446,8 @@ const keys={};
 addEventListener('keydown',e=>{
   if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space'].includes(e.code)&&state==='play')e.preventDefault();
   keys[e.code]=true;
+  // held keys repeat: never let that toggle pause, re-trigger a pick, or click a button that just took focus
+  if(e.repeat&&(/^(Digit[1-3]|KeyP|KeyF|Escape)$/.test(e.code)||(state!=='play'&&/^(Space|Enter|NumpadEnter)$/.test(e.code)))){if(state!=='play')e.preventDefault();return}
   if(state!=='play'&&(e.code==='ArrowUp'||e.code==='ArrowDown'))menuNav(e);
   if(SUBS.includes(cur)){if(e.code==='Escape')goBack();return}
   if(state==='shop'){if(e.code==='Escape'||e.code==='KeyF')closeShop();else if(/^Digit[1-3]$/.test(e.code))buy(+e.code.slice(5)-1);return}
@@ -657,7 +659,9 @@ const DROPS={
 };
 const BUFFS={nitro:{name:'Nitro',col:'#4f8bff',t:8},fury:{name:'Overdrive',col:'#ffc21a',t:10},freeze:{name:'Freeze',col:'#9fe4ff',t:5},bubble:{name:'Bubble',col:'#3fe0d0',t:6}};
 function rollDrop(mul){let r=Math.random()/(mul*G.stats.drop);for(const k in DROPS){if((r-=DROPS[k].w)<0)return k}return null}
-function dropPickup(x,y,type){const k={x,y,type,t:0};collideObs(k,16);G.pickups.push(k)}
+// a guaranteed drop, picked in proportion to the weights above
+function pickDrop(){let tot=0;for(const k in DROPS)tot+=DROPS[k].w;let r=Math.random()*tot;for(const k in DROPS)if((r-=DROPS[k].w)<0)return k;return'wrench'}
+function dropPickup(x,y,type){if(type!=='chest'&&G.pickups.length>=60){const i=G.pickups.findIndex(q=>q.type!=='chest');if(i>=0)G.pickups.splice(i,1)}const k={x,y,type,t:0};collideObs(k,16);G.pickups.push(k)}
 
 /* ---------- world: obstacles, props, hazards ---------- */
 // barrel kinds; acid leaves a burning puddle behind
@@ -708,7 +712,7 @@ function buildWorld(L){
   const prop=(k,n,r)=>{for(let i=0,t=0;i<n&&t<n*30;t++){const x=rand(80,ARENA-80),y=rand(80,ARENA-80);if(!free(x,y,r,8)||d2(x,y,sx,sy)<300*300)continue;const o={k,x,y,r,prop:true,rot:rand(0,TAU)};W.props.push(o);gridAdd(o);i++}};
   const zone=(k,n,r0,r1)=>{for(let i=0,t=0;i<n&&t<n*30;t++){const r=rand(r0,r1),x=rand(150,ARENA-150),y=rand(150,ARENA-150);if(d2(x,y,sx,sy)<(380+r)**2||solidAt(x,y,r*.6))continue;W.zones.push({k,x,y,r,rot:rand(0,TAU),pts:blob(r,10,.3)});i++}};
   const strips=n=>{for(let i=0,t=0;i<n&&t<n*30;t++){const v=Math.random()<.5,w=v?18:150,h=v?150:18,x=rand(200,ARENA-200),y=rand(200,ARENA-200);if(d2(x,y,sx,sy)<500*500||solidAt(x,y,80))continue;W.zones.push({k:'spikes',x,y,w,h,rect:true,r:80});i++}};
-  const pylons=n=>{for(let i=0,t=0;i<n&&t<n*30;t++){const x=rand(200,ARENA-200),y=rand(200,ARENA-200);if(!free(x,y,60))continue;add({k:'pylon',x,y,r:16,solid:true});W.pylons.push({x,y,t:rand(0,4)});i++}};
+  const pylons=n=>{for(let i=0,t=0;i<n&&t<n*30;t++){const x=rand(200,ARENA-200),y=rand(200,ARENA-200);if(!free(x,y,60))continue;const py={x,y,t:rand(0,4)};W.pylons.push(py);add({k:'pylon',x,y,r:16,solid:true,py});i++}};
   const th=L.theme;
   if(th==='city'){
     // city blocks between the painted roads every 600px; the middle block is an open plaza
@@ -731,11 +735,13 @@ function buildWorld(L){
   for(let i=0,t=0;i<30&&t<600;t++){const k=L.barrels[Math.floor(Math.random()*L.barrels.length)],B=BTYPES[k],x=rand(120,ARENA-120),y=rand(120,ARENA-120);
     if(d2(x,y,sx,sy)<320*320||solidAt(x,y,B.r+6)||W.zones.some(z=>d2(x,y,z.x,z.y)<z.r*z.r))continue;W.barrels.push({x,y,r:B.r,t:k,alive:true,respawn:0,fuse:-1});i++}
   buildFlowBlock();return W}
+function propsTouch(x,y,r){let n=0;const x0=clamp((x-r)/OG|0,0,ON-1),x1=clamp((x+r)/OG|0,0,ON-1),y0=clamp((y-r)/OG|0,0,ON-1),y1=clamp((y+r)/OG|0,0,ON-1);
+  for(let cx=x0;cx<=x1;cx++)for(let cy=y0;cy<=y1;cy++)for(const o of ocells[cx*ON+cy])if(o.prop&&!o.dead&&d2(o.x,o.y,x,y)<(o.r+r)**2){breakProp(o);n++}return n}
 function zoneHit(z,x,y,r){if(z.rect)return Math.abs(x-z.x)<z.w/2+r*.5&&Math.abs(y-z.y)<z.h/2+r*.5;return d2(x,y,z.x,z.y)<z.r*z.r*.85}
 function breakProp(o){if(o.dead)return;o.dead=true;G.propsBroken++;
   const col={crate:'#8a5a32',hay:'#d9b45a',cone:'#ff7a1f',hydrant:'#d63434',snowman:'#eef4ff'}[o.k]||'#888';
   for(let i=0;i<(S.lowFx?4:9);i++){const a=rand(0,TAU),s=rand(80,300);part(o.x,o.y,Math.cos(a)*s,Math.sin(a)*s,rand(.4,.8),rand(3,6),col,'debris')}
-  sfx('crash');if(o.k==='crate'){const d=rollDrop(60);if(d)dropPickup(o.x,o.y,d)}else if(Math.random()<0.05*G.stats.drop){const d=rollDrop(25);if(d)dropPickup(o.x,o.y,d)}}
+  sfx('crash');if(Math.random()<(o.k==='crate'?0.6:0.05)*G.stats.drop)dropPickup(o.x,o.y,pickDrop())}
 function updateHazards(dt){const p=G.p;
   for(const z of G.zones)if(z.life!=null)z.life-=dt;prune(G.zones,z=>z.life==null||z.life>0);
   for(const py of G.pylons){py.t+=dt;if(py.t>=4.5){py.t=0;const R=170,pts=[];
@@ -743,8 +749,8 @@ function updateHazards(dt){const p=G.p;
     for(const e of near(py.x,py.y,R+70)){if(e.dead||d2(e.x,e.y,py.x,py.y)>R*R)continue;damageEnemy(e,(e.big?120:70)*G.L.diff);if(pts.length<10)pts.push([e.x,e.y])}
     for(const q of pts)G.arcs.push({pts:[[py.x,py.y],q],life:0.2});G.rings.push({x:py.x,y:py.y,r:20,max:R,dmg:0,hit:null,col:'140,230,255'});if(pts.length)sfx('zap')}}
   // props shatter when the player (or a boss) drives through them
-  const c=ocells[clamp(p.x/OG|0,0,ON-1)*ON+clamp(p.y/OG|0,0,ON-1)];for(const o of c)if(o.prop&&!o.dead&&d2(o.x,o.y,p.x,p.y)<(o.r+p.r)**2){breakProp(o);p.vx*=.9;p.vy*=.9}
-  for(const e of G.enemies){if(!e.big||e.dead)continue;const ce=ocells[clamp(e.x/OG|0,0,ON-1)*ON+clamp(e.y/OG|0,0,ON-1)];for(const o of ce)if(o.prop&&!o.dead&&d2(o.x,o.y,e.x,e.y)<(o.r+e.r)**2)breakProp(o)}
+  if(propsTouch(p.x,p.y,p.r)){p.vx*=.9;p.vy*=.9}
+  for(const e of G.enemies)if(e.big&&!e.dead)propsTouch(e.x,e.y,e.r)
 }
 function usePickup(k){const p=G.p;G.powerups++;
   if(k.type==='wrench'){p.hp=Math.min(p.maxhp,p.hp+30);addText(p.x,p.y-30,'+30 HP','#5cf08a');G.powerups--}
@@ -794,7 +800,7 @@ function drawObstacles(vis){const th=G.L.theme;
     else if(k==='tires'){for(let i=0;i<3;i++){ctx.fillStyle=i%2?'#26232b':'#0e0d10';ctx.beginPath();ctx.arc(o.x,o.y,o.r*(1-i*.3),0,TAU);ctx.fill()}}
     else if(k==='silo'){ctx.fillStyle='#9aa0a8';ctx.beginPath();ctx.arc(o.x,o.y,o.r,0,TAU);ctx.fill();ctx.strokeStyle='#6a7078';ctx.lineWidth=3;ctx.beginPath();ctx.arc(o.x,o.y,o.r*.6,0,TAU);ctx.stroke()}
     else if(k==='lamp'){ctx.fillStyle='#55525d';ctx.beginPath();ctx.arc(o.x,o.y,o.r,0,TAU);ctx.fill();ctx.fillStyle='rgba(255,220,150,.035)';ctx.beginPath();ctx.arc(o.x,o.y,38,0,TAU);ctx.fill();ctx.fillStyle='#fff3c0';ctx.beginPath();ctx.arc(o.x,o.y,3,0,TAU);ctx.fill()}
-    else if(k==='pylon'){const py=G.pylons.find(q=>q.x===o.x&&q.y===o.y),ch=py&&py.t>3.6?(py.t-3.6)/0.9:0;
+    else if(k==='pylon'){const py=o.py,ch=py.t>3.6?(py.t-3.6)/0.9:0;
       if(ch>0){ctx.strokeStyle=`rgba(140,230,255,${.25+.5*ch})`;ctx.lineWidth=2;ctx.setLineDash([10,8]);ctx.beginPath();ctx.arc(o.x,o.y,170,0,TAU);ctx.stroke();ctx.setLineDash([])}
       ctx.fillStyle='#3a3644';ctx.beginPath();ctx.arc(o.x,o.y,o.r,0,TAU);ctx.fill();ctx.strokeStyle='#8ce6ff';ctx.lineWidth=3;ctx.beginPath();ctx.arc(o.x,o.y,o.r*.55,0,TAU);ctx.stroke();ctx.fillStyle=`rgba(200,245,255,${.4+.6*ch})`;ctx.beginPath();ctx.arc(o.x,o.y,4+ch*4,0,TAU);ctx.fill()}}
 }
@@ -883,7 +889,8 @@ function recalc(){const P_=G.passives,T=G.tk,s=G.stats,C=G.car;
 
 /* ---------- effects ---------- */
 const partCap=()=>S.lowFx?350:1000;
-function part(x,y,vx,vy,life,size,col,kind){if(G.parts.length>partCap())return;G.parts.push({x,y,vx,vy,life,max:life,size,col,kind,rot:rand(0,TAU)})}
+const PPOOL=[];
+function part(x,y,vx,vy,life,size,col,kind){if(G.parts.length>partCap())return;const q=PPOOL.pop()||{};q.x=x;q.y=y;q.vx=vx;q.vy=vy;q.life=life;q.max=life;q.size=size;q.col=col;q.kind=kind;G.parts.push(q)}
 function addText(x,y,txt,col){if(G.texts.length>60)G.texts.shift();G.texts.push({x:x+rand(-8,8),y,txt,col,life:0.7})}
 function boomFx(x,y,R){const lo=S.lowFx?0.4:1;
   for(let i=0;i<Math.min(30,8+R/4)*lo;i++){const a=rand(0,TAU),s=rand(40,R*3.2);part(x,y,Math.cos(a)*s,Math.sin(a)*s,rand(.3,.6),rand(8,R*.35),null,'fire')}
@@ -912,7 +919,7 @@ function killEnemy(e){
   if(e.big||e.elite)dropPickup(e.x,e.y,'chest');
   else{const d=rollDrop(1);if(d)dropPickup(e.x,e.y,d)}
   if(e.elite)G.eliteKills++;
-  if(e.type==='mini'){G.miniKills++;G.mini=null;explode(e.x,e.y,160,0);
+  if(e.type==='mini'){G.miniKills++;if(G.mini===e)G.mini=G.enemies.find(x=>x.type==='mini'&&!x.dead)||null;explode(e.x,e.y,160,0);
     const left=G.L.minis-G.miniKills;
     if(G.cleared||G.lboss)showBanner('Juggernaut down','Supply crate dropped');
     else if(left>0)showBanner('Juggernaut down',`${left} more to draw out ${G.L.boss.name}`);
@@ -943,15 +950,17 @@ function spawnEnemy(type,o={}){
     charge:0,chargeCd:4,ringCd:3,burstCd:2,sumCd:6,burn:0};
   G.enemies.push(e);return e;
 }
+// hard ceiling for everything that spawns cars (regular spawns stop at 260 so ambushes still have room)
+const ECAP=290;
 function pickType(t){const w=[['buggy',5],['sedan',t>20?4:1],['truck',t>60?2:0],['gunner',t>90?2:0]];let tot=0;for(const x of w)tot+=x[1];let r=Math.random()*tot;for(const [k,v] of w){if((r-=v)<0)return k}return'buggy'}
 function spawnUpdate(dt){
   const t=G.t,L=G.L,te=t+L.head,rate=(0.8+te/22+(te>240?(te-240)/14:0))*L.rate;
   G.spawnT+=dt*rate;
   while(G.spawnT>=1){G.spawnT-=1;if(G.enemies.length<260)spawnEnemy(pickType(te))}
-  if(t>=G.nextAmbush){G.nextAmbush+=45;const n=12+Math.floor(te/30);for(let i=0;i<n;i++){const a=i/n*TAU;spawnEnemy('buggy',{x:G.p.x+Math.cos(a)*460,y:G.p.y+Math.sin(a)*460})}showBanner('Ambush!','They’re boxing you in')}
+  if(t>=G.nextAmbush){G.nextAmbush+=45;const n=12+Math.floor(te/30);for(let i=0;i<n&&G.enemies.length<ECAP;i++){const a=i/n*TAU;spawnEnemy('buggy',{x:G.p.x+Math.cos(a)*460,y:G.p.y+Math.sin(a)*460})}showBanner('Ambush!','They’re boxing you in')}
   if(t>=G.nextElite){G.nextElite+=70;spawnEnemy(Math.random()<.5?'truck':'sedan',{elite:true,hpMul:7,scale:1.3,xpMul:5,col:'#e8e4ee',spdMul:1.1});showBanner('Chrome hunter','Wreck it for a supply crate and bolts')}
   // mini boss once every 3 minutes
-  if(t>=G.nextMini){G.nextMini+=180;G.minisSpawned++;G.mini=spawnEnemy('mini',{hpMul:1+(G.minisSpawned-1)*0.5,ab:{charge:1}});
+  if(t>=G.nextMini){G.nextMini+=180;G.minisSpawned++;G.mini=spawnEnemy('mini',{hpMul:1+(G.minisSpawned-1)*0.5,ab:{charge:1}});G.mini.num=G.minisSpawned;
     showBanner('Juggernaut inbound',G.cleared?'Don’t let it charge you':`Mini boss ${Math.min(G.miniKills+1,L.minis)} of ${L.minis}`);sfx('boss')}
   // level boss after enough mini bosses
   if(G.bossDue>0&&t>=G.bossDue){G.bossDue=-1;const B=L.boss;
@@ -961,7 +970,7 @@ function spawnUpdate(dt){
 
 /* ---------- traders ---------- */
 function spawnTrader(){const p=G.p;let k;do k=Math.floor(Math.random()*3);while(k===G.lastTrader);G.lastTrader=k;const T=TRADERS[k];
-  let a,px,py;for(let i=0;i<20;i++){a=rand(0,TAU);const D=rand(360,480);px=clamp(p.x+Math.cos(a)*D,220,ARENA-220);py=clamp(p.y+Math.sin(a)*D,220,ARENA-220);if(!solidAt(px,py,70))break}
+  let a,px,py;for(let i=0;i<20;i++){a=rand(0,TAU);const D=rand(360,480);px=clamp(p.x+Math.cos(a)*D,220,ARENA-220);py=clamp(p.y+Math.sin(a)*D,220,ARENA-220);if(!solidAt(px,py,70)&&!G.zones.some(z=>zoneHit(z,px,py,70)))break}
   const sx=clamp(px+Math.cos(a)*900,60,ARENA-60),sy=clamp(py+Math.sin(a)*900,60,ARENA-60);
   G.trader={T,x:sx,y:sy,px,py,a:Math.atan2(py-sy,px-sx),v:320,phase:'arrive',stay:45,offers:shuffle(T.pool.slice()).slice(0,3).map(id=>({id,sold:false}))};
   showBanner(T.name+' is in town','Pull up to the truck and press F to trade');sfx('horn')}
@@ -1022,14 +1031,15 @@ function bossMoves(e,dt,d,dx,dy){const ab=e.ab,p=G.p;let target=e.spd;
   const bd=7*(1+G.t/400)*(0.7+0.3*G.L.diff);
   if(ab.ring){e.ringCd-=dt;if(e.ringCd<=0&&d<800){e.ringCd=rand(3.5,5);const n=18,o=rand(0,TAU);for(let i=0;i<n;i++){const a=o+i/n*TAU;G.ebullets.push({x:e.x,y:e.y,vx:Math.cos(a)*240,vy:Math.sin(a)*240,life:3,dmg:bd})}}}
   if(ab.burst){e.burstCd-=dt;if(e.burstCd<=0&&d<700){e.burstCd=2.2;const a0=Math.atan2(dy+p.vy*.3,dx+p.vx*.3);for(let i=-2;i<=2;i++){const a=a0+i*0.12;G.ebullets.push({x:e.x,y:e.y,vx:Math.cos(a)*400,vy:Math.sin(a)*400,life:2.2,dmg:bd*1.2})}}}
-  if(ab.summon){e.sumCd-=dt;if(e.sumCd<=0){e.sumCd=9;for(let i=0;i<6;i++){const a=i/6*TAU;spawnEnemy('buggy',{x:e.x+Math.cos(a)*120,y:e.y+Math.sin(a)*120})}}}
+  if(ab.summon){e.sumCd-=dt;if(e.sumCd<=0){e.sumCd=9;for(let i=0;i<6&&G.enemies.length<ECAP;i++){const a=i/6*TAU;spawnEnemy('buggy',{x:e.x+Math.cos(a)*120,y:e.y+Math.sin(a)*120})}}}
   return target}
 
+const DZ=[];
 function updateEnemies(dt){
-  const p=G.p,s=G.stats,E=G.enemies,tr=G.trader,fr=G.buffs.freeze>0,Z=G.zones;
+  const p=G.p,s=G.stats,E=G.enemies,tr=G.trader,fr=G.buffs.freeze>0,Z=DZ;DZ.length=0;for(const z of G.zones)if(ZONES[z.k].edps)DZ.push(z);
   for(const e of E){
     if(e.dead)continue;e.flash-=dt;e.ccd-=dt;e.sawCd-=dt;
-    for(let i=0;i<Z.length;i++){const z=Z[i],zd=ZONES[z.k].edps;if(zd&&Math.abs(e.x-z.x)<z.r+e.r&&Math.abs(e.y-z.y)<z.r+e.r&&zoneHit(z,e.x,e.y,e.r))damageEnemy(e,zd*dt*G.L.diff,false)}
+    for(let i=0;i<Z.length;i++){const z=Z[i],zd=ZONES[z.k].edps;if(Math.abs(e.x-z.x)<z.r+e.r&&Math.abs(e.y-z.y)<z.r+e.r&&zoneHit(z,e.x,e.y,e.r))damageEnemy(e,zd*dt*G.L.diff,false)}
     if(e.dead)continue;
     const dx=p.x-e.x,dy=p.y-e.y,d=Math.hypot(dx,dy)||1;let target=e.spd;
     if(!fr){
@@ -1156,14 +1166,14 @@ function updatePickups(dt){
     if(dd<(p.r+8)**2){g.got=true;if(g.b){G.bolts+=g.v;sfx('bolt')}else{addXp(g.v);G.scrapRaw+=g.v;sfx('pick')}}}
   prune(G.gems,g=>!g.got);
   // too much scrap on the floor: fold the oldest 60 XP gems into one
-  if(G.gems.length>350){let v=0,x=0,y=0,n=0;prune(G.gems,g=>{if(g.b||n>=60)return true;if(!n){x=g.x;y=g.y}n++;v+=g.v;return false});if(n)G.gems.push({x,y,v,vx:0,vy:0,pull:false,sp:0})}
+  while(G.gems.length>350){let v=0,x=0,y=0,n=0;prune(G.gems,g=>{if(g.b||n>=60)return true;if(!n){x=g.x;y=g.y}n++;v+=g.v;return false});if(!n)break;G.gems.push({x,y,v,vx:0,vy:0,pull:false,sp:0})}
   for(const k of G.pickups){k.t+=dt;if(d2(k.x,k.y,p.x,p.y)<(p.r+16)**2){k.got=true;usePickup(k)}
     else if(k.type!=='chest'&&k.t>35)k.got=true}
   prune(G.pickups,k=>!k.got);
 }
 function updateFx(dt){
-  for(const q of G.parts){q.life-=dt;q.x+=q.vx*dt;q.y+=q.vy*dt;const dr=Math.exp(-(q.kind==='smoke'?2:q.kind==='spark'?3:3.5)*dt);q.vx*=dr;q.vy*=dr;q.rot+=dt*4}
-  prune(G.parts,q=>q.life>0);
+  const ds=Math.exp(-2*dt),dk=Math.exp(-3*dt),df=Math.exp(-3.5*dt),A=G.parts;let j=0;
+  for(let i=0;i<A.length;i++){const q=A[i];q.life-=dt;if(q.life<=0){if(PPOOL.length<2000)PPOOL.push(q);continue}q.x+=q.vx*dt;q.y+=q.vy*dt;const dr=q.kind==='smoke'?ds:q.kind==='spark'?dk:df;q.vx*=dr;q.vy*=dr;A[j++]=q}A.length=j;
   for(const t of G.texts){t.life-=dt;t.y-=42*dt}prune(G.texts,t=>t.life>0);
   for(const b of G.booms){b.life-=dt;b.r+=(b.max-b.r)*Math.min(1,18*dt)}prune(G.booms,b=>b.life>0);
   for(const a of G.arcs)a.life-=dt;prune(G.arcs,a=>a.life>0);
@@ -1221,23 +1231,51 @@ function drawTrader(tr){const T=tr.T,parked=tr.phase==='parked';
   ctx.font='700 13px "Chakra Petch",sans-serif';ctx.textAlign='center';ctx.lineWidth=3;ctx.strokeStyle='#0a090c';
   const label=T.name.toUpperCase()+(parked?` · ${Math.ceil(tr.stay)}s`:'');ctx.strokeText(label,tr.x,tr.y-62);ctx.fillStyle=T.col;ctx.fillText(label,tr.x,tr.y-62)}
 let vignette=null,vigKey='';
+// enemy cars come in a handful of looks: render each look once and stamp it with one drawImage
+const spriteCache=new Map(),textCache=new Map();
+const CAR_EXTRA={
+  gun:()=>()=>{ctx.fillStyle='#2b2930';ctx.beginPath();ctx.arc(-2,0,6,0,TAU);ctx.fill();ctx.fillStyle='#e48bff';ctx.fillRect(2,-2,12,4)},
+  elite:(len,wid)=>()=>{ctx.strokeStyle='#ffc21a';ctx.lineWidth=2;rr(-len/2,-wid/2,len,wid,wid*.25);ctx.stroke()},
+  boss:(len,wid,lb,ch)=>()=>{ctx.fillStyle='#7d7a86';ctx.beginPath();ctx.moveTo(len/2,-wid/2-8);ctx.lineTo(len/2+14,-wid/2);ctx.lineTo(len/2+14,wid/2);ctx.lineTo(len/2,wid/2+8);ctx.closePath();ctx.fill();ctx.fillStyle='#2b2930';ctx.fillRect(-len*.45,-wid*.42,len*.42,wid*.84);ctx.fillStyle='#3d3a44';ctx.beginPath();ctx.arc(len*.05,-wid*.42,5,0,TAU);ctx.arc(len*.05,wid*.42,5,0,TAU);ctx.fill();
+    if(lb){ctx.fillStyle='#ffc21a';for(let i=0;i<4;i++)ctx.fillRect(-len*.4+i*len*.1,-4,len*.05,8)}
+    if(ch){ctx.strokeStyle='#ff5a1f';ctx.lineWidth=3;ctx.strokeRect(-len/2-4,-wid/2-4,len+8,wid+8)}},
+};
+function carSprite(len,wid,col,flash,kind){const key=len+'|'+wid+'|'+col+'|'+(flash?1:0)+'|'+kind;let sp=spriteCache.get(key);if(sp)return sp;
+  const pad=kind==='gun'||!kind?7:kind==='elite'?8:18,w=Math.ceil(len+pad*2),h=Math.ceil(wid+pad*2),c=document.createElement('canvas');c.width=Math.ceil(w*DPR);c.height=Math.ceil(h*DPR);
+  const keep=ctx;ctx=c.getContext('2d');ctx.setTransform(DPR,0,0,DPR,w/2*DPR,h/2*DPR);
+  const ex=kind==='gun'?CAR_EXTRA.gun():kind==='elite'?CAR_EXTRA.elite(len,wid):kind?CAR_EXTRA.boss(len,wid,kind[0]==='l',kind.endsWith('C')):null;
+  try{drawCar(0,0,0,len,wid,col,flash,ex)}finally{ctx=keep}
+  sp={c,w,h};spriteCache.set(key,sp);return sp}
+// screen-space stamp: rotate about the car's centre without save/restore
+function blitCar(sp,sx,sy,a){const c=Math.cos(a)*DPR,sn=Math.sin(a)*DPR;ctx.setTransform(c,sn,-sn,c,sx*DPR,sy*DPR);ctx.drawImage(sp.c,-sp.w/2,-sp.h/2,sp.w,sp.h)}
+// damage numbers: outline + fill text once per value and colour, then reuse
+function textSprite(txt,col){const key=txt+'|'+col;let sp=textCache.get(key);if(sp)return sp;if(textCache.size>500)textCache.clear();
+  const c=document.createElement('canvas'),g=c.getContext('2d'),font='700 14px "Chakra Petch",sans-serif';g.font=font;const w=Math.ceil(g.measureText(txt).width)+8,h=22;
+  c.width=Math.ceil(w*DPR);c.height=Math.ceil(h*DPR);g.scale(DPR,DPR);g.font=font;g.textAlign='center';g.lineWidth=3;g.strokeStyle='#0a090c';g.strokeText(txt,w/2,16);g.fillStyle=col;g.fillText(txt,w/2,16);
+  sp={c,w,h};textCache.set(key,sp);return sp}
+if(document.fonts)document.fonts.addEventListener('loadingdone',()=>textCache.clear());
+// particle buckets reused every frame: one pass sorts them, then each bucket is a single fill
+const PB_S=[[],[],[],[],[]],PB_F=[[],[],[],[],[],[]],PB_D=[],PB_K=[];
 function draw(){
   const p=G.p,c=G.cam,lo=S.lowFx;
   const sh=G.shake*S.shake/100,sx=(Math.random()-.5)*sh*2,sy=(Math.random()-.5)*sh*2;
-  ctx.setTransform(DPR,0,0,DPR,0,0);ctx.fillStyle='#0b0a0d';ctx.fillRect(0,0,VW,VH);
-  const ox=VW/2-c.x+sx,oy=VH/2-c.y+sy;G.view.ox=ox;G.view.oy=oy;ctx.translate(ox,oy);
-  const L=c.x-VW/2-60,T=c.y-VH/2-60,R=c.x+VW/2+60,B=c.y+VH/2+60;const vis=(x,y,m)=>x>L-m&&x<R+m&&y>T-m&&y<B+m;
+  const L=c.x-VW/2-60,T=c.y-VH/2-60,R=c.x+VW/2+60,B=c.y+VH/2+60;
+  ctx.setTransform(DPR,0,0,DPR,0,0);if(L<0||T<0||R>ARENA||B>ARENA){ctx.fillStyle='#0b0a0d';ctx.fillRect(0,0,VW,VH)}
+  const ox=VW/2-c.x+sx,oy=VH/2-c.y+sy;G.view.ox=ox;G.view.oy=oy;ctx.translate(ox,oy);const vis=(x,y,m)=>x>L-m&&x<R+m&&y>T-m&&y<B+m;
   ctx.fillStyle=groundPat;ctx.fillRect(Math.max(0,L),Math.max(0,T),Math.min(ARENA,R)-Math.max(0,L),Math.min(ARENA,B)-Math.max(0,T));
   // paint
-  ctx.strokeStyle=`rgba(${G.L.paint},.12)`;ctx.lineWidth=6;ctx.setLineDash([60,50]);ctx.beginPath();
-  for(let g=600;g<ARENA;g+=600){ctx.moveTo(g,0);ctx.lineTo(g,ARENA);ctx.moveTo(0,g);ctx.lineTo(ARENA,g)}ctx.stroke();
-  ctx.setLineDash([]);ctx.strokeStyle='rgba(239,234,244,.08)';ctx.lineWidth=14;ctx.beginPath();ctx.arc(ARENA/2,ARENA/2,320,0,TAU);ctx.stroke();ctx.lineWidth=4;ctx.beginPath();ctx.arc(ARENA/2,ARENA/2,250,0,TAU);ctx.stroke();
+  // road paint: only the on-screen stretch of each dashed line, dash phase pinned to the arena so it doesn't slide
+  ctx.strokeStyle=`rgba(${G.L.paint},.12)`;ctx.lineWidth=6;ctx.setLineDash([60,50]);
+  const y0=Math.max(0,T),y1=Math.min(ARENA,B),x0=Math.max(0,L),x1=Math.min(ARENA,R);
+  ctx.lineDashOffset=y0%110;ctx.beginPath();for(let g=600;g<ARENA;g+=600)if(g>L&&g<R){ctx.moveTo(g,y0);ctx.lineTo(g,y1)}ctx.stroke();
+  ctx.lineDashOffset=x0%110;ctx.beginPath();for(let g=600;g<ARENA;g+=600)if(g>T&&g<B){ctx.moveTo(x0,g);ctx.lineTo(x1,g)}ctx.stroke();
+  ctx.lineDashOffset=0;ctx.setLineDash([]);ctx.strokeStyle='rgba(239,234,244,.08)';ctx.lineWidth=14;ctx.beginPath();ctx.arc(ARENA/2,ARENA/2,320,0,TAU);ctx.stroke();ctx.lineWidth=4;ctx.beginPath();ctx.arc(ARENA/2,ARENA/2,250,0,TAU);ctx.stroke();
   // decals: two batched fills, ellipse() avoids a save/restore per decal
   for(const k of['oil','scorch']){ctx.fillStyle=k==='oil'?'rgba(5,5,10,.35)':'rgba(0,0,0,.45)';ctx.beginPath();
     for(const d of G.decals){if(d.k!==k||!vis(d.x,d.y,d.r))continue;ctx.moveTo(d.x+d.r,d.y);ctx.ellipse(d.x,d.y,d.r,d.r*.7,d.rot,0,TAU)}ctx.fill()}
   drawZones(vis);drawObstacles(vis);
   // walls
-  ctx.lineWidth=26;ctx.strokeStyle=G.L.wall;ctx.strokeRect(-13,-13,ARENA+26,ARENA+26);ctx.strokeStyle='#141318';ctx.setLineDash([30,30]);ctx.strokeRect(-13,-13,ARENA+26,ARENA+26);ctx.setLineDash([]);
+  if(L<30||T<30||R>ARENA-30||B>ARENA-30){ctx.lineWidth=26;ctx.strokeStyle=G.L.wall;ctx.strokeRect(-13,-13,ARENA+26,ARENA+26);ctx.strokeStyle='#141318';ctx.setLineDash([30,30]);ctx.strokeRect(-13,-13,ARENA+26,ARENA+26);ctx.setLineDash([])}
   // gems + bolts, bucketed by colour so each colour is one fill
   const spin=G.t*2;
   for(const [col,test,s] of GEMSTYLE){ctx.fillStyle=col;ctx.beginPath();
@@ -1254,12 +1292,12 @@ function draw(){
   if(G.trader&&vis(G.trader.x,G.trader.y,150))drawTrader(G.trader);
   // enemies
   const frz=G.buffs.freeze>0;
-  for(const e of G.enemies){if(!vis(e.x,e.y,e.len))continue;const ecol=frz?'#a8dcff':e.col;
-    if(e.big){drawCar(e.x,e.y,e.a,e.len,e.wid,ecol,e.flash>0,()=>{ctx.fillStyle='#7d7a86';ctx.beginPath();ctx.moveTo(e.len/2,-e.wid/2-8);ctx.lineTo(e.len/2+14,-e.wid/2);ctx.lineTo(e.len/2+14,e.wid/2);ctx.lineTo(e.len/2,e.wid/2+8);ctx.closePath();ctx.fill();ctx.fillStyle='#2b2930';ctx.fillRect(-e.len*.45,-e.wid*.42,e.len*.42,e.wid*.84);ctx.fillStyle='#3d3a44';ctx.beginPath();ctx.arc(e.len*.05,-e.wid*.42,5,0,TAU);ctx.arc(e.len*.05,e.wid*.42,5,0,TAU);ctx.fill();
-      if(e.type==='lboss'){ctx.fillStyle='#ffc21a';for(let i=0;i<4;i++)ctx.fillRect(-e.len*.4+i*e.len*.1,-4,e.len*.05,8)}
-      if(e.charge>0){ctx.strokeStyle='#ff5a1f';ctx.lineWidth=3;ctx.strokeRect(-e.len/2-4,-e.wid/2-4,e.len+8,e.wid+8)}})}
-    else drawCar(e.x,e.y,e.a,e.len,e.wid,ecol,e.flash>0,e.shoots?()=>{ctx.fillStyle='#2b2930';ctx.beginPath();ctx.arc(-2,0,6,0,TAU);ctx.fill();ctx.fillStyle='#e48bff';ctx.fillRect(2,-2,12,4)}:e.elite?()=>{ctx.strokeStyle='#ffc21a';ctx.lineWidth=2;rr(-e.len/2,-e.wid/2,e.len,e.wid,e.wid*.25);ctx.stroke()}:null);
-    if(!e.big&&e.hp<e.maxhp&&(e.maxhp>60||e.elite)){const w=e.len;ctx.fillStyle='rgba(0,0,0,.7)';ctx.fillRect(e.x-w/2,e.y-e.r-14,w,5);ctx.fillStyle='#ff3b4e';ctx.fillRect(e.x-w/2,e.y-e.r-14,w*Math.max(0,e.hp/e.maxhp),5)}}
+  for(const e of G.enemies){if(!vis(e.x,e.y,e.len))continue;
+    const kind=e.big?(e.type==='lboss'?'lboss':'mini')+(e.charge>0?'C':''):e.shoots?'gun':e.elite?'elite':'';
+    blitCar(carSprite(e.len,e.wid,frz?'#a8dcff':e.col,e.flash>0,kind),e.x+ox,e.y+oy,e.a)}
+  ctx.setTransform(DPR,0,0,DPR,ox*DPR,oy*DPR);
+  ctx.fillStyle='rgba(0,0,0,.7)';for(const e of G.enemies)if(!e.big&&e.hp<e.maxhp&&(e.maxhp>60||e.elite)&&vis(e.x,e.y,e.len))ctx.fillRect(e.x-e.len/2,e.y-e.r-14,e.len,5);
+  ctx.fillStyle='#ff3b4e';for(const e of G.enemies)if(!e.big&&e.hp<e.maxhp&&(e.maxhp>60||e.elite)&&vis(e.x,e.y,e.len))ctx.fillRect(e.x-e.len/2,e.y-e.r-14,e.len*Math.max(0,e.hp/e.maxhp),5);
   drawPlayer();
   // saws
   if(G.weapons.saws&&G.weapons.saws.pos){for(const [x,y] of G.weapons.saws.pos){ctx.save();ctx.translate(x,y);ctx.rotate(G.t*18);ctx.fillStyle='#c9c6d0';ctx.beginPath();for(let i=0;i<10;i++){const a=i/10*TAU,r=i%2?9:14;ctx.lineTo(Math.cos(a)*r,Math.sin(a)*r)}ctx.closePath();ctx.fill();ctx.fillStyle='#2b2930';ctx.beginPath();ctx.arc(0,0,4,0,TAU);ctx.fill();ctx.restore()}}
@@ -1270,14 +1308,17 @@ function draw(){
   // mortar shells fly in an arc; the shadow stays on the ground
   for(const s of G.shells){const k=s.t/s.dur,x=s.x0+(s.tx-s.x0)*k,y=s.y0+(s.ty-s.y0)*k,h=Math.sin(Math.PI*k)*140;
     ctx.fillStyle='rgba(0,0,0,.35)';ctx.beginPath();ctx.arc(x,y,6,0,TAU);ctx.fill();ctx.fillStyle='#55525d';ctx.beginPath();ctx.arc(x,y-h,7,0,TAU);ctx.fill()}
-  // particles: smoke and fire are bucketed by alpha so each band is one fill
-  if(!lo)for(let band=1;band<=5;band++){ctx.fillStyle=`rgba(70,66,78,${band*.09})`;ctx.beginPath();
-    for(const q of G.parts){if(q.kind!=='smoke')continue;const t=q.life/q.max;if(Math.ceil(t*5)!==band||!vis(q.x,q.y,30))continue;const r=q.size*(1.6-t*.6);ctx.moveTo(q.x+r,q.y);ctx.arc(q.x,q.y,r,0,TAU)}ctx.fill()}
-  ctx.fillStyle='#4a4652';for(const q of G.parts){if(q.kind!=='debris'||!vis(q.x,q.y,10))continue;ctx.fillRect(q.x-q.size/2,q.y-q.size/2,q.size,q.size)}
+  // particles: one pass sorts them into alpha bands, then each band is a single fill
+  for(const a of PB_S)a.length=0;for(const a of PB_F)a.length=0;PB_D.length=0;PB_K.length=0;
+  for(const q of G.parts){if(!vis(q.x,q.y,30))continue;const t=q.life/q.max,k=q.kind;
+    if(k==='fire')PB_F[clamp(Math.ceil(t*6)-1,0,5)].push(q);else if(k==='smoke'){if(!lo)PB_S[clamp(Math.ceil(t*5)-1,0,4)].push(q)}else if(k==='debris')PB_D.push(q);else PB_K.push(q)}
+  for(let band=0;band<5;band++){const B=PB_S[band];if(!B.length)continue;ctx.fillStyle=`rgba(70,66,78,${(band+1)*.09})`;ctx.beginPath();
+    for(const q of B){const r=q.size*(1.6-q.life/q.max*.6);ctx.moveTo(q.x+r,q.y);ctx.arc(q.x,q.y,r,0,TAU)}ctx.fill()}
+  for(const q of PB_D){ctx.fillStyle=q.col||'#4a4652';ctx.fillRect(q.x-q.size/2,q.y-q.size/2,q.size,q.size)}
   ctx.globalCompositeOperation='lighter';
-  for(let band=1;band<=6;band++){const t0=band/6;ctx.fillStyle=t0>.6?`rgba(255,240,170,${t0})`:t0>.3?`rgba(255,150,40,${t0})`:`rgba(220,60,20,${t0*1.4})`;ctx.beginPath();
-    for(const q of G.parts){if(q.kind!=='fire')continue;const t=q.life/q.max;if(Math.ceil(t*6)!==band||!vis(q.x,q.y,30))continue;const r=q.size*(.4+t*.6);ctx.moveTo(q.x+r,q.y);ctx.arc(q.x,q.y,r,0,TAU)}ctx.fill()}
-  for(const q of G.parts){if(q.kind!=='spark'||!vis(q.x,q.y,30))continue;ctx.strokeStyle=q.col;ctx.globalAlpha=q.life/q.max;ctx.lineWidth=q.size;ctx.beginPath();ctx.moveTo(q.x,q.y);ctx.lineTo(q.x-q.vx*.03,q.y-q.vy*.03);ctx.stroke()}ctx.globalAlpha=1;
+  for(let band=0;band<6;band++){const B=PB_F[band];if(!B.length)continue;const t0=(band+1)/6;ctx.fillStyle=t0>.6?`rgba(255,240,170,${t0})`:t0>.3?`rgba(255,150,40,${t0})`:`rgba(220,60,20,${t0*1.4})`;ctx.beginPath();
+    for(const q of B){const r=q.size*(.4+q.life/q.max*.6);ctx.moveTo(q.x+r,q.y);ctx.arc(q.x,q.y,r,0,TAU)}ctx.fill()}
+  for(const q of PB_K){ctx.strokeStyle=q.col;ctx.globalAlpha=q.life/q.max;ctx.lineWidth=q.size;ctx.beginPath();ctx.moveTo(q.x,q.y);ctx.lineTo(q.x-q.vx*.03,q.y-q.vy*.03);ctx.stroke()}ctx.globalAlpha=1;
   for(const b of G.booms){ctx.fillStyle=`rgba(255,200,90,${b.life*1.6})`;ctx.beginPath();ctx.arc(b.x,b.y,b.r,0,TAU);ctx.fill()}
   for(const r of G.rings){const t=1-r.r/r.max;ctx.strokeStyle=`rgba(${r.col||'63,224,208'},${t})`;ctx.lineWidth=6+10*t;ctx.beginPath();ctx.arc(r.x,r.y,r.r,0,TAU);ctx.stroke()}
   // tesla arcs: jagged lines re-rolled every frame
@@ -1285,8 +1326,7 @@ function draw(){
   for(const a of G.arcs){const pts=a.pts;ctx.moveTo(pts[0][0],pts[0][1]);for(let i=1;i<pts.length;i++){const [x0,y0]=pts[i-1],[x1,y1]=pts[i];for(let k=1;k<4;k++){const f=k/4;ctx.lineTo(x0+(x1-x0)*f+rand(-9,9),y0+(y1-y0)*f+rand(-9,9))}ctx.lineTo(x1,y1)}}ctx.stroke();
   for(const b of G.beams){const t=b.life/b.max;ctx.save();ctx.translate(b.x,b.y);ctx.rotate(b.a);ctx.fillStyle=`rgba(255,79,216,${t*.55})`;ctx.fillRect(0,-b.w/2,b.len,b.w);ctx.fillStyle=`rgba(255,240,250,${t})`;ctx.fillRect(0,-b.w/6,b.len,b.w/3);ctx.restore()}
   ctx.globalCompositeOperation='source-over';
-  ctx.font='700 14px "Chakra Petch",sans-serif';ctx.textAlign='center';ctx.lineWidth=3;ctx.strokeStyle='#0a090c';
-  for(const t of G.texts){ctx.globalAlpha=Math.min(1,t.life*2);ctx.strokeText(t.txt,t.x,t.y);ctx.fillStyle=t.col;ctx.fillText(t.txt,t.x,t.y)}ctx.globalAlpha=1;
+  for(const t of G.texts){if(!vis(t.x,t.y,40))continue;const sp=textSprite(t.txt,t.col);ctx.globalAlpha=Math.min(1,t.life*2);ctx.drawImage(sp.c,t.x-sp.w/2,t.y-16,sp.w,sp.h)}ctx.globalAlpha=1;
   // screen space: arrows to off-screen crates and traders
   ctx.setTransform(DPR,0,0,DPR,0,0);
   const arrow=(wx,wy,col)=>{const sx2=wx+ox,sy2=wy+oy;if(sx2>0&&sx2<VW&&sy2>0&&sy2<VH)return;
@@ -1312,7 +1352,7 @@ function updateHud(){
   setT('hptext',Math.ceil(p.hp)+' / '+p.maxhp);setT('lvl',String(G.level));setT('kills',String(G.kills));setT('timer',fmt(G.t));setT('bolts',String(G.bolts));setT('scrapH',String(scrapEst()));
   let bf='';for(const k in G.buffs)if(G.buffs[k]>0)bf+=`<span class="chip buff" style="--c:${BUFFS[k].col}">${BUFFS[k].name.toUpperCase()} ${Math.ceil(G.buffs[k])}s</span>`;if(hudCache.bf!==bf){hudCache.bf=bf;$('buffs').innerHTML=bf}
   const b=G.lboss&&!G.lboss.dead?G.lboss:G.mini&&!G.mini.dead?G.mini:null;$('bossWrap').hidden=!b;
-  if(b){setT('bossName',b.type==='lboss'?L.boss.name:'JUGGERNAUT '+['I','II','III','IV','V','VI','VII','VIII'][Math.min(7,G.minisSpawned-1)]);setW('bossfill',b.hp/b.maxhp)}
+  if(b){setT('bossName',b.type==='lboss'?L.boss.name:'JUGGERNAUT '+['I','II','III','IV','V','VI','VII','VIII'][Math.min(7,(b.num||1)-1)]);setW('bossfill',b.hp/b.maxhp)}
   let obj;
   if(G.cleared)obj=`Track cleared · Juggernaut in <b>${fmt(G.nextMini-G.t)}</b>`;
   else if(G.lboss||G.bossDue>0)obj=`Level boss · <b>${L.boss.name}</b>`;
@@ -1333,11 +1373,13 @@ function updateLoadout(){
 
 /* ---------- screens ---------- */
 const SCREENS=['scrMenu','scrGarage','scrLevels','scrLevel','scrShop','scrPause','scrWin','scrOver','scrAch','scrSet','scrHow'],SUBS=['scrLevels','scrGarage','scrAch','scrSet','scrHow'];
-let cur='scrMenu',backTo='scrMenu',backFocus=null;
+let cur='scrMenu';const navStack=[];
 function show(id){cur=id;for(const s of SCREENS)$(s).hidden=s!==id;$('overlay').hidden=!id;$('overlay').classList.toggle('attract',state==='menu');if(id){$('tip').hidden=true;$('banner').classList.remove('show')}}
-function openSub(id,opener){backTo=cur;backFocus=opener;if(id==='scrAch')renderAch();if(id==='scrSet')renderSettings();if(id==='scrLevels')renderLevels();if(id==='scrGarage')renderGarage();show(id);
+function openSub(id,opener){navStack.push({id:cur||'scrMenu',focus:opener});if(id==='scrAch')renderAch();if(id==='scrSet')renderSettings();if(id==='scrLevels')renderLevels();if(id==='scrGarage')renderGarage();show(id);
   const f=id==='scrLevels'?$('lv'+curLevel):null;(f&&!f.disabled?f:$(id).querySelector('.back')).focus()}
-function goBack(){if(backTo==='scrLevels')renderLevels();show(backTo);if(backTo==='scrMenu')refreshMenu();(backFocus||$(backTo).querySelector('button')).focus()}
+function goBack(){const top=navStack.pop()||{id:'scrMenu',focus:null},id=top.id;if(id==='scrLevels')renderLevels();if(id==='scrGarage')renderGarage();show(id);if(id==='scrMenu')refreshMenu();
+  // re-rendered screens replace their buttons; find the matching one again
+  let f=top.focus;if(f&&!f.isConnected)f=f.dataset&&f.dataset.car?$(id).querySelector(`[data-car="${f.dataset.car}"]`):null;(f||$(id).querySelector('button')).focus()}
 function fillAcct(lvId,xpId,fillId){const a=acctInfo(P.acctXp);$(lvId).textContent=a.lv;if(xpId)$(xpId).textContent=`${a.into} / ${a.need} XP`;$(fillId).style.width=(a.into/a.need*100)+'%';return a}
 function refreshMenu(){fillAcct('mAcct','mAcctXp','mAcctFill');
   $('mBest').textContent=fmt(P.best);$('mKills').textContent=P.kills.toLocaleString();$('mClears').textContent=clearedCount()+' / '+LEVELS.length;$('mAch').textContent=Object.keys(P.ach).length+' / '+ACH.length;$('mScrap').textContent=P.scrap.toLocaleString()+' scrap'}
@@ -1362,10 +1404,11 @@ function renderLevels(){const lv=acctInfo(P.acctXp).lv;$('lvAcct').textContent='
       <div class="body"><h3>${L.name}</h3><p>${L.desc}</p>
       ${open?`<div class="meta"><span>Threat <b>×${L.diff}</b></span><span>Boss <b>${L.boss.name}</b></span><span>Best <b>${fmt(T.best||0)}</b></span></div>`
         :`<span class="lockmsg">Locked · account level ${L.req}</span>`}</div></button>`}).join('')}
-function startGame(li=curLevel){if(G&&G.live)commitRun();initAudio();newGame(li);P.lastLevel=li;G.live=true;P.runs++;saveProfile();
+function startGame(li=curLevel){if(G&&G.live)commitRun();navStack.length=0;initAudio();newGame(li);P.lastLevel=li;G.live=true;P.runs++;saveProfile();
   state='play';show(null);$('hud').hidden=false;updateLoadout();touch.active=false;last=performance.now();for(const k in hudCache)delete hudCache[k];
-  showBanner(G.L.name,`Wreck ${G.L.minis} Juggernauts to draw out ${G.L.boss.name}`);checkAch()}
-function toMenu(){if(G&&G.live)commitRun();state='menu';newGame(curLevel);$('hud').hidden=true;$('tip').hidden=true;show('scrMenu');refreshMenu();$('startBtn').focus()}
+  startBanner();checkAch()}
+const startBanner=()=>showBanner(G.L.name,`Wreck ${G.L.minis} Juggernauts to draw out ${G.L.boss.name}`);
+function toMenu(){if(G&&G.live)commitRun();navStack.length=0;state='menu';newGame(curLevel);$('hud').hidden=true;$('tip').hidden=true;show('scrMenu');refreshMenu();$('startBtn').focus()}
 function togglePause(){if(state==='play'){state='paused';$('pauseLevel').textContent=G.L.name+' · '+G.car.name+' · '+fmt(G.t);show('scrPause');$('resumeBtn').focus()}else if(state==='paused'){state='play';show(null);last=performance.now()}}
 function openWin(){state='won';$('winText').textContent=`${G.L.boss.name} is scrap. Keep driving for more XP and loot, or cash out now.`;
   $('wTime').textContent=fmt(G.t);$('wKills').textContent=G.kills;$('wLvl').textContent=G.level;show('scrWin');$('keepBtn').focus()}
@@ -1404,10 +1447,10 @@ function openLevelup(){state='levelup';choices=buildChoices();sfx('level');
 }
 function pickChoice(i){const c=choices[i];if(!c||state!=='levelup')return;
   if(c.kind==='w'){if(G.weapons[c.k])G.weapons[c.k].lvl++;else G.weapons[c.k]={lvl:1,cd:0.3,aim:G.p.a}}
-  else if(c.kind==='p'){G.passives[c.k]=(G.passives[c.k]||0)+1;recalc();if(c.k==='armor')G.p.hp=Math.min(G.p.maxhp,G.p.hp+25)}
+  else if(c.kind==='p'){G.passives[c.k]=(G.passives[c.k]||0)+1;recalc()}
   else G.p.hp=Math.min(G.p.maxhp,G.p.hp+50);
   G.pending--;updateLoadout();
-  if(G.pending>0)openLevelup();else{state='play';show(null);last=performance.now()}}
+  if(G.pending>0)openLevelup();else{state='play';show(null);last=performance.now();if(G.t<1)startBanner()}}
 $('cards').addEventListener('click',e=>{const b=e.target.closest('.card');if(b)pickChoice(+b.dataset.i)});
 $('shopCards').addEventListener('click',e=>{const b=e.target.closest('.card');if(b)buy(+b.dataset.i)});
 $('lvGrid').addEventListener('click',e=>{const b=e.target.closest('.lv');if(b&&!b.disabled)startGame(+b.dataset.i)});
@@ -1445,6 +1488,7 @@ function frame(now){
   const dt=Math.min(0.05,(now-last)/1000);last=now;
   if(state==='play'){update(dt);if(state==='play'||state==='levelup'||state==='won')updateHud()}
   else if(state==='menu')attract(dt);
+  else if(state==='over'){updateFx(dt);G.shake*=Math.exp(-7*dt)}
   const c=G.cam,p=G.p,am=state==='menu',tx=am?ARENA/2:p.x+p.vx*.3,ty=am?ARENA/2:p.y+p.vy*.3,k=1-Math.exp(-6*dt);c.x+=(tx-c.x)*k;c.y+=(ty-c.y)*k;
   draw();requestAnimationFrame(frame);
 }
