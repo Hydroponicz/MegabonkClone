@@ -486,7 +486,7 @@ const LEVELS=[
     ground:'#232128',paint:'255,194,26',wall:'#ffc21a',boss:{name:'THE CRUSHER',col:'#d63434',hp:9000,abil:{charge:1,summon:1}}},
   {id:'dust',name:'Outskirts',desc:'Farmland at the edge of town. Groves, rock piles, barns and propane tanks.',req:3,diff:1.4,head:40,rate:1.1,minis:2,theme:'outskirts',barrels:['barrel','propane'],
     ground:'#34361f',paint:'255,236,200',wall:'#e0a050',boss:{name:'SANDSTORM',col:'#c98a3a',hp:15000,abil:{charge:1,ring:1}}},
-  {id:'neon',name:'Neon District',desc:'Downtown after dark. Tight streets, alleys and live tesla pylons.',req:6,diff:1.9,head:80,rate:1.2,minis:3,spd:1.08,theme:'city',barrels:['barrel','propane'],
+  {id:'neon',name:'Neon District',desc:'Downtown after dark. Tight streets, alleys and live tesla pylons.',req:6,diff:1.75,head:80,rate:1.12,minis:3,spd:1.08,theme:'city',barrels:['barrel','propane'],
     ground:'#17142a',paint:'255,79,216',wall:'#ff4fd8',boss:{name:'OVERCLOCK',col:'#7a3cff',hp:22000,spd:1.4,abil:{burst:1,ring:1}}},
   {id:'frost',name:'Frostbite Flats',desc:'Black ice and pine forest. Your tires barely grip. Theirs grip just fine.',req:10,diff:2.5,head:120,rate:1.3,minis:3,grip:2.6,theme:'frost',barrels:['barrel','propane'],
     ground:'#26313c',paint:'200,240,255',wall:'#9fe4ff',boss:{name:'GLACIER HAULER',col:'#5aa8d6',hp:32000,abil:{charge:1,ring:1,summon:1}}},
@@ -731,6 +731,18 @@ function steer(e,d,dx,dy){const p=G.p;e.orbit=false;
   if(e.shoots&&d<560){e.orbit=true;const ux=dx/d,uy=dy/d,k=clamp((d-330)/120,-1,1),sd=e.flank>=0?1:-1,t=1-Math.abs(k);return Math.atan2(ux*sd*t+uy*k,-uy*sd*t+ux*k)}
   const lt=Math.min(0.9,d/Math.max(120,e.spd))*e.lead,tx=p.x+p.vx*lt-e.x,ty=p.y+p.vy*lt-e.y;
   return Math.atan2(ty,tx)+e.flank*clamp((d-220)/500,0,1)}
+// zombie layer on top of steer(): the horde only re-thinks its heading every so often, sways as it shambles,
+// surges and sags in speed, and braces before lunging when it gets close. Pathing stays smart; reflexes don't.
+function shamble(e,dt,d,dx,dy,target){
+  if((e.react-=dt)<=0){e.react=e.type==='buggy'?rand(.2,.4):rand(.3,.55);e.want=steer(e,d,dx,dy)}
+  let want=e.want+(e.big?0:Math.sin(G.t*e.wf+e.wp)*.2*clamp(d/400,.3,1));
+  if(e.big||e.orbit)return[want,target];
+  target*=.8+.2*Math.sin(G.t*e.sf+e.wp);if(d>900&&!e.los)target*=.75;
+  e.lungeCd-=dt;
+  if(e.windup>0){e.windup-=dt;target*=.25;if(e.windup<=0)e.lunge=.45}
+  else if(e.lunge>0){e.lunge-=dt;target*=1.6}
+  else if(!e.shoots&&d<190&&e.lungeCd<=0&&Math.cos(angDiff(e.a,Math.atan2(dy,dx)))>.85){e.windup=.3;e.lungeCd=rand(2.5,4)}
+  return[want,target]}
 // a lumpy outline for rocks and junk piles
 function blob(r,n=9,j=.28){const pts=[];for(let i=0;i<n;i++){const a=i/n*TAU,rr=r*(1-j/2+Math.random()*j);pts.push([Math.cos(a)*rr,Math.sin(a)*rr])}return pts}
 function buildWorld(L){
@@ -751,7 +763,8 @@ function buildWorld(L){
   if(th==='city'){
     // city blocks between the painted roads every 600px; the middle block is an open plaza
     const E=[0,600,1200,1800,2400,3000],pal=['#2a2540','#30284a','#222a44','#3a2440','#262236'];
-    for(let bx=0;bx<5;bx++)for(let by=0;by<5;by++){const x0=E[bx]+(bx?72:60),x1=E[bx+1]-(bx<4?72:60),y0=E[by]+(by?72:60),y1=E[by+1]-(by<4?72:60);
+    for(let bx=0;bx<5;bx++)for(let by=0;by<5;by++){// outer blocks stop 150px short of the wall, leaving a ring road instead of a dead-end lane
+      const x0=E[bx]+(bx?72:150),x1=E[bx+1]-(bx<4?72:150),y0=E[by]+(by?72:150),y1=E[by+1]-(by<4?72:150);
       W.deco.push({x:(x0+x1)/2,y:(y0+y1)/2,w:x1-x0,h:y1-y0});if(bx===2&&by===2)continue;
       const ix0=x0+28,iy0=y0+28,iw=x1-x0-56,ih=y1-y0-56,lay=Math.floor(Math.random()*4),al=56,bld=(x,y,w,h)=>add({k:'building',x:x+w/2,y:y+h/2,w,h,rect:true,solid:true,col:pal[Math.floor(Math.random()*pal.length)],seed:Math.random()});
       if(lay===0)bld(ix0,iy0,iw,ih);
@@ -983,31 +996,36 @@ function addXp(v){G.xp+=v*G.stats.xpMul;while(G.xp>=G.xpNeed){G.xp-=G.xpNeed;G.l
 /* ---------- spawning ---------- */
 function spawnEnemy(type,o={}){
   const d=ETYPES[type],p=G.p,L=G.L;let x,y;
-  if(o.x!=null){x=o.x;y=o.y}else{const sp=Math.hypot(p.vx,p.vy),va=Math.atan2(p.vy,p.vx);
-    for(let k=0;k<8;k++){const a=sp>180&&Math.random()<.6?va+rand(-1.1,1.1):rand(0,TAU),R=Math.hypot(VW,VH)/2+rand(60,180);x=clamp(p.x+Math.cos(a)*R,40,ARENA-40);y=clamp(p.y+Math.sin(a)*R,40,ARENA-40);if(!solidAt(x,y,d.r))break}}
+  if(o.x!=null){x=o.x;y=o.y}else[x,y]=spawnPoint(d.r,.6);
   x=clamp(x,40,ARENA-40);y=clamp(y,40,ARENA-40);
   const hm=o.hp?1:(1+G.t/75)*L.diff*(o.hpMul||1),sc=o.scale||1,hp=o.hp||d.hp*hm;
   const e={id:eid++,type,x,y,a:Math.atan2(p.y-y,p.x-x),v:0,kx:0,ky:0,hp,maxhp:hp,r:d.r*sc,len:d.len*sc,wid:d.wid*sc,
     spd:d.spd*(o.spdMul||1)*(L.spd||1)*rand(.92,1.08),turn:d.turn,dmg:d.dmg*(1+G.t/400)*(0.7+0.3*L.diff)*(o.dmgMul||1),xp:d.xp*(o.xpMul||1),col:o.col||d.col,
     shoots:!!d.shoots,big:type==='mini'||type==='lboss',elite:!!o.elite,ab:o.ab||null,flash:0,ccd:0,sawCd:0,scd:rand(1,2.5),
     charge:0,chargeCd:4,ringCd:3,burstCd:2,sumCd:6,burn:0,los:false,orbit:false,
-    // each car keeps its own approach angle and lead so a pack fans out instead of queueing
-    flank:rand(-0.55,0.55),lead:{buggy:1,sedan:.8,truck:.5}[type]||0};
+    // each car keeps its own approach angle, a little lead, and its own sway/shamble rhythm
+    flank:rand(-0.3,0.3),lead:{buggy:.35,sedan:.2}[type]||0,react:0,want:0,wf:rand(1.5,3),wp:rand(0,TAU),sf:rand(2,4),lungeCd:rand(0,2),windup:0,lunge:0};
   G.enemies.push(e);return e;
 }
 // hard ceiling for everything that spawns cars (regular spawns stop at 260 so ambushes still have room)
 const ECAP=290;
 // cars left far behind are moved back onto the spawn ring (ahead of you when you're moving)
-function recycleStragglers(){const p=G.p,sp=Math.hypot(p.vx,p.vy),va=Math.atan2(p.vy,p.vx),R=Math.hypot(VW,VH)/2+120;
+function recycleStragglers(){const p=G.p;
   for(const e of G.enemies){if(e.dead||e.big||e.elite||d2(e.x,e.y,p.x,p.y)<1500*1500)continue;
-    for(let k=0;k<8;k++){const a=sp>180&&Math.random()<.7?va+rand(-1,1):rand(0,TAU),x=clamp(p.x+Math.cos(a)*R,40,ARENA-40),y=clamp(p.y+Math.sin(a)*R,40,ARENA-40);
-      if(solidAt(x,y,e.r))continue;e.x=x;e.y=y;e.a=Math.atan2(p.y-y,p.x-x);e.v=0;e.kx=e.ky=0;e.los=false;G.recycled++;break}}}
+    const [x,y]=spawnPoint(e.r,.7);e.x=x;e.y=y;e.a=Math.atan2(p.y-y,p.x-x);e.v=0;e.kx=e.ky=0;e.los=false;G.recycled++}}
+// a point on the spawn ring that is inside the arena, off screen and not in a wall (leaning ahead of a moving player)
+function spawnPoint(r,lean){const p=G.p,sp=Math.hypot(p.vx,p.vy),va=Math.atan2(p.vy,p.vx),R=Math.hypot(VW,VH)/2+rand(60,180);let best=null,bd=-1;
+  for(let k=0;k<14;k++){const a=sp>180&&Math.random()<lean?va+rand(-1.1,1.1):rand(0,TAU),x=p.x+Math.cos(a)*R,y=p.y+Math.sin(a)*R;
+    if(x<40||y<40||x>ARENA-40||y>ARENA-40||solidAt(x,y,r))continue;
+    if(Math.abs(x-p.x)>VW/2+40||Math.abs(y-p.y)>VH/2+40)return[x,y];const d=d2(x,y,p.x,p.y);if(d>bd){bd=d;best=[x,y]}}
+  // backed into a corner: use the farthest valid point, or the far side of the arena
+  return best||[clamp(ARENA-p.x,60,ARENA-60),clamp(ARENA-p.y,60,ARENA-60)]}
 function pickType(t){const w=[['buggy',5],['sedan',t>20?4:1],['truck',t>60?2:0],['gunner',t>90?2:0]];let tot=0;for(const x of w)tot+=x[1];let r=Math.random()*tot;for(const [k,v] of w){if((r-=v)<0)return k}return'buggy'}
 function spawnUpdate(dt){
   const t=G.t,L=G.L,te=t+L.head,rate=(0.8+te/22+(te>240?(te-240)/14:0))*L.rate;
   G.spawnT+=dt*rate;
   while(G.spawnT>=1){G.spawnT-=1;if(G.enemies.length<260)spawnEnemy(pickType(te))}
-  if(t>=G.nextAmbush){G.nextAmbush+=45;const n=12+Math.floor(te/30);for(let i=0;i<n&&G.enemies.length<ECAP;i++){const a=i/n*TAU;spawnEnemy('buggy',{x:G.p.x+Math.cos(a)*460,y:G.p.y+Math.sin(a)*460})}showBanner('Ambush!','They’re boxing you in')}
+  if(t>=G.nextAmbush){G.nextAmbush+=45;const n=12+Math.floor(te/30);for(let i=0;i<n&&G.enemies.length<ECAP;i++){const a=i/n*TAU,x=G.p.x+Math.cos(a)*460,y=G.p.y+Math.sin(a)*460;if(x<40||y<40||x>ARENA-40||y>ARENA-40||solidAt(x,y,14))continue;spawnEnemy('buggy',{x,y})}showBanner('Ambush!','They’re boxing you in')}
   if(t>=G.nextElite){G.nextElite+=70;spawnEnemy(Math.random()<.5?'truck':'sedan',{elite:true,hpMul:7,scale:1.3,xpMul:5,col:'#e8e4ee',spdMul:1.1});showBanner('Chrome hunter','Wreck it for a supply crate and bolts')}
   // mini boss once every 3 minutes
   if(t>=G.nextMini){G.nextMini+=180;G.minisSpawned++;G.mini=spawnEnemy('mini',{hpMul:1+(G.minisSpawned-1)*0.5,ab:{charge:1}});G.mini.num=G.minisSpawned;
@@ -1123,8 +1141,8 @@ function updateEnemies(dt){
     if(e.shoots){e.scd-=dt;
       if(e.scd<=0&&d<560&&(e.los||d<170)){e.scd=rand(1.8,2.6);const a=Math.atan2(dy+p.vy*.25,dx+p.vx*.25);G.ebullets.push({x:e.x,y:e.y,vx:Math.cos(a)*340,vy:Math.sin(a)*340,life:2.5,dmg:9*(1+G.t/400)*(0.7+0.3*G.L.diff)})}}
     if(e.ab)target=bossMoves(e,dt,d,dx,dy);
-    const want=steer(e,d,dx,dy);if(e.orbit)target=e.spd*.65;
-    const da=angDiff(e.a,want),turn=e.charge>0?0.3:e.big?e.turn:e.turn*1.4;
+    let want;[want,target]=shamble(e,dt,d,dx,dy,target);if(e.orbit)target=e.spd*.65;
+    const da=angDiff(e.a,want),turn=e.charge>0?0.3:e.turn;
     e.a+=clamp(da,-turn*dt,turn*dt);
     if(!e.orbit)target*=0.45+0.55*Math.max(0,Math.cos(da));
     e.v+=(target-e.v)*Math.min(1,2.2*dt);
@@ -1460,8 +1478,8 @@ function updateLoadout(){
 
 /* ---------- hover cards: name, type and stats for whatever the cursor is over ---------- */
 const BUFF_DESC={nitro:'Top speed and acceleration up 35%, ramming does double damage.',fury:'Every weapon recharges twice as fast.',freeze:'Every car on the map is frozen in place and can\'t hurt you by ramming.',bubble:'Nothing can damage you.'};
-const ENEMY_INFO={buggy:['Dune Buggy','Rammer','Fast and flimsy. Arrives in packs and in ambush rings.'],sedan:['Street Sedan','Chaser','The bulk of every pack. Leads its target and comes at you from the side.'],
-  truck:['Box Truck','Bruiser','Slow and tanky. Hits hard when it connects.'],gunner:['Gun Car','Shooter','Circles at about 330px and fires at you whenever it has a clear line.'],
+const ENEMY_INFO={buggy:['Dune Buggy','Rammer','Fast and flimsy. Twitchy, quick to lunge, and arrives in packs and ambush rings.'],sedan:['Street Sedan','Chaser','The bulk of the horde. Shambles after you, finds its way round walls, and brakes for a moment before it lunges.'],
+  truck:['Box Truck','Bruiser','Slow and tanky. Lurches in and hits hard when it connects.'],gunner:['Gun Car','Shooter','Circles at about 330px and fires at you whenever it has a clear line.'],
   mini:['Juggernaut','Mini boss','Charges in bursts and ploughs through walls. Wreck enough of them to draw out the level boss.']};
 const ABIL={charge:'charges',ring:'fires bullet rings',burst:'fires aimed bursts',summon:'summons buggies'};
 const OBS_INFO={container:'Shipping container',junk:'Junk pile',tires:'Tire stack',tree:'Tree',pine:'Pine tree',burnt:'Burnt tree',rock:'Rock',barn:'Barn',silo:'Silo',cabin:'Cabin',ruin:'Ruined wall',building:'Building',lamp:'Street lamp',parked:'Parked car'};
