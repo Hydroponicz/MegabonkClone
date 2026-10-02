@@ -15,6 +15,7 @@
 html,body{height:100%;margin:0;overflow:hidden;background:var(--asphalt);color:var(--fg);font-family:var(--body);}
 #cv{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:crosshair}
 
+#hud [data-tip]{pointer-events:auto;cursor:help}
 #hud{position:fixed;inset:0;pointer-events:none;display:flex;flex-direction:column;justify-content:space-between;gap:8px;
   padding:calc(env(safe-area-inset-top,0px) + 10px) 16px calc(env(safe-area-inset-bottom,0px) + 12px);}
 .top{display:flex;flex-direction:column;gap:8px}
@@ -203,6 +204,16 @@ kbd{display:inline-block;font-family:var(--body);font-weight:700;font-size:12px;
 .upg .pips i.on{background:var(--xp)}
 .upg .cost{margin-top:auto;font-family:var(--display);font-size:16px;color:var(--xp)}
 .secthead{width:100%;text-align:left;margin:4px 0 -6px}
+/* hover cards for anything under the cursor */
+#hoverTip{position:fixed;left:0;top:0;z-index:20;pointer-events:none;width:max-content;max-width:260px;background:rgba(12,11,15,.96);border:1px solid var(--line);border-top:3px solid var(--c,var(--hazard));padding:9px 11px;box-shadow:4px 4px 0 var(--ink);font-family:var(--body);color:var(--fg)}
+#hoverTip .tt{font-family:var(--display);font-size:15px;line-height:1.1;color:var(--c,var(--hazard))}
+#hoverTip .tk{font-size:10px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin-top:2px}
+#hoverTip .td{font-size:12.5px;line-height:1.4;color:#cfc9da;margin-top:6px}
+#hoverTip .ts{display:grid;grid-template-columns:auto 1fr;gap:2px 12px;margin-top:6px;font-size:12px;font-variant-numeric:tabular-nums}
+#hoverTip .ts span{color:var(--dim);font-weight:700;letter-spacing:.06em}
+#hoverTip .ts b{font-weight:700;text-align:right}
+#hoverTip .tb{height:5px;background:var(--ink);margin-top:6px}#hoverTip .tb i{display:block;height:100%;background:var(--hp)}
+body.nocursor,body.nocursor *{cursor:none!important}
 @media (max-width:520px){#timer{font-size:22px}.stat b{font-size:16px}.mstats div{padding:6px 12px}.mstats b{font-size:16px}}
 @media (hover:none){.hint{display:none}}
 @media (prefers-reduced-motion:reduce){.card,#banner,.mbtn,.toast{transition:none;animation:none}}
@@ -212,20 +223,21 @@ kbd{display:inline-block;font-family:var(--body);font-weight:700;font-size:12px;
 
 <div id="hud" hidden>
   <div class="top">
-    <div class="xp"><div id="xpfill"></div></div>
+    <div class="xp" data-tip="Experience|Run level|Scrap you pick up fills this bar. When it's full you level up and pick a bolt-on."><div id="xpfill"></div></div>
     <div class="row">
-      <div class="left"><div class="stat">Lvl<b id="lvl">1</b></div><div class="stat"><span class="nut"></span><b id="bolts">0</b><span class="scrapi"></span><b id="scrapH">0</b></div></div>
-      <div id="timer">00:00</div>
-      <div class="right"><div class="stat">Wrecks<b id="kills">0</b></div><button id="pauseBtn" aria-label="Pause">II</button></div>
+      <div class="left"><div class="stat" data-tip="Run level|This run|Goes up as the XP bar fills. Every level up lets you pick a new weapon or upgrade.">Lvl<b id="lvl">1</b></div><div class="stat" data-tip="Bolts|Currency|Dropped by wrecked cars. Spend them at trader trucks on trinkets for this run."><span class="nut"></span><b id="bolts">0</b></div><div class="stat" data-tip="Scrap banked|Garage currency|Scrap you'll bank when this run ends: a quarter of the scrap you pick up, plus Juggernaut, track-clear and scrap-sack bonuses. Spend it in the Garage."><span class="scrapi"></span><b id="scrapH">0</b></div></div>
+      <div id="timer" data-tip="Time survived|Run clock|A Juggernaut arrives every 3 minutes. Traders start showing up after 5:00.">00:00</div>
+      <div class="right"><div class="stat" data-tip="Wrecks|This run|Cars you've destroyed this run. Counts toward achievements and account XP.">Wrecks<b id="kills">0</b></div><button id="pauseBtn" aria-label="Pause" data-tip="Pause|P or Esc|Pause the run, change settings or quit to the menu.">II</button></div>
     </div>
-    <div class="row"><div class="hp"><div id="hpfill"></div><div id="hptext">100 / 100</div></div><div id="objective"></div></div>
+    <div class="row"><div class="hp" data-tip="Health|Your car|Ramming at full speed hurts you less. At zero you're wrecked, unless you have a Spare Tire or Second Wind."><div id="hpfill"></div><div id="hptext">100 / 100</div></div><div id="objective" data-tip="Objective|Track progress|Wreck enough Juggernaut mini bosses and the track's level boss comes for you. Beat it to clear the track."></div></div>
     <div id="buffs"></div>
-    <div id="bossWrap" hidden><div id="bossName">JUGGERNAUT</div><div class="bossbar"><div id="bossfill"></div></div></div>
+    <div id="bossWrap" hidden data-tip="Boss health|Boss|Bosses ignore walls and smash straight through props."><div id="bossName">JUGGERNAUT</div><div class="bossbar"><div id="bossfill"></div></div></div>
   </div>
   <div id="loadout"></div>
 </div>
 <div id="banner"></div>
 <button id="tip" tabindex="-1" hidden></button>
+<div id="hoverTip" hidden></div>
 
 <div id="overlay">
   <section id="scrMenu" class="panel">
@@ -746,11 +758,13 @@ function buildWorld(L){
       else if(lay===1){const s=iw*rand(.35,.6);bld(ix0,iy0,s-al/2,ih);bld(ix0+s+al/2,iy0,iw-s-al/2,ih)}
       else if(lay===2){const s=ih*rand(.35,.6);bld(ix0,iy0,iw,s-al/2);bld(ix0,iy0+s+al/2,iw,ih-s-al/2)}
       else{const a=iw/2-al/2,b=ih/2-al/2;bld(ix0,iy0,a,b);bld(ix0+a+al,iy0,a,b);bld(ix0,iy0+b+al,a,b);bld(ix0+a+al,iy0+b+al,a,b)}}
+    // tesla pylons sit in the middle of street intersections (the only open ground big enough downtown)
+    {const X=[];for(let i=1;i<5;i++)for(let j=1;j<5;j++)X.push([E[i],E[j]]);shuffle(X);let n=0;for(const [x,y] of X){if(n>=5)break;if(d2(x,y,sx,sy)<500*500||!free(x,y,16))continue;const py={x,y,t:rand(0,4)};W.pylons.push(py);add({k:'pylon',x,y,r:16,solid:true,py});n++}}
     for(let i=1;i<5;i++)for(let s=120;s<ARENA-60;s+=260)for(const off of[-86,86]){if(Math.random()<.5)continue;const a=E[i]+off;if(!solidAt(a,s,62)&&d2(a,s,sx,sy)>300*300)add({k:'lamp',x:a,y:s,r:7,solid:true});if(!solidAt(s,a,62)&&d2(s,a,sx,sy)>300*300)add({k:'lamp',x:s,y:a,r:7,solid:true})}
     for(let i=0,t=0;i<26&&t<400;t++){const line=E[1+Math.floor(Math.random()*4)],along=rand(100,ARENA-100),side=Math.random()<.5?-46:46,hz=Math.random()<.5,x=hz?along:line+side,y=hz?line+side:along,w=hz?42:22,h=hz?22:42;
       if(d2(x,y,sx,sy)<400*400||solidAt(x,y,80))continue;add({k:'parked',x,y,w,h,rect:true,solid:true,col:['#4a86d9','#b8c93e','#8d6a4f','#c9c6d0','#b44ad0'][i%5]});i++}
-    pylons(6);prop('cone',40,9);prop('hydrant',18,8);prop('crate',16,13);zone('oil',8,40,70);
-  }else if(th==='yard'){rect('container',22,120,160,44,52);circ('junk',16,34,58);circ('tires',24,14,18);prop('crate',40,13);zone('oil',10,40,80)}
+    prop('cone',40,9);prop('hydrant',18,8);prop('crate',16,13);zone('oil',8,40,70);
+  }else if(th==='yard'){rect('container',22,120,160,44,52);circ('junk',16,34,58);circ('tires',24,14,18);zone('oil',10,40,80)}
   else if(th==='outskirts'){grove('tree',14,3,16,28);circ('rock',18,16,44);rect('barn',4,140,180,90,120);circ('silo',3,32,40);prop('hay',30,15);prop('crate',20,13);zone('oil',5,40,60)}
   else if(th==='frost'){grove('pine',16,3,16,26);circ('rock',16,18,46);rect('cabin',5,90,120,70,90);prop('snowman',22,14);prop('crate',20,13);zone('ice',14,60,140)}
   else{circ('rock',26,20,56);grove('burnt',8,3,12,20);rect('ruin',8,80,140,60,100);prop('crate',25,13);zone('lava',12,50,110);strips(8);pylons(4)}
@@ -819,7 +833,10 @@ function drawObstacles(vis){const th=G.L.theme;
       if(th==='frost'&&k==='rock'){ctx.fillStyle='rgba(240,248,255,.7)';ctx.beginPath();poly(o.x-o.r*.2,o.y-o.r*.25,o.pts,.45);ctx.fill()}}
     else if(k==='tree'||k==='pine'||k==='burnt'){const c=k==='tree'?['#2e5a2a','#3e7a36','#58994a']:k==='pine'?['#1e3a32','#2a5244',th==='frost'?'#dfeaf2':'#3a6a56']:['#1c1614','#2a201c','#3a2a24'];
       for(let i=0;i<3;i++){ctx.fillStyle=c[i];ctx.beginPath();if(k==='pine'){const s=o.r*(1-i*.28);for(let j=0;j<8;j++){const a=j/8*TAU+o.seed,r2=j%2?s*.6:s;j?ctx.lineTo(o.x+Math.cos(a)*r2,o.y+Math.sin(a)*r2):ctx.moveTo(o.x+Math.cos(a)*r2,o.y+Math.sin(a)*r2)}ctx.closePath()}else poly(o.x-i*2,o.y-i*2,o.pts,1-i*.25);ctx.fill()}}
-    else if(k==='tires'){for(let i=0;i<3;i++){ctx.fillStyle=i%2?'#26232b':'#0e0d10';ctx.beginPath();ctx.arc(o.x,o.y,o.r*(1-i*.3),0,TAU);ctx.fill()}}
+    else if(k==='tires'){// light tread ring, metal rim and a paint mark so the stack reads against dark asphalt
+      ctx.fillStyle='#0e0d10';ctx.beginPath();ctx.arc(o.x,o.y,o.r,0,TAU);ctx.fill();ctx.strokeStyle='#6e6a78';ctx.lineWidth=2.5;ctx.beginPath();ctx.arc(o.x,o.y,o.r-2,0,TAU);ctx.stroke();
+      ctx.fillStyle='#9a96a6';ctx.beginPath();ctx.arc(o.x,o.y,o.r*.5,0,TAU);ctx.fill();ctx.fillStyle='#2b2930';ctx.beginPath();ctx.arc(o.x,o.y,o.r*.24,0,TAU);ctx.fill();
+      ctx.fillStyle='#ffc21a';ctx.beginPath();ctx.arc(o.x,o.y,o.r-2,o.seed*TAU,o.seed*TAU+.7);ctx.arc(o.x,o.y,o.r*.62,o.seed*TAU+.7,o.seed*TAU,true);ctx.fill()}
     else if(k==='silo'){ctx.fillStyle='#9aa0a8';ctx.beginPath();ctx.arc(o.x,o.y,o.r,0,TAU);ctx.fill();ctx.strokeStyle='#6a7078';ctx.lineWidth=3;ctx.beginPath();ctx.arc(o.x,o.y,o.r*.6,0,TAU);ctx.stroke()}
     else if(k==='lamp'){ctx.fillStyle='#55525d';ctx.beginPath();ctx.arc(o.x,o.y,o.r,0,TAU);ctx.fill();ctx.fillStyle='rgba(255,220,150,.035)';ctx.beginPath();ctx.arc(o.x,o.y,38,0,TAU);ctx.fill();ctx.fillStyle='#fff3c0';ctx.beginPath();ctx.arc(o.x,o.y,3,0,TAU);ctx.fill()}
     else if(k==='pylon'){const py=o.py,ch=py.t>3.6?(py.t-3.6)/0.9:0;
@@ -1418,7 +1435,7 @@ function setW(id,f){const v=(clamp(f,0,1)*100).toFixed(1)+'%';if(hudCache[id]!==
 function updateHud(){
   const p=G.p,L=G.L;setW('xpfill',G.xp/G.xpNeed);setW('hpfill',p.hp/p.maxhp);
   setT('hptext',Math.ceil(p.hp)+' / '+p.maxhp);setT('lvl',String(G.level));setT('kills',String(G.kills));setT('timer',fmt(G.t));setT('bolts',String(G.bolts));setT('scrapH',String(scrapEst()));
-  let bf='';for(const k in G.buffs)if(G.buffs[k]>0)bf+=`<span class="chip buff" style="--c:${BUFFS[k].col}">${BUFFS[k].name.toUpperCase()} ${Math.ceil(G.buffs[k])}s</span>`;if(hudCache.bf!==bf){hudCache.bf=bf;$('buffs').innerHTML=bf}
+  let bf='';for(const k in G.buffs)if(G.buffs[k]>0)bf+=`<span class="chip buff" style="--c:${BUFFS[k].col}" data-tip="${BUFFS[k].name}|Power-up · ${Math.ceil(G.buffs[k])}s left|${BUFF_DESC[k]}">${BUFFS[k].name.toUpperCase()} ${Math.ceil(G.buffs[k])}s</span>`;if(hudCache.bf!==bf){hudCache.bf=bf;$('buffs').innerHTML=bf}
   const b=G.lboss&&!G.lboss.dead?G.lboss:G.mini&&!G.mini.dead?G.mini:null;$('bossWrap').hidden=!b;
   if(b){setT('bossName',b.type==='lboss'?L.boss.name:'JUGGERNAUT '+['I','II','III','IV','V','VI','VII','VIII'][Math.min(7,(b.num||1)-1)]);setW('bossfill',b.hp/b.maxhp)}
   let obj;
@@ -1431,13 +1448,68 @@ function updateHud(){
     const t=`<kbd>F</kbd> Trade with ${tr.T.name}`;if(hudCache.tip!==t){hudCache.tip=t;tip.innerHTML=t}
     tip.style.left=clamp(tr.x+G.view.ox,90,VW-90)+'px';tip.style.top=clamp(tr.y+G.view.oy-78,40,VH-20)+'px'}else tip.hidden=true;
 }
+const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 function updateLoadout(){
   const pips=l=>'<span class="pips">'+[1,2,3,4,5].map(i=>`<i class="${i<=l?'on':''}"></i>`).join('')+'</span>';
-  let h='';for(const k in G.weapons)h+=`<div class="chip">${WDEF[k].name.toUpperCase()}${pips(G.weapons[k].lvl)}</div>`;
-  for(const k in G.passives)h+=`<div class="chip p">${PDEF[k].name.toUpperCase()}${pips(G.passives[k])}</div>`;
-  for(const k in G.tk)if(G.tk[k])h+=`<div class="chip t">${TRINKETS[k].name.toUpperCase()}${G.tk[k]>1?' ×'+G.tk[k]:''}</div>`;
+  let h='';for(const k in G.weapons){const l=G.weapons[k].lvl,d=WDEF[k].desc;h+=`<div class="chip" data-tip="${esc(WDEF[k].name)}|Weapon · level ${l} of 5|${esc(d[0]+(l>1?' Upgrades so far: '+d.slice(1,l).join(' '):'')+(l<5?' Next: '+d[l]:' Maxed out.'))}">${WDEF[k].name.toUpperCase()}${pips(l)}</div>`}
+  for(const k in G.passives)h+=`<div class="chip p" data-tip="${esc(PDEF[k].name)}|Upgrade · level ${G.passives[k]} of 5|${esc(PDEF[k].desc)} Stacks each level.">${PDEF[k].name.toUpperCase()}${pips(G.passives[k])}</div>`;
+  for(const k in G.tk)if(G.tk[k])h+=`<div class="chip t" data-tip="${esc(TRINKETS[k].name)}|Trinket · owned ×${G.tk[k]}|${esc(TRINKETS[k].desc)} Lasts until this run ends.">${TRINKETS[k].name.toUpperCase()}${G.tk[k]>1?' ×'+G.tk[k]:''}</div>`;
   $('loadout').innerHTML=h;
 }
+
+
+/* ---------- hover cards: name, type and stats for whatever the cursor is over ---------- */
+const BUFF_DESC={nitro:'Top speed and acceleration up 35%, ramming does double damage.',fury:'Every weapon recharges twice as fast.',freeze:'Every car on the map is frozen in place and can\'t hurt you by ramming.',bubble:'Nothing can damage you.'};
+const ENEMY_INFO={buggy:['Dune Buggy','Rammer','Fast and flimsy. Arrives in packs and in ambush rings.'],sedan:['Street Sedan','Chaser','The bulk of every pack. Leads its target and comes at you from the side.'],
+  truck:['Box Truck','Bruiser','Slow and tanky. Hits hard when it connects.'],gunner:['Gun Car','Shooter','Circles at about 330px and fires at you whenever it has a clear line.'],
+  mini:['Juggernaut','Mini boss','Charges in bursts and ploughs through walls. Wreck enough of them to draw out the level boss.']};
+const ABIL={charge:'charges',ring:'fires bullet rings',burst:'fires aimed bursts',summon:'summons buggies'};
+const OBS_INFO={container:'Shipping container',junk:'Junk pile',tires:'Tire stack',tree:'Tree',pine:'Pine tree',burnt:'Burnt tree',rock:'Rock',barn:'Barn',silo:'Silo',cabin:'Cabin',ruin:'Ruined wall',building:'Building',lamp:'Street lamp',parked:'Parked car'};
+const PROP_INFO={crate:['Wooden crate','Smash it: 60% chance of a random power-up.'],hay:['Hay bale','Smashes when you drive through it. Small chance of a drop.'],cone:['Traffic cone','Smashes when you drive through it. Small chance of a drop.'],hydrant:['Fire hydrant','Smashes when you drive through it. Small chance of a drop.'],snowman:['Snowman','Smashes when you drive through it. Small chance of a drop.']};
+const BARREL_INFO={barrel:['Explosive barrel','Goes off when shot, rammed, burned or caught in a blast. Chains into other barrels.'],propane:['Propane tank','A much bigger blast than a barrel. Chains into other barrels.'],toxic:['Toxic drum','Explodes and leaves a burning acid pool for 8 seconds.']};
+const ZONE_INFO={oil:['Oil slick','Your tires lose most of their grip while you\'re on it.'],ice:['Black ice','Almost no grip. Brake early and steer gently.'],lava:['Lava pool','Burns you and every car that drives in.'],acid:['Acid pool','Burns you and every car inside until it dries up.'],spikes:['Spike strip','Shreds tires: damages and slows you, and hurts cars too.']};
+const PICK_INFO={chest:['Supply crate','Pick a free bolt-on.'],wrench:['Wrench','Repairs 30 HP.'],magnet:['Scrap magnet','Pulls every scrap and bolt on the map to you.'],nuke:['Airstrike','Wrecks every regular car within 900px and dents bosses.'],
+  freeze:['Cryo canister','Freezes every car for 5 seconds.'],nitro:['Nitro can','8 seconds of extra speed and double ram damage.'],fury:['Overdrive','10 seconds of double-speed weapon recharge.'],bubble:['Bubble shield','6 seconds of invulnerability.'],sack:['Scrap sack','+15 scrap banked for the Garage.'],bolts:['Bolt bag','+12 bolts to spend at traders.']};
+const mouse={x:0,y:0,overCanvas:false,last:-1e9,inWin:false};
+addEventListener('mousemove',e=>{mouse.x=e.clientX;mouse.y=e.clientY;mouse.overCanvas=e.target===cv;mouse.last=performance.now();mouse.inWin=true;document.body.classList.remove('nocursor')});
+document.addEventListener('mouseleave',()=>{mouse.inWin=false});
+let domTip=null;
+document.addEventListener('mouseover',e=>{const t=e.target.closest&&e.target.closest('[data-tip]');domTip=t&&$('hud').contains(t)?t:null});
+const statRows=rows=>`<div class="ts">${rows.map(([k,v])=>`<span>${k}</span><b>${v}</b>`).join('')}</div>`;
+const card=(title,kind,desc,rows,col,bar)=>({col,html:`<div class="tt">${esc(title)}</div><div class="tk">${esc(kind)}</div>${bar!=null?`<div class="tb"><i style="width:${(clamp(bar,0,1)*100).toFixed(1)}%"></i></div>`:''}${rows&&rows.length?statRows(rows):''}${desc?`<div class="td">${esc(desc)}</div>`:''}`});
+function enemyCard(e){const fr=G.buffs.freeze>0,st=[];if(fr)st.push('frozen');if(e.charge>0)st.push('charging');if(e.burn>0)st.push('on fire');
+  let name,kind,desc;if(e.type==='lboss'){name=G.L.boss.name;kind='Level boss';desc='Wreck it to clear '+G.L.name+'. It '+Object.keys(e.ab).map(k=>ABIL[k]).join(', ')+'.'}
+  else if(e.elite){name='Chrome Hunter';kind='Elite '+ENEMY_INFO[e.type][1].toLowerCase();desc='Seven times the armour of a normal '+ENEMY_INFO[e.type][0].toLowerCase()+'. Drops a supply crate and bolts.'}
+  else [name,kind,desc]=ENEMY_INFO[e.type];
+  return card(name,kind+(st.length?' · '+st.join(', '):''),desc,[['HP',`${Math.max(0,Math.ceil(e.hp)).toLocaleString()} / ${Math.ceil(e.maxhp).toLocaleString()}`],['Ram damage',Math.round(e.dmg)],['Top speed',Math.round(e.spd)],['XP',Math.round(e.xp)]],e.big||e.elite?'#ff3b4e':e.col,e.hp/e.maxhp)}
+// what's under the cursor, top-most first
+function pickHover(wx,wy){const p=G.p,in2=(x,y,r)=>d2(wx,wy,x,y)<r*r;
+  let best=null,bd=1e9;for(const e of near(wx,wy,80)){if(e.dead)continue;const q=d2(wx,wy,e.x,e.y);if(q<(e.r+8)**2&&q<bd){bd=q;best=e}}if(best)return enemyCard(best);
+  for(const e of G.enemies)if(e.big&&!e.dead&&in2(e.x,e.y,e.r+8))return enemyCard(e);
+  const tr=G.trader;if(tr&&in2(tr.x,tr.y,52))return card(tr.T.name,'Trader · '+tr.T.title,tr.phase==='parked'?`Parked for ${Math.ceil(tr.stay)}s more. Pull up and press F (or tap the prompt) to trade.`:tr.phase==='arrive'?'Pulling in. Wait for it to park.':'Leaving town.',[['Sells',tr.offers.map(o=>TRINKETS[o.id].name).join(', ')]],tr.T.col);
+  if(in2(p.x,p.y,p.r+6)){const W=Object.keys(G.weapons).map(k=>WDEF[k].name+' '+G.weapons[k].lvl),Pa=Object.keys(G.passives).map(k=>PDEF[k].name+' '+G.passives[k]);
+    return card(G.car.name,'Your car · level '+G.level,'Everything bolted on is drawn on the car.',[['HP',`${Math.ceil(p.hp)} / ${p.maxhp}`],['Weapons',W.join(', ')||'none'],['Upgrades',Pa.join(', ')||'none'],['Speed',Math.round(Math.hypot(p.vx,p.vy))]],G.car.col,p.hp/p.maxhp)}
+  for(const k of G.pickups){if(!in2(k.x,k.y,22))continue;const [n,d]=PICK_INFO[k.type];return card(n,k.type==='chest'?'Pickup':'Power-up',d,k.type==='chest'?null:[['Disappears in',Math.max(0,Math.ceil(35-k.t))+'s']],k.type==='chest'?'#ffc21a':k.type==='wrench'?'#2fbf74':DROPS[k.type].col)}
+  for(const g of G.gems){if(!in2(g.x,g.y,11))continue;return g.b?card('Bolts','Currency','Spend at trader trucks.',[['Worth',g.v+' bolts']],'#ffd65a'):card('Scrap','Experience','Fills your XP bar. A quarter of it is banked as Garage scrap when the run ends.',[['Worth',Math.round(g.v)+' XP']],g.v>=20?'#ff4fd8':g.v>=5?'#ffc21a':'#3fe0d0')}
+  for(const m of G.mines)if(in2(m.x,m.y,13))return card('Your mine','Mine Dropper',m.arm>0?'Arming…':'Armed. Goes off when a car gets close.',[['Damage',Math.round(m.dmg)],['Blast radius',Math.round(m.R)]],'#ff3b2a');
+  for(const b of G.barrels){if(!b.alive||!in2(b.x,b.y,b.r+5))continue;const B=BTYPES[b.t],[n,d]=BARREL_INFO[b.t];return card(n,'Hazard',d,[['Damage to cars',Math.round(B.dmg*G.stats.dmg)],['Damage to you',B.hurt],['Blast radius',B.R]],b.t==='toxic'?'#7ad13a':'#ff5a1f')}
+  const c=ocells[clamp(wx/OG|0,0,ON-1)*ON+clamp(wy/OG|0,0,ON-1)];
+  for(const o of c){if(o.prop){if(!o.dead&&in2(o.x,o.y,o.r+4)){const [n,d]=PROP_INFO[o.k];return card(n,'Smashable prop',d,null,'#c9a24a')}continue}
+    if(!hitsShape(o,wx,wy,3))continue;
+    if(o.k==='pylon')return card('Tesla pylon','Hazard','Glows, then zaps every car and you within 170px.',[['Next zap',Math.max(0,4.5-o.py.t).toFixed(1)+'s'],['Damage to you',Math.round(14*(0.7+0.3*G.L.diff))]],'#8ce6ff');
+    return card(OBS_INFO[o.k]||'Obstacle','Solid obstacle','Blocks you and regular cars. Bosses plough straight through.',null,'#8f8a9c')}
+  for(const z of G.zones){if(!zoneHit(z,wx,wy,0))continue;const [n,d]=ZONE_INFO[z.k],Z=ZONES[z.k],rows=[];if(Z.dps)rows.push(['Damage to you',Z.dps+'/s'],['Damage to cars',Math.round(Z.edps*G.L.diff)+'/s']);if(Z.grip)rows.push(['Grip',Math.round(Z.grip*100)+'%']);if(z.life!=null)rows.push(['Dries up in',Math.ceil(z.life)+'s']);
+    return card(n,'Hazard',d,rows,z.k==='lava'?'#ff7a14':z.k==='acid'?'#7ad13a':z.k==='ice'?'#9fe4ff':z.k==='spikes'?'#c9c6d0':'#786ac8')}
+  return null}
+let tipKey='';
+function updateHover(){const tip=$('hoverTip');const idle=performance.now()-mouse.last>5000;
+  // the cursor fades out after 5s without mouse movement while driving
+  if(state==='play'&&idle&&mouse.inWin)document.body.classList.add('nocursor');else if(state!=='play')document.body.classList.remove('nocursor');
+  let c=null;if(state==='play'&&!idle&&mouse.inWin){if(domTip&&domTip.isConnected){const [t,k,d]=domTip.dataset.tip.split('|');c=card(t,k,d,null,getComputedStyle(domTip).getPropertyValue('--c').trim()||null)}
+    else if(mouse.overCanvas)c=pickHover(mouse.x-G.view.ox,mouse.y-G.view.oy)}
+  if(!c){if(!tip.hidden){tip.hidden=true;tipKey=''}return}
+  if(c.html!==tipKey){tipKey=c.html;tip.innerHTML=c.html;tip.style.setProperty('--c',c.col||'var(--hazard)')}tip.hidden=false;
+  const w=tip.offsetWidth,h=tip.offsetHeight;let x=mouse.x+18,y=mouse.y+18;if(x+w>VW-8)x=mouse.x-w-14;if(y+h>VH-8)y=mouse.y-h-14;tip.style.transform=`translate(${Math.max(8,x)}px,${Math.max(8,y)}px)`}
 
 /* ---------- screens ---------- */
 const SCREENS=['scrMenu','scrGarage','scrLevels','scrLevel','scrShop','scrPause','scrWin','scrOver','scrAch','scrSet','scrHow'],SUBS=['scrLevels','scrGarage','scrAch','scrSet','scrHow'];
@@ -1558,7 +1630,7 @@ function frame(now){
   else if(state==='menu')attract(dt);
   else if(state==='over'){updateFx(dt);G.shake*=Math.exp(-7*dt)}
   const c=G.cam,p=G.p,am=state==='menu',tx=am?ARENA/2:p.x+p.vx*.3,ty=am?ARENA/2:p.y+p.vy*.3,k=1-Math.exp(-6*dt);c.x+=(tx-c.x)*k;c.y+=(ty-c.y)*k;
-  draw();requestAnimationFrame(frame);
+  draw();updateHover();requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);
 $('startBtn').focus();
