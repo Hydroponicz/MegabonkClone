@@ -521,10 +521,10 @@ const PDEF={
 };
 const unlocked=d=>!d.unlock||!!P.ach[d.unlock];
 const ETYPES={
-  buggy:{r:13,hp:14,spd:250,turn:3.2,dmg:6,xp:1,col:'#b8c93e',len:28,wid:16},
-  sedan:{r:17,hp:30,spd:178,turn:2.3,dmg:10,xp:2,col:'#4a86d9',len:36,wid:20},
-  truck:{r:24,hp:115,spd:118,turn:1.3,dmg:18,xp:6,col:'#8d6a4f',len:52,wid:28},
-  gunner:{r:17,hp:40,spd:165,turn:2.4,dmg:8,xp:4,col:'#b44ad0',len:36,wid:20,shoots:true},
+  buggy:{r:13,hp:10,spd:250,turn:3.2,dmg:6,xp:1,col:'#b8c93e',len:28,wid:16},
+  sedan:{r:17,hp:20,spd:178,turn:2.3,dmg:10,xp:2,col:'#4a86d9',len:36,wid:20},
+  truck:{r:24,hp:80,spd:118,turn:1.3,dmg:18,xp:6,col:'#8d6a4f',len:52,wid:28},
+  gunner:{r:17,hp:28,spd:165,turn:2.4,dmg:8,xp:4,col:'#b44ad0',len:36,wid:20,shoots:true},
   mini:{r:46,hp:2400,spd:110,turn:0.9,dmg:30,xp:80,col:'#d63434',len:104,wid:54},
   lboss:{r:62,hp:1,spd:105,turn:0.8,dmg:40,xp:250,col:'#d63434',len:140,wid:72},
 };
@@ -994,11 +994,15 @@ function nearestEnemy(x,y,maxD){let best=null,bd=maxD*maxD;for(const e of G.enem
 function addXp(v){G.xp+=v*G.stats.xpMul;while(G.xp>=G.xpNeed){G.xp-=G.xpNeed;G.level++;G.xpNeed=Math.floor(G.xpNeed*1.16+5);G.pending++}}
 
 /* ---------- spawning ---------- */
+// regular cars' HP over a run: gentle for the first few minutes, then accelerating, so it
+// catches back up with the old linear curve (1+t/75) around the 15-minute mark.
+// Juggernauts and Chrome Hunters keep the linear curve so late bosses don't balloon.
+const hpScale=t=>1+t/110+(t/280)**2;
 function spawnEnemy(type,o={}){
   const d=ETYPES[type],p=G.p,L=G.L;let x,y;
   if(o.x!=null){x=o.x;y=o.y}else[x,y]=spawnPoint(d.r,.6);
   x=clamp(x,40,ARENA-40);y=clamp(y,40,ARENA-40);
-  const hm=o.hp?1:(1+G.t/75)*L.diff*(o.hpMul||1),sc=o.scale||1,hp=o.hp||d.hp*hm;
+  const hm=o.hp?1:(type==='mini'||o.elite?1+G.t/75:hpScale(G.t))*L.diff*(o.hpMul||1),sc=o.scale||1,hp=o.hp||d.hp*hm;
   const e={id:eid++,type,x,y,a:Math.atan2(p.y-y,p.x-x),v:0,kx:0,ky:0,hp,maxhp:hp,r:d.r*sc,len:d.len*sc,wid:d.wid*sc,
     spd:d.spd*(o.spdMul||1)*(L.spd||1)*rand(.92,1.08),turn:d.turn,dmg:d.dmg*(1+G.t/400)*(0.7+0.3*L.diff)*(o.dmgMul||1),xp:d.xp*(o.xpMul||1),col:o.col||d.col,
     shoots:!!d.shoots,big:type==='mini'||type==='lboss',elite:!!o.elite,ab:o.ab||null,flash:0,ccd:0,sawCd:0,scd:rand(1,2.5),
