@@ -61,6 +61,8 @@ kbd{display:inline-block;font-family:var(--body);font-weight:700;font-size:12px;
 .btn:focus-visible{outline:3px solid var(--fg);outline-offset:4px}
 .sub{font-weight:700;letter-spacing:.18em;font-size:12px;color:var(--dim);text-transform:uppercase;margin:0}
 .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;width:100%}
+#scrLevel{width:min(1040px,100%)}
+#scrLevel .cards{grid-template-columns:repeat(auto-fit,minmax(180px,1fr))}
 .card{background:var(--panel);border:2px solid var(--line);color:var(--fg);text-align:left;padding:14px;cursor:pointer;font-family:var(--body);display:flex;flex-direction:column;gap:8px;min-width:0;position:relative;transition:transform .12s,border-color .12s}
 .card:hover,.card:focus-visible{border-color:var(--hazard);transform:translateY(-3px);outline:none}
 .card .kind{font-size:11px;letter-spacing:.14em;font-weight:700;color:var(--hazard)}
@@ -214,6 +216,12 @@ kbd{display:inline-block;font-family:var(--body);font-weight:700;font-size:12px;
 #hoverTip .ts b{font-weight:700;text-align:right}
 #hoverTip .tb{height:5px;background:var(--ink);margin-top:6px}#hoverTip .tb i{display:block;height:100%;background:var(--hp)}
 body.nocursor,body.nocursor *{cursor:none!important}
+#traderHud{align-self:flex-start;display:flex;align-items:center;gap:8px;background:rgba(10,9,12,.85);border:1px solid var(--line);padding:5px 10px;font-size:12px;font-weight:700;letter-spacing:.06em;text-shadow:1px 1px 0 var(--ink);font-variant-numeric:tabular-nums}
+#traderHud .tdot{width:9px;height:9px;border-radius:50%;animation:tpulse 1s ease-in-out infinite alternate}
+#traderHud .tarr{display:inline-block;font-size:11px}
+@keyframes tpulse{from{opacity:.4}to{opacity:1}}
+.card.roll{border-style:dashed;border-color:#a46cf5}.card.roll .kind{color:#a46cf5}.card.roll:hover,.card.roll:focus-visible{border-color:#d9c6ff}
+.card .odds{font-size:11px;font-weight:700;letter-spacing:.04em;color:var(--dim);margin-top:auto}
 @media (max-width:520px){#timer{font-size:22px}.stat b{font-size:16px}.mstats div{padding:6px 12px}.mstats b{font-size:16px}}
 @media (hover:none){.hint{display:none}}
 @media (prefers-reduced-motion:reduce){.card,#banner,.mbtn,.toast{transition:none;animation:none}}
@@ -230,6 +238,7 @@ body.nocursor,body.nocursor *{cursor:none!important}
       <div class="right"><div class="stat" data-tip="Wrecks|This run|Cars you've destroyed this run. Counts toward achievements and account XP.">Wrecks<b id="kills">0</b></div><button id="pauseBtn" aria-label="Pause" data-tip="Pause|P or Esc|Pause the run, change settings or quit to the menu.">II</button></div>
     </div>
     <div class="row"><div class="hp" data-tip="Health|Your car|Ramming at full speed hurts you less. At zero you're wrecked, unless you have a Spare Tire or Second Wind."><div id="hpfill"></div><div id="hptext">100 / 100</div></div><div id="objective" data-tip="Objective|Track progress|Wreck enough Juggernaut mini bosses and the track's level boss comes for you. Beat it to clear the track."></div></div>
+    <div id="traderHud" hidden data-tip="Trader|Shop on wheels|Drive into the dashed ring around the truck and press F (or tap the prompt) to buy items with bolts. Items also come from the Trader's Roll on level up."></div>
     <div id="buffs"></div>
     <div id="bossWrap" hidden data-tip="Boss health|Boss|Bosses ignore walls and smash straight through props."><div id="bossName">JUGGERNAUT</div><div class="bossbar"><div id="bossfill"></div></div></div>
   </div>
@@ -333,7 +342,8 @@ body.nocursor,body.nocursor *{cursor:none!important}
     </div>
     <div class="keys">
       <div class="key"><b>Juggernauts</b><span>A mini boss rolls in every 3 minutes. Wreck enough of them and the level boss comes for you.</span></div>
-      <div class="key"><b>Traders</b><span>From 5:00 on, trader trucks park nearby for a short while. Each one sells different trinkets.</span></div>
+      <div class="key"><b>Traders</b><span>From about 2:00, a trader truck parks nearby every couple of minutes. Follow the light beam or the HUD arrow, drive into its ring and press F to buy items with bolts.</span></div>
+      <div class="key"><b>Trader's Roll</b><span>Every level up can skip the bolt-on and roll a random item instead: Common, Rare or Epic, each with its own effect.</span></div>
       <div class="key"><b>Account level</b><span>Every run earns account XP. Higher levels open harder tracks.</span></div>
       <div class="key"><b>Unlocks</b><span>Some achievements add new weapons and upgrades to the level-up pool.</span></div>
       <div class="key"><b>Loadout slots</b><span>A run carries 2 different weapons and 2 upgrades. Buy more slots in the Garage (Weapon Bay, Upgrade Rack).</span></div>
@@ -349,9 +359,9 @@ body.nocursor,body.nocursor *{cursor:none!important}
 
   <section id="scrShop" class="panel" hidden>
     <div class="shophead"><span class="who" id="shopTitle">Firepower</span><h2 class="big" id="shopName">Trader</h2><span class="wallet"><span class="nut"></span><span id="shopBolts">0</span></span></div>
-    <p class="sub">Buy with keys 1 to 3 · <kbd>F</kbd> or <kbd>Esc</kbd> to leave</p>
+    <p class="sub">Buy with keys 1 to 3 · <kbd>R</kbd> to restock · <kbd>F</kbd> or <kbd>Esc</kbd> to leave</p>
     <div class="cards" id="shopCards"></div>
-    <button class="btn alt" id="shopLeave">Hit the road</button>
+    <div class="btns"><button class="btn alt" id="shopReroll">Restock</button><button class="btn alt" id="shopLeave">Hit the road</button></div>
   </section>
 
   <section id="scrPause" class="panel" hidden>
@@ -460,13 +470,13 @@ addEventListener('keydown',e=>{
   if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space'].includes(e.code)&&state==='play')e.preventDefault();
   keys[e.code]=true;
   // held keys repeat: never let that toggle pause, re-trigger a pick, or click a button that just took focus
-  if(e.repeat&&(/^(Digit[1-3]|KeyP|KeyF|Escape)$/.test(e.code)||(state!=='play'&&/^(Space|Enter|NumpadEnter)$/.test(e.code)))){if(state!=='play')e.preventDefault();return}
+  if(e.repeat&&(/^(Digit[1-4]|KeyP|KeyF|KeyR|Escape)$/.test(e.code)||(state!=='play'&&/^(Space|Enter|NumpadEnter)$/.test(e.code)))){if(state!=='play')e.preventDefault();return}
   if(state!=='play'&&(e.code==='ArrowUp'||e.code==='ArrowDown'))menuNav(e);
   if(SUBS.includes(cur)){if(e.code==='Escape')goBack();return}
-  if(state==='shop'){if(e.code==='Escape'||e.code==='KeyF')closeShop();else if(/^Digit[1-3]$/.test(e.code))buy(+e.code.slice(5)-1);return}
+  if(state==='shop'){if(e.code==='Escape'||e.code==='KeyF')closeShop();else if(e.code==='KeyR')restock();else if(/^Digit[1-3]$/.test(e.code))buy(+e.code.slice(5)-1);return}
   if(e.code==='KeyF'&&state==='play'&&G.near){openShop();return}
   if(e.code==='KeyP'||e.code==='Escape')togglePause();
-  if(state==='levelup'&&/^Digit[1-3]$/.test(e.code))pickChoice(+e.code.slice(5)-1);
+  if(state==='levelup'&&/^Digit[1-4]$/.test(e.code))pickChoice(+e.code.slice(5)-1);
 });
 addEventListener('keyup',e=>{keys[e.code]=false});
 addEventListener('blur',()=>{for(const k in keys)keys[k]=false;if(state==='play'&&S.autoPause)togglePause()});
@@ -531,28 +541,57 @@ const ETYPES={
 };
 
 /* ---------- traders ---------- */
+// traders each stock one category of the item pool
 const TRADERS=[
-  {name:'Gunsmith Gus',title:'Firepower',col:'#e0543c',pool:['hollow','trigger','bigboom','barrel','ap']},
-  {name:'Doc Rivets',title:'Repairs and armor',col:'#2fbf74',pool:['patch','cage','heat','drip','tire']},
-  {name:'Lady Luck',title:'Odds and ends',col:'#a46cf5',pool:['hubcap','turbo','coil','voucher','lens']},
+  {name:'Gunsmith Gus',title:'Firepower',col:'#e0543c',cat:'gun'},
+  {name:'Doc Rivets',title:'Repairs and armor',col:'#2fbf74',cat:'doc'},
+  {name:'Lady Luck',title:'Odds and ends',col:'#a46cf5',cat:'luck'},
 ];
+// rarity sets how often a level-up Trader's Roll lands on an item
+const RAR={common:{w:60,col:'#c9c6d0',name:'Common'},rare:{w:30,col:'#3fe0d0',name:'Rare'},epic:{w:10,col:'#ff4fd8',name:'Epic'}};
+// items: cat = which trader stocks it, max = stack limit (default 5), shop = shop-only consumable (never rolled)
 const TRINKETS={
-  hollow:{name:'Hollow Points',desc:'+10% damage on every weapon.',cost:14},
-  trigger:{name:'Hair Trigger',desc:'Weapons recharge 7% faster.',cost:14},
-  bigboom:{name:'Bigger Boom',desc:'+15% blast radius on rockets, mines and mortar shells.',cost:16},
-  barrel:{name:'Extra Barrel',desc:'Hood Gun fires one more round per shot.',cost:28},
-  ap:{name:'AP Rounds',desc:'Hood Gun rounds punch through one more car.',cost:20},
-  patch:{name:'Patch Kit',desc:'Repair half your max HP right now.',cost:10},
-  cage:{name:'Roll Cage',desc:'+20 max HP.',cost:16},
-  heat:{name:'Heat Shield',desc:'Take 6% less damage.',cost:18},
-  drip:{name:'Coolant Drip',desc:'Repair 0.5 HP every second.',cost:16},
-  tire:{name:'Spare Tire',desc:'Survive one wreck and roll on with half HP.',cost:40},
-  hubcap:{name:'Lucky Hubcap',desc:'+30% more bolts from wrecks.',cost:12},
-  turbo:{name:'Turbocharger',desc:'+6% top speed and acceleration.',cost:14},
-  coil:{name:'Magnet Coil',desc:'+25% scrap pickup radius.',cost:10},
-  voucher:{name:'Crate Voucher',desc:'Pick a free bolt-on as soon as you leave.',cost:30},
-  lens:{name:'Scrap Lens',desc:'+10% XP from scrap.',cost:16},
+  hollow:{name:'Hollow Points',desc:'+10% damage on every weapon.',cost:14,cat:'gun',rar:'common'},
+  trigger:{name:'Hair Trigger',desc:'Weapons recharge 7% faster.',cost:14,cat:'gun',rar:'common'},
+  bigboom:{name:'Bigger Boom',desc:'+15% blast radius on rockets, mines and mortar shells.',cost:16,cat:'gun',rar:'common'},
+  barrel:{name:'Extra Barrel',desc:'Hood Gun fires one more round per shot.',cost:28,cat:'gun',rar:'rare',max:3},
+  ap:{name:'AP Rounds',desc:'Hood Gun rounds punch through one more car.',cost:20,cat:'gun',rar:'rare',max:3},
+  mirror:{name:'Rear-view Mirror',desc:'The Hood Gun also fires one round straight behind you.',cost:22,cat:'gun',rar:'rare',max:3},
+  cables:{name:'Jumper Cables',desc:'Each wreck has a 15% chance to arc into the 2 nearest cars.',cost:24,cat:'gun',rar:'rare'},
+  napalm:{name:'Napalm Tank',desc:'Each wreck has a 12% chance to leave a fire patch that burns cars (not you) for 3s.',cost:24,cat:'gun',rar:'rare'},
+  glass:{name:'Glass Cannon',desc:'+35% damage on every weapon, but 20% less max HP.',cost:30,cat:'gun',rar:'epic',max:1},
+  patch:{name:'Patch Kit',desc:'Repair half your max HP right now.',cost:10,cat:'doc',rar:'common',shop:1},
+  cage:{name:'Roll Cage',desc:'+20 max HP.',cost:16,cat:'doc',rar:'common'},
+  heat:{name:'Heat Shield',desc:'Take 6% less damage.',cost:18,cat:'doc',rar:'common'},
+  drip:{name:'Coolant Drip',desc:'Repair 0.5 HP every second.',cost:16,cat:'doc',rar:'common'},
+  leech:{name:'Leech Tires',desc:'Each wreck repairs 0.3 HP.',cost:18,cat:'doc',rar:'common'},
+  plating:{name:'Magnetic Plating',desc:'25% chance to deflect an enemy bullet (up to 75%).',cost:22,cat:'doc',rar:'rare',max:3},
+  adrenaline:{name:'Adrenaline Valve',desc:'Below 30% HP, weapons recharge 30% faster.',cost:20,cat:'doc',rar:'rare',max:3},
+  tire:{name:'Spare Tire',desc:'Survive one wreck and roll on with half HP.',cost:40,cat:'doc',rar:'epic',max:3},
+  bumpers:{name:'Blast Bumpers',desc:'Ramming a car to death sets off a blast around it.',cost:26,cat:'doc',rar:'epic',max:3},
+  hubcap:{name:'Lucky Hubcap',desc:'+30% more bolts from wrecks.',cost:12,cat:'luck',rar:'common'},
+  turbo:{name:'Turbocharger',desc:'+6% top speed and acceleration.',cost:14,cat:'luck',rar:'common'},
+  coil:{name:'Magnet Coil',desc:'+25% scrap pickup radius.',cost:10,cat:'luck',rar:'common'},
+  lens:{name:'Scrap Lens',desc:'+10% XP from scrap.',cost:16,cat:'luck',rar:'common'},
+  voucher:{name:'Crate Voucher',desc:'Pick a free bolt-on as soon as you leave.',cost:30,cat:'luck',rar:'common',shop:1},
+  battery:{name:'Overcharged Battery',desc:'Power-ups last 50% longer.',cost:20,cat:'luck',rar:'rare',max:3},
+  bounty:{name:'Bounty Board',desc:'Every 60 wrecks drops a supply crate (10 fewer per extra stack).',cost:28,cat:'luck',rar:'rare',max:3},
+  dice:{name:'Loaded Dice',desc:'15% chance that a level up gives a bonus pick.',cost:30,cat:'luck',rar:'epic',max:3},
 };
+const itemOpen=k=>(G.tk[k]||0)<(TRINKETS[k].max||5);
+// a Trader's Roll: any non-consumable item you can still stack, weighted by rarity
+function rollItem(){const pool=Object.keys(TRINKETS).filter(k=>!TRINKETS[k].shop&&itemOpen(k));if(!pool.length)return'patch';let tot=0;for(const k of pool)tot+=RAR[TRINKETS[k].rar].w;
+  let r=Math.random()*tot;for(const k of pool)if((r-=RAR[TRINKETS[k].rar].w)<0)return k;return pool[0]}
+function grantItem(id){if(id==='patch')G.p.hp=Math.min(G.p.maxhp,G.p.hp+G.p.maxhp*0.5);else if(id==='voucher')G.pending++;else{G.tk[id]=(G.tk[id]||0)+1;recalc()}updateLoadout()}
+const stockFor=cat=>shuffle(Object.keys(TRINKETS).filter(k=>TRINKETS[k].cat===cat&&itemOpen(k))).slice(0,3).map(id=>({id,sold:false}));
+// unique item effects that trigger on a wreck
+function chainZap(x,y){const hits=near(x,y,260,[]).filter(e=>!e.dead&&d2(x,y,e.x,e.y)<200*200).sort((a,b)=>d2(x,y,a.x,a.y)-d2(x,y,b.x,b.y)).slice(0,2);
+  for(const e of hits){G.arcs.push({pts:[[x,y],[e.x,e.y]],life:.18});damageEnemy(e,30*G.stats.dmg)}if(hits.length)sfx('zap')}
+function onWreckItems(e){const T=G.tk;
+  if(T.leech)G.p.hp=Math.min(G.p.maxhp,G.p.hp+0.3*T.leech);
+  if(T.cables&&Math.random()<0.15*T.cables)chainZap(e.x,e.y);
+  if(T.napalm&&Math.random()<0.12*T.napalm)G.zones.push({k:'napalm',x:e.x,y:e.y,r:55,life:3,pts:blob(55,10,.3)});
+  if(T.bounty&&G.kills%Math.max(20,60-10*(T.bounty-1))===0){dropPickup(e.x,e.y,'chest');addText(e.x,e.y-20,'BOUNTY','#ffc21a')}}
 const price=id=>Math.round(TRINKETS[id].cost*(1+0.4*(G.tk[id]||0)));
 
 /* ---------- achievements: each one is a record key that must reach n ---------- */
@@ -683,7 +722,7 @@ function dropPickup(x,y,type){if(type!=='chest'&&G.pickups.length>=60){const i=G
 /* ---------- world: obstacles, props, hazards ---------- */
 // barrel kinds; acid leaves a burning puddle behind
 const BTYPES={barrel:{r:14,R:110,dmg:70,hurt:18},propane:{r:17,R:175,dmg:130,hurt:28},toxic:{r:14,R:95,dmg:45,hurt:12,acid:1}};
-const ZONES={oil:{grip:0.22},ice:{grip:0.1},lava:{dps:24,edps:60},acid:{dps:14,edps:45},spikes:{dps:30,edps:80,drag:3}};
+const ZONES={napalm:{edps:55},oil:{grip:0.22},ice:{grip:0.1},lava:{dps:24,edps:60},acid:{dps:14,edps:45},spikes:{dps:30,edps:80,drag:3}};
 // static grid holding solid obstacles and props, built once per track
 const OG=200,ON=Math.ceil(ARENA/OG)+1;let ocells=[];
 function gridAdd(o){const r=o.rect?Math.max(o.w,o.h)/2:o.r;const x0=clamp((o.x-r)/OG|0,0,ON-1),x1=clamp((o.x+r)/OG|0,0,ON-1),y0=clamp((o.y-r)/OG|0,0,ON-1),y1=clamp((o.y+r)/OG|0,0,ON-1);
@@ -825,7 +864,7 @@ function usePickup(k){const p=G.p;G.powerups++;
   else if(k.type==='nuke'){G.flashT=0.4;G.shake=18;sfx('boom');for(const e of G.enemies){if(e.dead||d2(e.x,e.y,p.x,p.y)>900*900)continue;damageEnemy(e,e.big?e.maxhp*0.08:e.maxhp*2+50)}showBanner('Airstrike','Everything nearby is scrap')}
   else if(k.type==='sack'){G.sack+=15;addText(p.x,p.y-30,'+15 scrap','#8fd6cf')}
   else if(k.type==='bolts'){G.bolts+=12;addText(p.x,p.y-30,'+12 bolts','#ffd65a')}
-  else{G.buffs[k.type]=BUFFS[k.type].t;showBanner(BUFFS[k.type].name,{nitro:'Top speed and ramming way up',fury:'Weapons recharge twice as fast',freeze:'Every car is frozen solid',bubble:'Nothing can touch you'}[k.type])}
+  else{G.buffs[k.type]=BUFFS[k.type].t*G.stats.buffMul;showBanner(BUFFS[k.type].name,{nitro:'Top speed and ramming way up',fury:'Weapons recharge twice as fast',freeze:'Every car is frozen solid',bubble:'Nothing can touch you'}[k.type])}
   tone(660,0.12,'square',0.05,1320)}
 
 /* ---------- world drawing ---------- */
@@ -838,6 +877,7 @@ function drawZones(vis){
     if(z.k==='oil'){ctx.fillStyle='rgba(6,6,12,.75)';ctx.fill();ctx.strokeStyle='rgba(120,90,200,.25)';ctx.lineWidth=3;ctx.stroke()}
     else if(z.k==='ice'){ctx.fillStyle='rgba(190,235,255,.22)';ctx.fill();ctx.strokeStyle='rgba(220,245,255,.45)';ctx.lineWidth=2;ctx.stroke()}
     else if(z.k==='lava'){ctx.fillStyle='#5a1408';ctx.fill();ctx.beginPath();poly(z.x,z.y,z.pts,.75);ctx.fillStyle=`rgba(255,${90+60*pulse|0},20,.9)`;ctx.fill();ctx.beginPath();poly(z.x,z.y,z.pts,.4);ctx.fillStyle='rgba(255,220,120,.7)';ctx.fill()}
+    else if(z.k==='napalm'){ctx.fillStyle=`rgba(255,${110+70*pulse|0},30,${(.35+.2*pulse)*fade})`;ctx.fill();ctx.strokeStyle=`rgba(255,220,120,${.5*fade})`;ctx.lineWidth=2;ctx.stroke()}
     else{ctx.fillStyle=`rgba(110,230,40,${(.28+.12*pulse)*fade})`;ctx.fill();ctx.strokeStyle=`rgba(170,255,90,${.5*fade})`;ctx.lineWidth=2;ctx.stroke()}}}
 function drawObstacles(vis){const th=G.L.theme;
   if(G.deco.length){ctx.fillStyle='rgba(120,110,150,.12)';for(const d of G.deco)if(vis(d.x,d.y,Math.max(d.w,d.h)/2))ctx.fillRect(d.x-d.w/2,d.y-d.h/2,d.w,d.h)}
@@ -943,7 +983,7 @@ function newGame(li){const L=LEVELS[li];curLevel=li;groundPat=makeGround(L);cons
   for(const k in C.start.w)start[k]={lvl:C.start.w[k],cd:0.4,aim:-Math.PI/2};
   G={L,t:0,kills:0,level:1,xp:0,xpNeed:6,pending:0,shake:0,hurtFlash:0,live:false,
     miniKills:0,minisSpawned:0,eliteKills:0,ramKills:0,barrelBooms:0,lowAt:-1,newAch:[],achT:0,
-    bolts:0,tk:{},bought:0,trader:null,lastTrader:-1,near:false,nextTrader:300+rand(0,75),
+    bolts:0,tk:{},bought:0,trader:null,lastTrader:-1,near:false,nextTrader:100+rand(0,40),
     bossDue:-1,lboss:null,mini:null,cleared:false,winT:-1,shieldT:0,gain:0,car:C,scrapRaw:0,sack:0,scrapGain:0,propsBroken:0,powerups:0,flashT:0,
     buffs:{nitro:0,fury:0,freeze:0,bubble:0},tumbles:[],flowT:0,frame:0,leashT:1,recycled:0,revives:gl('revive'),obs:Wd.obs,props:Wd.props,zones:Wd.zones,pylons:Wd.pylons,deco:Wd.deco,
     p:{x:ARENA/2,y:ARENA/2+200,a:-Math.PI/2,vx:0,vy:0,hp:100,maxhp:100,r:Math.max(C.len,C.wid)*.43,inv:0},
@@ -959,9 +999,9 @@ function recalc(){const P_=G.passives,T=G.tk,s=G.stats,C=G.car;
   s.dmg=(1+0.12*(P_.warhead||0))*(1+0.1*(T.hollow||0))*(1+0.05*gl('ammo'));s.cd=Math.pow(0.92,P_.cool||0)*Math.pow(0.93,T.trigger||0)*Math.pow(0.97,gl('loader'));s.drop=1+0.15*gl('luck');
   s.speed=(1+0.08*(P_.nitro||0))*(1+0.06*(T.turbo||0))*(1+0.03*gl('engine'))*C.speed;s.magnet=90*(1+0.35*(P_.magnet||0))*(1+0.25*(T.coil||0))*(1+0.1*gl('magnet'));
   s.ram=(1+0.4*(P_.spikes||0))*C.ram;s.regen=0.6*(P_.repair||0)+0.5*(T.drip||0);s.taken=(1-0.04*(P_.armor||0))*Math.pow(0.94,T.heat||0);
-  s.blast=1+0.15*(T.bigboom||0);s.xpMul=(1+0.15*(P_.scrap||0))*(1+0.1*(T.lens||0));s.luck=1+0.3*(T.hubcap||0);
+  s.blast=1+0.15*(T.bigboom||0);s.dmg*=1+0.35*(T.glass||0);s.buffMul=1+0.5*(T.battery||0);s.xpMul=(1+0.15*(P_.scrap||0))*(1+0.1*(T.lens||0));s.luck=1+0.3*(T.hubcap||0);
   s.shieldCd=P_.shield?16-2*P_.shield:0;s.thorns=12*(P_.thorns||0);
-  const old=G.p.maxhp;G.p.maxhp=C.hp+10*gl('frame')+25*(P_.armor||0)+20*(T.cage||0);G.p.hp=Math.min(G.p.maxhp,G.p.hp+Math.max(0,G.p.maxhp-old));}
+  const old=G.p.maxhp;G.p.maxhp=Math.round((C.hp+10*gl('frame')+25*(P_.armor||0)+20*(T.cage||0))*(T.glass?0.8:1));G.p.hp=Math.min(G.p.maxhp,G.p.hp+Math.max(0,G.p.maxhp-old));}
 
 /* ---------- effects ---------- */
 const partCap=()=>S.lowFx?350:1000;
@@ -989,7 +1029,7 @@ function showBanner(t,s){const b=$('banner');b.innerHTML=t+(s?`<small>${s}</smal
 function damageEnemy(e,amt,txt=true){if(e.dead)return;e.hp-=amt;e.flash=0.07;if(txt&&S.dmgNums&&amt>=1)addText(e.x,e.y-e.r,Math.round(amt),amt>=45?'#ffc21a':'#f2eef7');if(e.hp<=0)killEnemy(e)}
 function dropBolts(x,y,n){n=Math.round(n*G.stats.luck);if(n<=0)return;const k=Math.min(n,8);for(let i=0;i<k;i++)G.gems.push({x,y,v:Math.floor(n/k)+(i<n%k?1:0),b:true,vx:rand(-1,1)*(k>1?240:40),vy:rand(-1,1)*(k>1?240:40),pull:false,sp:0})}
 function killEnemy(e){
-  e.dead=true;G.kills++;boomFx(e.x,e.y,e.r*2.4);
+  e.dead=true;G.kills++;boomFx(e.x,e.y,e.r*2.4);onWreckItems(e);
   const v=e.xp,n=e.big?8:e.elite?4:1;for(let i=0;i<n;i++)G.gems.push({x:e.x,y:e.y,v:Math.ceil(v/n),vx:rand(-1,1)*(n>1?220:40),vy:rand(-1,1)*(n>1?220:40),pull:false,sp:0});
   if(e.type==='lboss')dropBolts(e.x,e.y,60);else if(e.type==='mini')dropBolts(e.x,e.y,25);else if(e.elite)dropBolts(e.x,e.y,10);else if(Math.random()<0.08*G.stats.luck)dropBolts(e.x,e.y,1);
   if(e.big||e.elite)dropPickup(e.x,e.y,'chest');
@@ -1017,7 +1057,8 @@ function missileTarget(m){let best=null,bd=900*900,any=null,ad=900*900;
 // nearest car the gun can actually hit: in clear line of sight, or close enough not to matter
 function nearestVisible(x,y,maxD){let best=null,bd=maxD*maxD;for(const e of G.enemies){if(e.dead)continue;const d=d2(x,y,e.x,e.y);if(d<bd&&(e.los||d<170*170)){bd=d;best=e}}return best}
 function nearestEnemy(x,y,maxD){let best=null,bd=maxD*maxD;for(const e of G.enemies){if(e.dead)continue;const d=d2(x,y,e.x,e.y);if(d<bd){bd=d;best=e}}return best}
-function addXp(v){G.xp+=v*G.stats.xpMul;while(G.xp>=G.xpNeed){G.xp-=G.xpNeed;G.level++;G.xpNeed=Math.floor(G.xpNeed*1.16+5);G.pending++}}
+function addXp(v){G.xp+=v*G.stats.xpMul;while(G.xp>=G.xpNeed){G.xp-=G.xpNeed;G.level++;G.xpNeed=Math.floor(G.xpNeed*1.16+5);G.pending++;
+    if(G.tk.dice&&Math.random()<0.15*G.tk.dice){G.pending++;toast('+1','Loaded Dice','Bonus pick')}}}
 
 /* ---------- spawning ---------- */
 // regular cars' HP over a run: gentle for the first few minutes, then accelerating, so it
@@ -1078,7 +1119,7 @@ function spawnTrader(){const p=G.p;let k;do k=Math.floor(Math.random()*3);while(
   // park somewhere open near the player, then find a drive in from ~900px away along the streets
   // keep the shortest route found; stop early once one is under 2000px
   const plen=(x,y,P)=>{let l=0;for(const w of P){l+=Math.hypot(w[0]-x,w[1]-y);x=w[0];y=w[1]}return l};
-  let px,py,sx,sy,path=null,best=null;for(let i=0;i<40&&!(best&&best.len<2000);i++){path=null;const a=rand(0,TAU),D=rand(360,480);px=clamp(p.x+Math.cos(a)*D,220,ARENA-220);py=clamp(p.y+Math.sin(a)*D,220,ARENA-220);
+  let px,py,sx,sy,path=null,best=null;for(let i=0;i<40&&!(best&&best.len<2000);i++){path=null;const a=rand(0,TAU),D=rand(260,360);px=clamp(p.x+Math.cos(a)*D,220,ARENA-220);py=clamp(p.y+Math.sin(a)*D,220,ARENA-220);
     if(solidAt(px,py,70)||G.zones.some(z=>zoneHit(z,px,py,70)))continue;
     for(let j=0;j<12&&!path;j++){const b=rand(0,TAU),R=rand(750,950);sx=clamp(px+Math.cos(b)*R,60,ARENA-60);sy=clamp(py+Math.sin(b)*R,60,ARENA-60);
       if(fTruck[clamp(sx/FC|0,0,FN-1)*FN+clamp(sy/FC|0,0,FN-1)])continue;
@@ -1088,20 +1129,20 @@ function spawnTrader(){const p=G.p;let k;do k=Math.floor(Math.random()*3);while(
   if(best)({path,px,py,sx,sy}=best);else path=null;
   // nowhere to drive in from right now: try again shortly instead of driving through walls
   if(!path){G.nextTrader=G.t+15;return}const f=path[0];
-  G.trader={T,x:sx,y:sy,px,py,a:Math.atan2(f[1]-sy,f[0]-sx),v:320,phase:'arrive',stay:45,path,wi:0,home:[sx,sy],offers:shuffle(T.pool.slice()).slice(0,3).map(id=>({id,sold:false}))};
+  G.trader={T,x:sx,y:sy,px,py,a:Math.atan2(f[1]-sy,f[0]-sx),v:320,phase:'arrive',stay:60,path,wi:0,home:[sx,sy],offers:stockFor(T.cat),restocks:0};
   showBanner(T.name+' is in town','Pull up to the truck and press F to trade');sfx('horn')}
 // follow tr.path; returns true at the last waypoint
 function driveTrader(tr,dt,brake){const w=tr.path[tr.wi],dx=w[0]-tr.x,dy=w[1]-tr.y,d=Math.hypot(dx,dy),last=tr.wi===tr.path.length-1;
   if(d<(last?4:24)){if(last)return true;tr.wi++;return false}
   tr.v=brake&&last?Math.min(320,40+d*1.2):Math.min(380,tr.v+260*dt);tr.a+=angDiff(tr.a,Math.atan2(dy,dx))*Math.min(1,5*dt);tr.x+=dx/d*Math.min(d,tr.v*dt);tr.y+=dy/d*Math.min(d,tr.v*dt);return false}
 function updateTrader(dt){const tr=G.trader,p=G.p;G.near=false;if(!tr)return;
-  if(tr.phase==='arrive'){if(driveTrader(tr,dt,true)){tr.phase='parked';tr.v=0;sfx('horn')}}
+  if(tr.phase==='arrive'){if(driveTrader(tr,dt,true)){tr.phase='parked';tr.v=0;sfx('horn');toast('$',tr.T.name+' has parked','Drive into the ring and press F to trade')}}
   else if(tr.phase==='parked'){tr.stay-=dt;if(tr.stay<=0){tr.phase='leave';tr.v=60;
     // drive back out the way it came in
     tr.path=tr.path.slice(0,-1).reverse().concat([tr.home]);tr.wi=0;showBanner(tr.T.name+' is leaving','')}}
   else{// back out along the route, then keep going until it is well off screen
     if(tr.wi>=0&&driveTrader(tr,dt,false))tr.wi=-1;if(tr.wi<0){tr.v=Math.min(420,tr.v+260*dt);tr.x+=Math.cos(tr.a)*tr.v*dt;tr.y+=Math.sin(tr.a)*tr.v*dt}
-    const off=Math.abs(tr.x-p.x)>VW/2+150||Math.abs(tr.y-p.y)>VH/2+150;if((tr.wi<0&&off)||d2(tr.x,tr.y,p.x,p.y)>1500*1500||tr.x<-200||tr.y<-200||tr.x>ARENA+200||tr.y>ARENA+200){G.trader=null;G.nextTrader=G.t+rand(90,170);return}}
+    const off=Math.abs(tr.x-p.x)>VW/2+150||Math.abs(tr.y-p.y)>VH/2+150;if((tr.wi<0&&off)||d2(tr.x,tr.y,p.x,p.y)>1500*1500||tr.x<-200||tr.y<-200||tr.x>ARENA+200||tr.y>ARENA+200){G.trader=null;G.nextTrader=G.t+rand(110,160);return}}
   if(tr.phase!=='parked'&&Math.random()<.4)part(tr.x-Math.cos(tr.a)*48,tr.y-Math.sin(tr.a)*48,rand(-20,20),rand(-20,20),rand(.5,.8),rand(6,10),null,'smoke');
   // the truck is solid; shove the player out of it
   const R=44+p.r,dd=d2(p.x,p.y,tr.x,tr.y);if(dd<R*R){const d=Math.sqrt(dd)||1,nx=(p.x-tr.x)/d,ny=(p.y-tr.y)/d;p.x=tr.x+nx*R;p.y=tr.y+ny*R;const vn=p.vx*nx+p.vy*ny;if(vn<0){p.vx-=nx*vn*1.4;p.vy-=ny*vn*1.4}}
@@ -1111,12 +1152,14 @@ function openShop(){if(!G.trader)return;state='shop';touch.active=false;for(cons
   const f=$('shopCards').querySelector('button:not(:disabled)')||$('shopLeave');f.focus()}
 function renderShop(){const tr=G.trader;if(!tr)return;$('scrShop').style.setProperty('--c',tr.T.col);
   $('shopTitle').textContent=tr.T.title;$('shopName').textContent=tr.T.name;$('shopBolts').textContent=G.bolts;
+  const rc=restockCost();$('shopReroll').innerHTML=`Restock · <span class="nut"></span>${rc}`;$('shopReroll').disabled=G.bolts<rc;
   $('shopCards').innerHTML=tr.offers.map((o,i)=>{const d=TRINKETS[o.id],c=price(o.id),own=G.tk[o.id]||0;
-    return`<button class="card${o.sold?' sold':''}" data-i="${i}" ${o.sold||G.bolts<c?'disabled':''}><span class="num">${i+1}</span><span class="kind" style="color:${tr.T.col}">Trinket</span><h3>${d.name}</h3><p>${d.desc}</p>${own?`<span class="owned">Owned ×${own}</span>`:''}<span class="price">${o.sold?'Sold':`<span class="nut"></span>${c}`}</span></button>`}).join('')}
+    return`<button class="card${o.sold?' sold':''}" data-i="${i}" ${o.sold||G.bolts<c?'disabled':''}><span class="num">${i+1}</span><span class="kind" style="color:${RAR[d.rar].col}">${d.shop?'Consumable':RAR[d.rar].name+' item'}</span><h3>${d.name}</h3><p>${d.desc}</p>${own?`<span class="owned">Owned ×${own}</span>`:''}<span class="price">${o.sold?'Sold':`<span class="nut"></span>${c}`}</span></button>`}).join('')}
 function buy(i){const tr=G.trader;if(!tr||state!=='shop')return;const o=tr.offers[i];if(!o||o.sold)return;const c=price(o.id);if(G.bolts<c)return;
-  G.bolts-=c;o.sold=true;G.bought++;sfx('buy');
-  if(o.id==='patch')G.p.hp=Math.min(G.p.maxhp,G.p.hp+G.p.maxhp*0.5);else if(o.id==='voucher')G.pending++;else{G.tk[o.id]=(G.tk[o.id]||0)+1;recalc()}
+  G.bolts-=c;o.sold=true;G.bought++;sfx('buy');grantItem(o.id);
   renderShop();checkAch();const f=$('shopCards').querySelector('button:not(:disabled)')||$('shopLeave');f.focus()}
+const restockCost=()=>4+4*G.trader.restocks;
+function restock(){const tr=G.trader;if(!tr||state!=='shop')return;const c=restockCost();if(G.bolts<c)return;G.bolts-=c;tr.restocks++;tr.offers=stockFor(tr.T.cat);sfx('buy');renderShop()}
 function closeShop(){if(state!=='shop')return;state='play';show(null);last=performance.now()}
 
 /* ---------- update ---------- */
@@ -1188,7 +1231,7 @@ function updateEnemies(dt){
       const nx=-dx/d,ny=-dy/d,impact=Math.max(0,p.vx*nx+p.vy*ny),ov=rr-d;
       const wE=e.big?0.15:0.7;e.x+=nx*ov*wE;e.y+=ny*ov*wE;p.x-=nx*ov*(1-wE);p.y-=ny*ov*(1-wE);
       if(e.ccd<=0){e.ccd=0.4;
-        damageEnemy(e,(8+impact*0.13)*s.ram*(G.buffs.nitro>0?2:1));if(e.dead)G.ramKills++;
+        damageEnemy(e,(8+impact*0.13)*s.ram*(G.buffs.nitro>0?2:1));if(e.dead){G.ramKills++;if(G.tk.bumpers)explode(e.x,e.y,70+15*G.tk.bumpers,25*G.tk.bumpers*s.dmg,0)}
         else if(s.thorns)damageEnemy(e,s.thorns*s.dmg);
         const kb=(e.big?0.12:1)*(140+impact*0.9);e.kx+=nx*kb;e.ky+=ny*kb;
         p.vx-=nx*impact*(e.big?0.9:0.35);p.vy-=ny*impact*(e.big?0.9:0.35);
@@ -1208,11 +1251,12 @@ function updateEnemies(dt){
 function inCone(e,ox,oy,dir,L,half){const dx=e.x-ox,dy=e.y-oy,d=Math.hypot(dx,dy);if(d>L+e.r)return false;if(d<e.r+8)return true;return Math.abs(angDiff(dir,Math.atan2(dy,dx)))<half+e.r/d}
 
 function updateWeapons(dt){
-  const p=G.p,s=G.stats,W=G.weapons,wdt=G.buffs.fury>0?dt*2:dt;
+  const p=G.p,s=G.stats,W=G.weapons,wdt=(G.buffs.fury>0?dt*2:dt)*(G.tk.adrenaline&&p.hp<p.maxhp*.3?1+0.3*G.tk.adrenaline:1);
   if(W.mg){const w=W.mg,lv=w.lvl;w.cd-=wdt;const t=nearestVisible(p.x,p.y,640);
     const want=t?Math.atan2(t.y-p.y,t.x-p.x):p.a;w.aim+=angDiff(w.aim,want)*Math.min(1,14*dt);
     if(t&&w.cd<=0){w.cd=Math.max(0.08,(0.34-0.035*lv)*s.cd);const n=(lv>=5?3:lv>=3?2:1)+(G.tk.barrel||0),pierce=(lv>=4?1:0)+(G.tk.ap||0);
       for(let i=0;i<n;i++){const a=want+(i-(n-1)/2)*0.13+rand(-.03,.03);G.bullets.push({x:p.x+Math.cos(a)*14,y:p.y+Math.sin(a)*14,vx:Math.cos(a)*960,vy:Math.sin(a)*960,dmg:(7+3*lv)*s.dmg,life:.75,pierce,hit:null})}
+      const mr=G.tk.mirror||0;for(let i=0;i<mr;i++){const a=p.a+Math.PI+(i-(mr-1)/2)*0.15;G.bullets.push({x:p.x+Math.cos(a)*14,y:p.y+Math.sin(a)*14,vx:Math.cos(a)*960,vy:Math.sin(a)*960,dmg:(7+3*lv)*s.dmg,life:.6,pierce,hit:null})}
       part(p.x+Math.cos(want)*20,p.y+Math.sin(want)*20,0,0,.06,9,null,'fire');sfx('shoot')}}
   if(W.missile){const w=W.missile,lv=w.lvl;w.cd-=wdt;if(w.cd<=0&&nearestEnemy(p.x,p.y,800)){w.cd=Math.max(.6,(lv>=3?2.0:2.5)-0.12*lv)*s.cd;const n=lv>=4?3:lv>=2?2:1;
       for(let i=0;i<n;i++){const a=p.a+Math.PI+(i-(n-1)/2)*0.9;G.missiles.push({x:p.x,y:p.y,a,v:220,life:3.2,dmg:(26+12*lv+(lv>=5?20:0))*s.dmg,R:(55+(lv>=3?20:0)+6*lv)*s.blast,t:null})}sfx('rocket')}}
@@ -1282,7 +1326,7 @@ function updateProjectiles(dt){
   prune(G.missiles,m=>m.life>0);
   for(const sh of G.shells){sh.t+=dt;if(sh.t>=sh.dur){sh.done=true;explode(sh.tx,sh.ty,sh.R,sh.dmg,0)}}
   prune(G.shells,sh=>!sh.done);
-  for(const b of G.ebullets){b.x+=b.vx*dt;b.y+=b.vy*dt;b.life-=dt;if(shotBlocked(b,dt)){b.life=0;part(b.x,b.y,rand(-80,80),rand(-80,80),.15,2,'#e48bff','spark');continue}if(d2(b.x,b.y,p.x,p.y)<(p.r+5)**2){b.life=0;hurt(b.dmg);for(let k=0;k<6;k++)part(b.x,b.y,rand(-150,150),rand(-150,150),.2,2,'#e48bff','spark')}}
+  for(const b of G.ebullets){b.x+=b.vx*dt;b.y+=b.vy*dt;b.life-=dt;if(shotBlocked(b,dt)){b.life=0;part(b.x,b.y,rand(-80,80),rand(-80,80),.15,2,'#e48bff','spark');continue}if(d2(b.x,b.y,p.x,p.y)<(p.r+5)**2){b.life=0;if(G.tk.plating&&Math.random()<Math.min(.75,.25*G.tk.plating)){for(let k=0;k<6;k++)part(b.x,b.y,rand(-150,150),rand(-150,150),.2,2,'#8ce6ff','spark');continue}hurt(b.dmg);for(let k=0;k<6;k++)part(b.x,b.y,rand(-150,150),rand(-150,150),.2,2,'#e48bff','spark')}}
   prune(G.ebullets,b=>b.life>0);
   for(const m of G.mines){m.life-=dt;m.arm-=dt;if(m.arm<=0&&m.life>0){for(const e of near(m.x,m.y,100)){if(!e.dead&&d2(m.x,m.y,e.x,e.y)<(e.r+30)**2){m.life=0;explode(m.x,m.y,m.R,m.dmg,0);break}}}}
   prune(G.mines,m=>m.life>0);
@@ -1357,6 +1401,11 @@ function drawPlayer(){
   if(G.buffs.bubble>0){ctx.fillStyle='rgba(63,224,208,.12)';ctx.strokeStyle='rgba(63,224,208,.7)';ctx.lineWidth=2;ctx.beginPath();ctx.arc(p.x,p.y,p.r+18,0,TAU);ctx.fill();ctx.stroke()}
 }
 function drawTrader(tr){const T=tr.T,parked=tr.phase==='parked';
+  // a tall light beam and a bobbing coin sign, visible from across the screen
+  if(tr.phase!=='leave'){const pl=.5+.5*Math.sin(G.t*3),g=ctx.createLinearGradient(0,tr.y-420,0,tr.y);g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(1,T.col);
+    ctx.globalCompositeOperation='lighter';ctx.globalAlpha=.22+.12*pl;ctx.fillStyle=g;ctx.fillRect(tr.x-16,tr.y-420,32,420);ctx.globalAlpha=.12+.08*pl;ctx.fillRect(tr.x-34,tr.y-300,68,300);ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over';
+    const cy=tr.y-92+Math.sin(G.t*3)*5;ctx.fillStyle=T.col;ctx.beginPath();ctx.arc(tr.x,cy,13,0,TAU);ctx.fill();ctx.strokeStyle='#0a090c';ctx.lineWidth=3;ctx.stroke();
+    ctx.fillStyle='#0a090c';ctx.font='700 16px "Bungee",sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('$',tr.x,cy+1);ctx.textBaseline='alphabetic'}
   if(parked){const pulse=Math.sin(G.t*4)*.5+.5;ctx.strokeStyle=T.col;ctx.globalAlpha=.25+.25*pulse;ctx.lineWidth=4;ctx.setLineDash([18,14]);ctx.beginPath();ctx.arc(tr.x,tr.y,140,0,TAU);ctx.stroke();ctx.setLineDash([]);ctx.globalAlpha=1}
   ctx.save();ctx.translate(tr.x,tr.y);ctx.rotate(tr.a);const L=100,W=44;
   ctx.fillStyle='rgba(0,0,0,.45)';rr(-L/2+4,-W/2+6,L,W,6);ctx.fill();
@@ -1471,7 +1520,11 @@ function draw(){
   ctx.setTransform(DPR,0,0,DPR,0,0);
   const arrow=(wx,wy,col)=>{const sx2=wx+ox,sy2=wy+oy;if(sx2>0&&sx2<VW&&sy2>0&&sy2<VH)return;
     const a=Math.atan2(sy2-VH/2,sx2-VW/2),ex=clamp(sx2,28,VW-28),ey=clamp(sy2,110,VH-50);ctx.save();ctx.translate(ex,ey);ctx.rotate(a);ctx.fillStyle=col;ctx.beginPath();ctx.moveTo(14,0);ctx.lineTo(-8,-10);ctx.lineTo(-8,10);ctx.closePath();ctx.fill();ctx.restore()};
-  if(state!=='menu'){for(const k of G.pickups)if(k.type==='chest')arrow(k.x,k.y,'#ffc21a');else if(k.type!=='wrench'&&k.type!=='magnet')arrow(k.x,k.y,DROPS[k.type].col);if(G.trader&&G.trader.phase!=='leave')arrow(G.trader.x,G.trader.y,G.trader.T.col)}
+  if(state!=='menu'){for(const k of G.pickups)if(k.type==='chest')arrow(k.x,k.y,'#ffc21a');else if(k.type!=='wrench'&&k.type!=='magnet')arrow(k.x,k.y,DROPS[k.type].col);if(G.trader&&G.trader.phase!=='leave')traderArrow()}
+  // trader off screen: a big arrow with a coin sign pinned to the edge
+  function traderArrow(){const tr=G.trader,sx2=tr.x+ox,sy2=tr.y+oy;if(sx2>0&&sx2<VW&&sy2>0&&sy2<VH)return;const a=Math.atan2(sy2-VH/2,sx2-VW/2),ex=clamp(sx2,40,VW-40),ey=clamp(sy2,130,VH-60),pl=1+.12*Math.sin(G.t*6);
+    ctx.save();ctx.translate(ex,ey);ctx.save();ctx.rotate(a);ctx.scale(pl,pl);ctx.fillStyle=tr.T.col;ctx.beginPath();ctx.moveTo(26,0);ctx.lineTo(-6,-17);ctx.lineTo(-6,17);ctx.closePath();ctx.fill();ctx.restore();
+    ctx.fillStyle=tr.T.col;ctx.beginPath();ctx.arc(0,0,13,0,TAU);ctx.fill();ctx.strokeStyle='#0a090c';ctx.lineWidth=2;ctx.stroke();ctx.fillStyle='#0a090c';ctx.font='700 14px "Bungee",sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('$',0,1);ctx.textBaseline='alphabetic';ctx.restore()}
   if(touch.active){ctx.strokeStyle='rgba(239,234,244,.35)';ctx.lineWidth=3;ctx.beginPath();ctx.arc(touch.sx,touch.sy,60,0,TAU);ctx.stroke();const dx=touch.x-touch.sx,dy=touch.y-touch.sy,m=Math.min(60,Math.hypot(dx,dy)),a=Math.atan2(dy,dx);ctx.fillStyle='rgba(255,194,26,.6)';ctx.beginPath();ctx.arc(touch.sx+Math.cos(a)*m,touch.sy+Math.sin(a)*m,22,0,TAU);ctx.fill()}
   const low=p.hp/p.maxhp<0.3&&state==='play';
   if(S.flash&&(G.hurtFlash>0||low)){const al=Math.max(G.hurtFlash>0?G.hurtFlash:0,low?0.18+0.12*Math.sin(G.t*8):0);
@@ -1498,6 +1551,10 @@ function updateHud(){
   else if(G.lboss||G.bossDue>0)obj=`Level boss · <b>${L.boss.name}</b>`;
   else obj=`Juggernauts <b>${G.miniKills} / ${L.minis}</b> · next in <b>${fmt(Math.max(0,G.nextMini-G.t))}</b>`;
   if(hudCache.obj!==obj){hudCache.obj=obj;$('objective').innerHTML=obj}
+  // trader tracker: who, how long they stay, how far, and which way
+  const tr0=G.trader,th=$('traderHud');if(tr0&&tr0.phase!=='leave'){const dx=tr0.x-p.x,dy=tr0.y-p.y,dm=Math.round(Math.hypot(dx,dy)/10),a=Math.atan2(dy,dx);
+    const t=`<span class="tdot" style="background:${tr0.T.col}"></span><b style="color:${tr0.T.col}">${tr0.T.name}</b> · ${tr0.phase==='arrive'?'pulling in':'parked '+Math.ceil(tr0.stay)+'s'} · ${dm}m <span class="tarr" style="transform:rotate(${a.toFixed(2)}rad)">▶</span>`;
+    if(hudCache.tr!==t){hudCache.tr=t;th.innerHTML=t}th.hidden=false}else th.hidden=true;
   // trader prompt floats over the truck while you are close enough
   const tip=$('tip');if(G.near){const tr=G.trader;tip.hidden=false;tip.style.setProperty('--c',tr.T.col);
     const t=`<kbd>F</kbd> Trade with ${tr.T.name}`;if(hudCache.tip!==t){hudCache.tip=t;tip.innerHTML=t}
@@ -1522,7 +1579,7 @@ const ABIL={charge:'charges',ring:'fires bullet rings',burst:'fires aimed bursts
 const OBS_INFO={container:'Shipping container',junk:'Junk pile',tires:'Tire stack',tree:'Tree',pine:'Pine tree',burnt:'Burnt tree',rock:'Rock',barn:'Barn',silo:'Silo',cabin:'Cabin',ruin:'Ruined wall',building:'Building',lamp:'Street lamp',parked:'Parked car'};
 const PROP_INFO={crate:['Wooden crate','Smash it: 60% chance of a random power-up.'],tires:['Tire stack','Knock it over: it tumbles away and is gone in a few seconds. Small chance of a drop.'],hay:['Hay bale','Knock it over: it rolls away and is gone in a few seconds. Small chance of a drop.'],cone:['Traffic cone','Knock it over: it skids away and is gone in a few seconds. Small chance of a drop.'],hydrant:['Fire hydrant','Knock it over: it skids away and is gone in a few seconds. Small chance of a drop.'],snowman:['Snowman','Knock it over: it tumbles away and is gone in a few seconds. Small chance of a drop.']};
 const BARREL_INFO={barrel:['Explosive barrel','Goes off when shot, rammed, burned or caught in a blast. Chains into other barrels.'],propane:['Propane tank','A much bigger blast than a barrel. Chains into other barrels.'],toxic:['Toxic drum','Explodes and leaves a burning acid pool for 8 seconds.']};
-const ZONE_INFO={oil:['Oil slick','Your tires lose most of their grip while you\'re on it.'],ice:['Black ice','Almost no grip. Brake early and steer gently.'],lava:['Lava pool','Burns you and every car that drives in.'],acid:['Acid pool','Burns you and every car inside until it dries up.'],spikes:['Spike strip','Shreds tires: damages and slows you, and hurts cars too.']};
+const ZONE_INFO={napalm:['Napalm fire','From your Napalm Tank: burns cars, never you.'],oil:['Oil slick','Your tires lose most of their grip while you\'re on it.'],ice:['Black ice','Almost no grip. Brake early and steer gently.'],lava:['Lava pool','Burns you and every car that drives in.'],acid:['Acid pool','Burns you and every car inside until it dries up.'],spikes:['Spike strip','Shreds tires: damages and slows you, and hurts cars too.']};
 const PICK_INFO={chest:['Supply crate','Pick a free bolt-on.'],wrench:['Wrench','Repairs 30 HP.'],magnet:['Scrap magnet','Pulls every scrap and bolt on the map to you.'],nuke:['Airstrike','Wrecks every regular car within 900px and dents bosses.'],
   freeze:['Cryo canister','Freezes every car for 5 seconds.'],nitro:['Nitro can','8 seconds of extra speed and double ram damage.'],fury:['Overdrive','10 seconds of double-speed weapon recharge.'],bubble:['Bubble shield','6 seconds of invulnerability.'],sack:['Scrap sack','+15 scrap banked for the Garage.'],bolts:['Bolt bag','+12 bolts to spend at traders.']};
 const mouse={x:0,y:0,overCanvas:false,last:-1e9,inWin:false};
@@ -1636,12 +1693,15 @@ function buildChoices(){
   const pool=[],nW=Object.keys(G.weapons).length,nP=Object.keys(G.passives).length;
   for(const k in WDEF){if(!unlocked(WDEF[k])&&!G.weapons[k])continue;const l=G.weapons[k]?G.weapons[k].lvl:0;if(l>=5)continue;if(!l&&nW>=slotsW())continue;pool.push({kind:'w',k,next:l+1})}
   for(const k in PDEF){if(!unlocked(PDEF[k])&&!G.passives[k])continue;const l=G.passives[k]||0;if(l>=5)continue;if(!l&&nP>=slotsP())continue;pool.push({kind:'p',k,next:l+1})}
-  shuffle(pool);const out=pool.slice(0,3);if(!out.length)out.push({kind:'heal'});return out;
+  shuffle(pool);const out=pool.slice(0,3);if(!out.length)out.push({kind:'heal'});
+  // Megabonk-style: skip the bolt-on and roll a random item from the trader stock instead
+  out.push({kind:'roll'});return out;
 }
 function openLevelup(){state='levelup';choices=buildChoices();sfx('level');
-  $('lvlSub').textContent=`Pick a bolt-on · keys 1 to 3 · Weapons ${Object.keys(G.weapons).length}/${slotsW()} · Upgrades ${Object.keys(G.passives).length}/${slotsP()}`;
+  $('lvlSub').textContent=`Pick a bolt-on or roll an item · keys 1 to ${choices.length} · Weapons ${Object.keys(G.weapons).length}/${slotsW()} · Upgrades ${Object.keys(G.passives).length}/${slotsP()}`;
   $('cards').innerHTML=choices.map((c,i)=>{
     if(c.kind==='heal')return`<button class="card" id="choice${i}" data-i="${i}"><span class="num">${i+1}</span><span class="kind">Pit stop</span><h3>Full patch-up</h3><p>Repair 50 HP. Your rig is maxed out.</p></button>`;
+    if(c.kind==='roll')return`<button class="card roll" id="choice${i}" data-i="${i}"><span class="num">${i+1}</span><span class="kind">Skip · Trader's Roll</span><h3>Roll an item</h3><p>Skip the bolt-on and take a random item from the traders' stock instead.</p><span class="odds"><b style="color:${RAR.common.col}">Common 60%</b> · <b style="color:${RAR.rare.col}">Rare 30%</b> · <b style="color:${RAR.epic.col}">Epic 10%</b></span></button>`;
     const d=c.kind==='w'?WDEF[c.k]:PDEF[c.k];const kind=c.kind==='w'?(c.next===1?'New weapon':'Weapon · Lv '+c.next):(c.next===1?'New upgrade':'Upgrade · Lv '+c.next);
     const desc=c.kind==='w'?d.desc[c.next-1]:d.desc;
     return`<button class="card ${c.kind}" id="choice${i}" data-i="${i}"><span class="num">${i+1}</span><span class="kind">${kind}${d.unlock?' · Unlocked':''}</span><h3>${d.name}</h3><p>${desc}</p></button>`}).join('');
@@ -1651,6 +1711,7 @@ function openLevelup(){state='levelup';choices=buildChoices();sfx('level');
 function pickChoice(i){const c=choices[i];if(!c||state!=='levelup')return;
   if(c.kind==='w'){if(G.weapons[c.k])G.weapons[c.k].lvl++;else G.weapons[c.k]={lvl:1,cd:0.3,aim:G.p.a}}
   else if(c.kind==='p'){G.passives[c.k]=(G.passives[c.k]||0)+1;recalc()}
+  else if(c.kind==='roll'){const id=rollItem(),it=TRINKETS[id],rr=RAR[it.rar];grantItem(id);G.rolled=(G.rolled||0)+1;sfx('buy');toast(rr.name[0],`Trader's Roll · ${rr.name}`,it.name);showBanner(it.name,`${rr.name} item · ${it.desc}`)}
   else G.p.hp=Math.min(G.p.maxhp,G.p.hp+50);
   G.pending--;updateLoadout();
   if(G.pending>0)openLevelup();else{state='play';show(null);last=performance.now();if(G.t<1)startBanner()}}
@@ -1664,7 +1725,7 @@ $('startBtn').onclick=e=>openSub('scrLevels',e.currentTarget);
 $('againBtn').onclick=()=>startGame();$('quitBtn').onclick=()=>startGame();
 $('pMenuBtn').onclick=toMenu;$('oMenuBtn').onclick=toMenu;$('wMenuBtn').onclick=cashOut;
 $('keepBtn').onclick=()=>{state='play';show(null);last=performance.now()};
-$('shopLeave').onclick=closeShop;$('tip').onclick=()=>{if(state==='play'&&G.near)openShop()};
+$('shopLeave').onclick=closeShop;$('shopReroll').onclick=restock;$('tip').onclick=()=>{if(state==='play'&&G.near)openShop()};
 $('pauseBtn').onclick=()=>{$('pauseBtn').blur();togglePause()};$('resumeBtn').onclick=togglePause;
 $('achBtn').onclick=e=>openSub('scrAch',e.currentTarget);$('setBtn').onclick=e=>openSub('scrSet',e.currentTarget);
 $('howBtn').onclick=e=>openSub('scrHow',e.currentTarget);$('pSetBtn').onclick=e=>openSub('scrSet',e.currentTarget);
@@ -1688,7 +1749,7 @@ function attract(dt){G.t+=dt;const p=G.p,R=clamp(Math.min(VW,VH)*.4,160,460),w=0
 resize();newGame(curLevel);show('scrMenu');refreshMenu();
 let last=performance.now();
 function frame(now){
-  const dt=Math.min(0.05,(now-last)/1000);last=now;
+  const dt=clamp((now-last)/1000,0,0.05);last=now;
   if(state==='play'){update(dt);if(state==='play'||state==='levelup'||state==='won')updateHud()}
   else if(state==='menu')attract(dt);
   else if(state==='over'){updateWreck(dt);updateFx(dt);G.shake*=Math.exp(-7*dt)}
