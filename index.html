@@ -206,6 +206,29 @@ kbd{display:inline-block;font-family:var(--body);font-weight:700;font-size:12px;
 .upg .pips i.on{background:var(--xp)}
 .upg .cost{margin-top:auto;font-family:var(--display);font-size:16px;color:var(--xp)}
 .secthead{width:100%;text-align:left;margin:4px 0 -6px}
+.lbname{display:flex;gap:10px;align-items:center;width:100%;flex-wrap:wrap;justify-content:center}
+.lbname label{font-weight:700;letter-spacing:.14em;font-size:12px;color:var(--dim);text-transform:uppercase}
+.lbname input{flex:1 1 180px;max-width:280px;background:var(--panel);border:2px solid var(--line);color:var(--fg);font:600 16px var(--body);padding:8px 12px}
+.lbname input:focus{outline:none;border-color:var(--hazard)}
+.lbname .btn{padding:9px 20px;font-size:15px}
+.lbtabs{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;width:100%}
+.lbtab{background:var(--panel);border:2px solid var(--line);color:var(--dim);font:700 13px var(--body);letter-spacing:.06em;padding:7px 12px;cursor:pointer}
+.lbtab[aria-selected="true"]{color:var(--fg);border-color:var(--hazard);background:var(--panel-2)}
+.lbtab:focus-visible{outline:2px solid var(--fg);outline-offset:2px}
+.lbwrap{width:100%;max-height:min(52vh,520px);overflow:auto;border:1px solid var(--line);background:rgba(20,19,24,.92)}
+.lbt{width:100%;border-collapse:collapse;font-size:14px;font-variant-numeric:tabular-nums}
+.lbt th{position:sticky;top:0;background:var(--panel-2);color:var(--dim);font-size:11px;letter-spacing:.14em;text-transform:uppercase;text-align:left;padding:8px 10px}
+.lbt td{padding:7px 10px;border-top:1px solid var(--line);text-align:left}
+.lbt td:first-child{color:var(--dim);width:3em}
+.lbt tr:nth-child(-n+3) td:first-child{color:var(--hazard);font-weight:700}
+.lbt .nm{font-weight:600;max-width:12em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lbt .nm small{color:var(--hazard);font-size:10px;letter-spacing:.12em;text-transform:uppercase;margin-left:4px}
+.lbt tr.you td{background:rgba(255,194,26,.1)}.lbt tr.you td:first-child{box-shadow:inset 4px 0 var(--hazard)}
+.lbt tr.gap td{text-align:center;color:var(--dim);padding:2px}
+.lbt .clr{color:#2fbf74;font-weight:700}
+.lbt .lbinfo{text-align:center;color:var(--dim);padding:22px 10px}
+.lbrank{text-transform:none;letter-spacing:.06em;font-size:14px}.lbrank b{color:var(--hazard)}
+@media (max-width:520px){.lbt .lbcar{display:none}.lbt td,.lbt th{padding:7px 6px}}
 /* hover cards for anything under the cursor */
 #hoverTip{position:fixed;left:0;top:0;z-index:20;pointer-events:none;width:max-content;max-width:260px;background:rgba(12,11,15,.96);border:1px solid var(--line);border-top:3px solid var(--c,var(--hazard));padding:9px 11px;box-shadow:4px 4px 0 var(--ink);font-family:var(--body);color:var(--fg)}
 #hoverTip .tt{font-family:var(--display);font-size:15px;line-height:1.1;color:var(--c,var(--hazard))}
@@ -265,6 +288,7 @@ body.nocursor,body.nocursor *{cursor:none!important}
     <nav class="menu-list" aria-label="Main menu">
       <button class="btn" id="startBtn">Start engine</button>
       <button class="mbtn" id="garBtn"><span>Garage</span><span><small id="mScrap">0 scrap</small><span class="arr">›</span></span></button>
+      <button class="mbtn" id="lbBtn"><span>Leaderboards</span><span><small>Online</small><span class="arr">›</span></span></button>
       <button class="mbtn" id="achBtn"><span>Achievements</span><span><small id="mAch">0 / 0</small><span class="arr">›</span></span></button>
       <button class="mbtn" id="setBtn"><span>Settings</span><span class="arr">›</span></button>
       <button class="mbtn" id="howBtn"><span>How to play</span><span class="arr">›</span></button>
@@ -288,6 +312,14 @@ body.nocursor,body.nocursor *{cursor:none!important}
     <div class="carpick" id="carPick"></div>
     <p class="sub secthead">Track</p>
     <div class="lvgrid" id="lvGrid"></div>
+  </section>
+
+  <section id="scrBoard" class="panel" hidden>
+    <div class="subhead"><button class="back">‹ Back</button><h2 class="big">Leaderboards</h2><p class="sub" id="lbSub">Longest survival</p></div>
+    <div class="lbname"><label for="lbName">Your name</label><input id="lbName" maxlength="16" autocomplete="off" spellcheck="false"><button class="btn alt" id="lbSave">Save</button></div>
+    <div class="lbtabs" id="lbTabs" role="tablist" aria-label="Track"></div>
+    <div class="lbwrap"><table class="lbt"><thead><tr><th>#</th><th>Driver</th><th>Time</th><th>Wrecks</th><th>Lvl</th><th class="lbcar">Car</th></tr></thead><tbody id="lbBody"></tbody></table></div>
+    <p class="sub" id="lbMsg"></p>
   </section>
 
   <section id="scrAch" class="panel" hidden>
@@ -406,6 +438,7 @@ body.nocursor,body.nocursor *{cursor:none!important}
       <div class="top2"><span>Account level<b id="oAcct">1</b></span><span class="gain" id="oGain">+0 XP</span></div>
       <div class="achbar"><i id="oAcctFill"></i></div>
     </div>
+    <p class="sub lbrank" id="rRank"></p>
     <div id="rAchWrap" hidden><p class="sub" style="margin-bottom:10px">Unlocked this run</p><div class="newach" id="rAch"></div></div>
     <div class="btns">
       <button class="btn" id="againBtn">Drive again</button>
@@ -715,7 +748,7 @@ function toast(ic,small,title){const el=document.createElement('div');el.classNa
   el.innerHTML=`${badge(ic,true)}<div><small>${small}</small><b>${title}</b></div>`;$('toasts').appendChild(el);
   setTimeout(()=>{el.classList.add('out');setTimeout(()=>el.remove(),350)},3800)}
 // fold a finished (or abandoned) run into the lifetime profile; returns account XP earned
-function commitRun(){const r=rec();G.live=false;
+function commitRun(){const r=rec();G.live=false;G.lbRun=lbQueueRun();G.lbPosting=lbFlush();
   P.kills+=G.kills;P.bossKills+=G.miniKills;P.eliteKills+=G.eliteKills;P.time+=G.t;P.bought+=G.bought;
   P.bestProps=r.props;P.powerups+=G.powerups;P.best=r.time;P.bestKills=r.kills;P.bestLevel=r.level;P.bestRam=r.ram;P.bestBarrels=r.barrels;P.bestWeapons=r.weapons;P.bestWlvl=r.wlvl;P.bestBrink=r.brink;
   const T=P.tracks[G.L.id]=Object.assign({best:0,cleared:0},P.tracks[G.L.id]);T.best=Math.max(T.best,G.t);
@@ -1697,10 +1730,10 @@ function updateHover(){const tip=$('hoverTip');const idle=performance.now()-mous
   const w=tip.offsetWidth,h=tip.offsetHeight;let x=mouse.x+18,y=mouse.y+18;if(x+w>VW-8)x=mouse.x-w-14;if(y+h>VH-8)y=mouse.y-h-14;tip.style.transform=`translate(${Math.max(8,x)}px,${Math.max(8,y)}px)`}
 
 /* ---------- screens ---------- */
-const SCREENS=['scrMenu','scrGarage','scrLevels','scrLevel','scrShop','scrPause','scrWin','scrOver','scrAch','scrSet','scrHow'],SUBS=['scrLevels','scrGarage','scrAch','scrSet','scrHow'];
+const SCREENS=['scrMenu','scrGarage','scrLevels','scrLevel','scrShop','scrPause','scrWin','scrOver','scrAch','scrSet','scrHow','scrBoard'],SUBS=['scrLevels','scrGarage','scrAch','scrSet','scrHow','scrBoard'];
 let cur='scrMenu';const navStack=[];
 function show(id){cur=id;for(const s of SCREENS)$(s).hidden=s!==id;$('overlay').hidden=!id;$('overlay').classList.toggle('attract',state==='menu');if(id){$('tip').hidden=true;$('banner').classList.remove('show')}}
-function openSub(id,opener){navStack.push({id:cur||'scrMenu',focus:opener});if(id==='scrAch')renderAch();if(id==='scrSet')renderSettings();if(id==='scrLevels')renderLevels();if(id==='scrGarage')renderGarage();show(id);
+function openSub(id,opener){navStack.push({id:cur||'scrMenu',focus:opener});if(id==='scrAch')renderAch();if(id==='scrBoard')renderBoard();if(id==='scrSet')renderSettings();if(id==='scrLevels')renderLevels();if(id==='scrGarage')renderGarage();show(id);
   const f=id==='scrLevels'?$('lv'+curLevel):null;(f&&!f.disabled?f:$(id).querySelector('.back')).focus()}
 function goBack(){const top=navStack.pop()||{id:'scrMenu',focus:null},id=top.id;if(id==='scrLevels')renderLevels();if(id==='scrGarage')renderGarage();show(id);if(id==='scrMenu')refreshMenu();
   // re-rendered screens replace their buttons; find the matching one again
@@ -1737,10 +1770,63 @@ function toMenu(){if(G&&G.live)commitRun();navStack.length=0;state='menu';newGam
 function togglePause(){if(state==='play'){state='paused';$('pauseLevel').textContent=G.L.name+' · '+G.car.name+' · '+fmt(G.t);show('scrPause');$('resumeBtn').focus()}else if(state==='paused'){state='play';show(null);last=performance.now()}}
 function openWin(){state='won';$('winText').textContent=`${G.L.boss.name} is scrap. Keep driving for more XP and loot, or cash out now.`;
   $('wTime').textContent=fmt(G.t);$('wKills').textContent=G.kills;$('wLvl').textContent=G.level;show('scrWin');$('keepBtn').focus()}
+/* ---------- online leaderboard (api/scores.js on Vercel, scores kept in Upstash Redis) ---------- */
+// each browser gets a random secret player id; your best run per track is queued locally and posted when the server is reachable
+const LB_API='/api/scores',lbOnline=/^https?:$/.test(location.protocol);
+if(!/^[a-f0-9]{32}$/.test(P.pid||'')){const a=new Uint8Array(16);crypto.getRandomValues(a);P.pid=[...a].map(x=>x.toString(16).padStart(2,'0')).join('')}
+const lbClean=s=>String(s||'').replace(/[^\w .\-]/g,'').replace(/\s+/g,' ').trim().slice(0,16);
+if(lbClean(P.lbName).length<2)P.lbName='Driver '+(parseInt(P.pid.slice(0,4),16)%9000+1000);
+P.lbQueue=Object.assign({},P.lbQueue);saveProfile();
+const carIdOf=c=>Object.keys(CARS).find(k=>CARS[k]===c)||'interceptor';
+async function lbFetch(q,opts={}){const r=await fetch(LB_API+q,Object.assign({cache:'no-store'},opts));const j=await r.json().catch(()=>({}));
+  if(!r.ok)throw Object.assign(new Error('lb'),{code:j.error||r.status});return j}
+const lbPost=body=>lbFetch('',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(Object.assign({pid:P.pid,name:P.lbName},body))});
+function lbQueueRun(){if(G.t<10)return null;const id=G.L.id,run={track:id,t:Math.floor(G.t),kills:G.kills,level:G.level,car:carIdOf(G.car),cleared:!!G.cleared};
+  const q=P.lbQueue[id];if(!q||run.t>q.t||(run.t===q.t&&run.kills>q.kills))P.lbQueue[id]=run;saveProfile();return run}
+let lbBusy=null;
+function lbFlush(){if(!lbOnline)return Promise.resolve({});if(lbBusy)return lbBusy.then(lbFlush);
+  const job=(async()=>{const out={};for(const id of Object.keys(P.lbQueue)){
+    try{out[id]=await lbPost(P.lbQueue[id]);delete P.lbQueue[id]}
+    catch(e){out[id]={error:e.code};if(/^implausible|^track$/.test(e.code))delete P.lbQueue[id];if(e.code==='not_configured'||e.code===429)break}}
+    saveProfile();return out})();
+  lbBusy=job;job.finally(()=>{if(lbBusy===job)lbBusy=null});return job}
+const lbErrText=c=>!lbOnline?'Online leaderboards work on the deployed site, not when the file is opened directly.':
+  c==='not_configured'?'The leaderboard server isn\'t set up yet. Your runs are saved and will post once it is.':
+  c===429?'Too many requests. Try again in a minute.':'Can\'t reach the leaderboard right now. Your runs are saved and will post later.';
+// results screen line
+function lbAfterRun(){const el=$('rRank'),g=G,L=G.L;
+  if(!g.lbRun){el.textContent=G.t<10?'Runs under 10 seconds don\'t go on the leaderboard':'';return}
+  if(!lbOnline){el.textContent='Leaderboard offline · run saved to post later';return}
+  el.textContent='Posting to the leaderboard…';
+  g.lbPosting.then(out=>{if(G!==g)return;const j=out[L.id];
+    if(!j||j.error)el.textContent=j&&/^implausible/.test(j.error)?'The leaderboard rejected this run':'Leaderboard offline · run saved to post later';
+    else el.innerHTML=`${j.best?'<b>New best</b> · ':''}Global rank <b>#${j.rank}</b> of ${j.total} on ${esc(L.name)}`})}
+// leaderboard screen
+let lbTrack=null,lbReq=0;
+function renderBoard(){if(lbTrack===null)lbTrack=G&&G.L?G.L.id:LEVELS[0].id;
+  $('lbName').value=P.lbName;
+  $('lbTabs').innerHTML=LEVELS.map(L=>`<button class="lbtab" role="tab" data-t="${L.id}" aria-selected="${L.id===lbTrack}">${esc(L.name)}</button>`).join('');
+  const L=LEVELS.find(l=>l.id===lbTrack),best=(P.tracks[lbTrack]||{}).best||0;
+  $('lbSub').textContent=`${L.name} · longest survival`;
+  const body=$('lbBody'),msg=$('lbMsg'),n=++lbReq;msg.textContent=best?`Your best here: ${fmt(best)}`:'';
+  if(!lbOnline){body.innerHTML='';msg.textContent=lbErrText();return}
+  body.innerHTML='<tr><td colspan="6" class="lbinfo">Loading…</td></tr>';
+  lbFlush().then(()=>lbFetch(`?track=${lbTrack}&limit=50`,{headers:{'x-player':P.pid}})).then(j=>{if(n!==lbReq)return;
+    const row=r=>`<tr class="${r.you?'you':''}"><td>${r.rank}</td><td class="nm">${esc(r.name)}${r.you?' <small>you</small>':''}</td><td>${fmt(r.t||0)}${r.cleared?' <span class="clr" title="Track cleared">✓</span>':''}</td><td>${r.kills||0}</td><td>${r.level||1}</td><td class="lbcar">${esc((CARS[r.car]||CARS.interceptor).name)}</td></tr>`;
+    let h=j.top.map(row).join('');if(j.me&&j.me.rank>j.top.length)h+='<tr class="gap"><td colspan="6">⋯</td></tr>'+row(j.me);
+    body.innerHTML=h||'<tr><td colspan="6" class="lbinfo">No runs yet. Survive 10 seconds to claim first place.</td></tr>';
+    msg.textContent=`${j.total} driver${j.total===1?'':'s'} on this track`+(best?` · your best here: ${fmt(best)}`:'')})
+  .catch(e=>{if(n!==lbReq)return;body.innerHTML='';msg.textContent=lbErrText(e.code)})}
+$('lbTabs').addEventListener('click',e=>{const b=e.target.closest('.lbtab');if(!b)return;lbTrack=b.dataset.t;renderBoard();$('lbTabs').querySelector(`[data-t="${lbTrack}"]`).focus()});
+function lbSaveName(){const nm=lbClean($('lbName').value);if(nm.length<2){$('lbMsg').textContent='Names need at least 2 letters or numbers.';return}
+  P.lbName=nm;saveProfile();$('lbName').value=nm;if(!lbOnline){$('lbMsg').textContent='Name saved on this device.';return}
+  lbPost({action:'name'}).then(()=>{$('lbMsg').textContent='Name saved.';renderBoard()}).catch(e=>{$('lbMsg').textContent='Name saved on this device. '+lbErrText(e.code)})}
+$('lbSave').onclick=lbSaveName;$('lbName').addEventListener('keydown',e=>{if(e.code==='Enter'||e.code==='NumpadEnter'){e.preventDefault();lbSaveName()}});
+lbFlush();
 function results(title){const T=P.tracks[G.L.id]||{best:G.t};$('overTitle').textContent=title;
   $('rTime').textContent=fmt(G.t);$('rKills').textContent=G.kills;$('rLvl').textContent=G.level;$('rBest').textContent=fmt(T.best);
   fillAcct('oAcct',null,'oAcctFill');$('oGain').innerHTML=`+${G.gain} XP · +${G.scrapGain} <span class="scrapi"></span>scrap`;
-  $('rAchWrap').hidden=!G.newAch.length;$('rAch').innerHTML=G.newAch.map(a=>`<div class="toast">${badge(a.ic,true)}<div><b>${a.name}</b></div></div>`).join('')}
+  lbAfterRun();$('rAchWrap').hidden=!G.newAch.length;$('rAch').innerHTML=G.newAch.map(a=>`<div class="toast">${badge(a.ic,true)}<div><b>${a.name}</b></div></div>`).join('')}
 function gameOver(){state='over';commitRun();results('Wrecked');$('tip').hidden=true;const p=G.p;
   // the car blows apart: a big blast, pieces of bodywork in the car's colour, then a burning shell
   explode(p.x,p.y,170,0);G.shake=24;G.wreck={t:0,booms:[.18,.4,.65]};sfx('boom');
@@ -1800,7 +1886,7 @@ $('pMenuBtn').onclick=toMenu;$('oMenuBtn').onclick=toMenu;$('wMenuBtn').onclick=
 $('keepBtn').onclick=()=>{state='play';show(null);last=performance.now()};
 $('shopLeave').onclick=closeShop;$('shopReroll').onclick=restock;$('tip').onclick=()=>{if(state==='play'&&G.near)openShop()};
 $('pauseBtn').onclick=()=>{$('pauseBtn').blur();togglePause()};$('resumeBtn').onclick=togglePause;
-$('achBtn').onclick=e=>openSub('scrAch',e.currentTarget);$('setBtn').onclick=e=>openSub('scrSet',e.currentTarget);
+$('achBtn').onclick=e=>openSub('scrAch',e.currentTarget);$('lbBtn').onclick=e=>openSub('scrBoard',e.currentTarget);$('setBtn').onclick=e=>openSub('scrSet',e.currentTarget);
 $('howBtn').onclick=e=>openSub('scrHow',e.currentTarget);$('pSetBtn').onclick=e=>openSub('scrSet',e.currentTarget);
 for(const b of document.querySelectorAll('.back'))b.onclick=goBack;
 for(const b of document.querySelectorAll('.switch'))b.onclick=()=>{const k=b.dataset.set;S[k]=!S[k];saveSettings();renderSettings();
