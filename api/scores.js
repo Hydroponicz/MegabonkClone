@@ -7,8 +7,23 @@
 // Ranking: longest survival time, then most wrecks. Player ids are random secrets made by the game and are never returned.
 // Storage: lb:<track> sorted set (pid -> score), lbrun:<track> hash (pid -> run JSON), lbname hash (pid -> name).
 
-const URL_ = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
-const TOKEN = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
+// Find the Upstash REST credentials. The Vercel integration names them KV_REST_API_URL / KV_REST_API_TOKEN,
+// but the connect dialog can add a custom prefix (e.g. STORAGE_KV_REST_API_URL), and Upstash's own names are
+// UPSTASH_REDIS_REST_URL / UPSTASH_REDIS_REST_TOKEN. Accept any of these.
+function findCreds(env) {
+  const pairs = [['KV_REST_API_URL', 'KV_REST_API_TOKEN'], ['UPSTASH_REDIS_REST_URL', 'UPSTASH_REDIS_REST_TOKEN'], ['REDIS_REST_URL', 'REDIS_REST_TOKEN']];
+  for (const [u, t] of pairs) if (env[u] && env[t]) return { url: env[u], token: env[t], source: u };
+  for (const k of Object.keys(env).sort()) for (const [u, t] of pairs) {
+    if (k.endsWith('_' + u) && /^https:\/\//.test(env[k])) {
+      const tk = k.slice(0, -u.length) + t;
+      if (env[tk]) return { url: env[k], token: env[tk], source: k };
+    }
+  }
+  return null;
+}
+const CREDS = findCreds(process.env);
+const URL_ = CREDS && CREDS.url.replace(/\/+$/, '');
+const TOKEN = CREDS && CREDS.token;
 const TRACKS = ['yard', 'dust', 'neon', 'frost', 'inferno'];
 const CARS = ['interceptor', 'dozer', 'hornet', 'pyro', 'volt', 'junker'];
 const MAX_T = 4 * 3600;
@@ -52,7 +67,14 @@ async function rows(track, pids) {
 
 module.exports = async (req, res) => {
   res.setHeader('Cache-Control', 'no-store');
-  if (!URL_ || !TOKEN) return res.status(503).json({ error: 'not_configured' });
+  // GET /api/scores?diag=1 : which storage variables this deployment can see (names only, never values)
+  if (req.method === 'GET' && req.query.diag) {
+    const seen = Object.keys(process.env).filter(k => /KV|REDIS|UPSTASH/i.test(k)).sort();
+    let ping = null;
+    if (URL_ && TOKEN) { try { ping = (await redis([['PING']]))[0]; } catch (e) { ping = 'failed: ' + e.message; } }
+    return res.status(200).json({ environment: process.env.VERCEL_ENV || null, configured: !!(URL_ && TOKEN), source: CREDS ? CREDS.source : null, ping, seen });
+  }
+  if (!URL_ || !TOKEN) return res.status(503).json({ error: 'not_configured', environment: process.env.VERCEL_ENV || null });
   try {
     if (req.method === 'GET') {
       const track = String(req.query.track || '');

@@ -13,6 +13,14 @@ Redis database. The function has no npm dependencies.
    The `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` names also work.
 4. Redeploy. Environment variables only reach deployments made after they were added.
 
+## Checking the connection
+
+Open `/api/scores?diag=1` on the deployed site. It shows which environment the
+deployment is (`production` or `preview`), whether credentials were found, a
+`PING` to the database, and the names (never the values) of any `KV`, `REDIS`
+or `UPSTASH` variables the function can see. Prefixed names such as
+`STORAGE_KV_REST_API_URL` are picked up automatically.
+
 Until the database is connected, `/api/scores` answers `503 not_configured`.
 The game says the leaderboard isn't set up yet and keeps each player's best
 runs on their device, then uploads them once the server works.

@@ -1779,7 +1779,7 @@ if(lbClean(P.lbName).length<2)P.lbName='Driver '+(parseInt(P.pid.slice(0,4),16)%
 P.lbQueue=Object.assign({},P.lbQueue);saveProfile();
 const carIdOf=c=>Object.keys(CARS).find(k=>CARS[k]===c)||'interceptor';
 async function lbFetch(q,opts={}){const r=await fetch(LB_API+q,Object.assign({cache:'no-store'},opts));const j=await r.json().catch(()=>({}));
-  if(!r.ok)throw Object.assign(new Error('lb'),{code:j.error||r.status});return j}
+  if(!r.ok)throw Object.assign(new Error('lb'),{code:j.error||r.status,env:j.environment});return j}
 const lbPost=body=>lbFetch('',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(Object.assign({pid:P.pid,name:P.lbName},body))});
 function lbQueueRun(){if(G.t<10)return null;const id=G.L.id,run={track:id,t:Math.floor(G.t),kills:G.kills,level:G.level,car:carIdOf(G.car),cleared:!!G.cleared};
   const q=P.lbQueue[id];if(!q||run.t>q.t||(run.t===q.t&&run.kills>q.kills))P.lbQueue[id]=run;saveProfile();return run}
@@ -1790,8 +1790,8 @@ function lbFlush(){if(!lbOnline)return Promise.resolve({});if(lbBusy)return lbBu
     catch(e){out[id]={error:e.code};if(/^implausible|^track$/.test(e.code))delete P.lbQueue[id];if(e.code==='not_configured'||e.code===429)break}}
     saveProfile();return out})();
   lbBusy=job;job.finally(()=>{if(lbBusy===job)lbBusy=null});return job}
-const lbErrText=c=>!lbOnline?'Online leaderboards work on the deployed site, not when the file is opened directly.':
-  c==='not_configured'?'The leaderboard server isn\'t set up yet. Your runs are saved and will post once it is.':
+const lbErrText=(c,env)=>!lbOnline?'Online leaderboards work on the deployed site, not when the file is opened directly.':
+  c==='not_configured'?`The leaderboard database isn't connected to this ${env?env+' ':''}deployment yet. Your runs are saved and will post once it is.`:
   c===429?'Too many requests. Try again in a minute.':'Can\'t reach the leaderboard right now. Your runs are saved and will post later.';
 // results screen line
 function lbAfterRun(){const el=$('rRank'),g=G,L=G.L;
@@ -1816,7 +1816,7 @@ function renderBoard(){if(lbTrack===null)lbTrack=G&&G.L?G.L.id:LEVELS[0].id;
     let h=j.top.map(row).join('');if(j.me&&j.me.rank>j.top.length)h+='<tr class="gap"><td colspan="6">⋯</td></tr>'+row(j.me);
     body.innerHTML=h||'<tr><td colspan="6" class="lbinfo">No runs yet. Survive 10 seconds to claim first place.</td></tr>';
     msg.textContent=`${j.total} driver${j.total===1?'':'s'} on this track`+(best?` · your best here: ${fmt(best)}`:'')})
-  .catch(e=>{if(n!==lbReq)return;body.innerHTML='';msg.textContent=lbErrText(e.code)})}
+  .catch(e=>{if(n!==lbReq)return;body.innerHTML='';msg.textContent=lbErrText(e.code,e.env)})}
 $('lbTabs').addEventListener('click',e=>{const b=e.target.closest('.lbtab');if(!b)return;lbTrack=b.dataset.t;renderBoard();$('lbTabs').querySelector(`[data-t="${lbTrack}"]`).focus()});
 function lbSaveName(){const nm=lbClean($('lbName').value);if(nm.length<2){$('lbMsg').textContent='Names need at least 2 letters or numbers.';return}
   P.lbName=nm;saveProfile();$('lbName').value=nm;if(!lbOnline){$('lbMsg').textContent='Name saved on this device.';return}
