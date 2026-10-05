@@ -579,9 +579,12 @@ const TRINKETS={
   dice:{name:'Loaded Dice',desc:'15% chance that a level up gives a bonus pick.',cost:30,cat:'luck',rar:'epic',max:3},
 };
 const itemOpen=k=>(G.tk[k]||0)<(TRINKETS[k].max||5);
-// a Trader's Roll: any non-consumable item you can still stack, weighted by rarity
-function rollItem(){const pool=Object.keys(TRINKETS).filter(k=>!TRINKETS[k].shop&&itemOpen(k));if(!pool.length)return'patch';let tot=0;for(const k of pool)tot+=RAR[TRINKETS[k].rar].w;
-  let r=Math.random()*tot;for(const k of pool)if((r-=RAR[TRINKETS[k].rar].w)<0)return k;return pool[0]}
+// a Trader's Roll: any non-consumable item you can still stack
+function rollItem(){const pool=Object.keys(TRINKETS).filter(k=>!TRINKETS[k].shop&&itemOpen(k));if(!pool.length)return'patch';
+  // pick the rarity first (so the odds on the card are the real odds), then any open item of that rarity
+  const tiers=Object.keys(RAR).filter(r=>pool.some(k=>TRINKETS[k].rar===r));let tot=0;for(const r of tiers)tot+=RAR[r].w;
+  let x=Math.random()*tot,tier=tiers[0];for(const r of tiers)if((x-=RAR[r].w)<0){tier=r;break}
+  const opts=pool.filter(k=>TRINKETS[k].rar===tier);return opts[Math.random()*opts.length|0]}
 function grantItem(id){if(id==='patch')G.p.hp=Math.min(G.p.maxhp,G.p.hp+G.p.maxhp*0.5);else if(id==='voucher')G.pending++;else{G.tk[id]=(G.tk[id]||0)+1;recalc()}updateLoadout()}
 const stockFor=cat=>shuffle(Object.keys(TRINKETS).filter(k=>TRINKETS[k].cat===cat&&itemOpen(k))).slice(0,3).map(id=>({id,sold:false}));
 // unique item effects that trigger on a wreck
