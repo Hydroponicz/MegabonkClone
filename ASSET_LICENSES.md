@@ -105,6 +105,7 @@ Preconnect hints to `fonts.googleapis.com` and `fonts.gstatic.com` are at lines 
 | A1 | Sound engine: oscillators, gain envelopes, a white-noise buffer built with `Math.random`, low-pass filter, master volume | `initAudio()` line 442, `tone()` line 445, `noise()` line 447 | Procedural · user-provided code; master volume node added by Claude |
 | A2 | Sounds `shoot`, `boom`, `pick`, `hurt`, `crash`, `rocket`, `saw`, `level`, `boss` | `sfx()` line 448 | Procedural · user-provided code |
 | A3 | Sounds `zap`, `laser`, `bolt`, `buy`, `horn`, `ach`, plus inline tones for the shield, mortar, pickups and shock coil | `sfx()` line 448 and calls to `tone()` | Procedural · Claude |
+| A4 | Soundtrack: an original 16-bar chiptune/techno loop (A minor, 150 BPM). The melody, chord progression and drum patterns are written out as note data in the code and synthesized live in the player's browser with Web Audio (pulse-wave lead and arp, filtered sawtooth bass, sine kick, noise drums). There are no audio files, no samples, and nothing is based on an existing song | `SONG`, `LEAD` and `playStep()` from line 472 | Procedural · Claude (original composition) |
 
 ### Shaders, sprite sheets, tile maps
 
