@@ -1169,7 +1169,7 @@ function killEnemy(e){
 }
 function hurt(amt){const p=G.p,s=G.stats;if(G.exitT>=0||p.inv>0||state!=='play'||G.buffs.bubble>0)return;
   if(s.shieldCd&&G.shieldT<=0){G.shieldT=s.shieldCd;p.inv=0.4;G.rings.push({x:p.x,y:p.y,r:20,max:90,dmg:0,hit:new Set()});tone(900,0.15,'triangle',0.05,400);return}
-  p.hp-=amt*s.taken;G.dmgTaken+=amt*s.taken;p.inv=0.32;G.shake=Math.min(18,G.shake+6);G.hurtFlash=0.3;sfx('hurt');
+  p.hp-=amt*s.taken;G.dmgTaken+=amt*s.taken;p.inv=G.t<180?0.45:0.32;G.shake=Math.min(18,G.shake+6);G.hurtFlash=0.3;sfx('hurt');
   if(p.hp<=0){if(G.tk.tire>0){G.tk.tire--;p.hp=p.maxhp*0.5;p.inv=2;explode(p.x,p.y,180,60*s.dmg,0);showBanner('Spare tire','Back on the road');return}
     if(G.revives>0){G.revives--;p.hp=p.maxhp*0.5;p.inv=2;explode(p.x,p.y,180,60*s.dmg,0);showBanner('Second wind','Back on the road');return}p.hp=0;gameOver()}
   else if(p.hp<p.maxhp*0.1&&G.lowAt<0)G.lowAt=G.t}
@@ -1181,14 +1181,14 @@ function missileTarget(m){let best=null,bd=900*900,any=null,ad=900*900;
 // nearest car the gun can actually hit: in clear line of sight, or close enough not to matter
 function nearestVisible(x,y,maxD){let best=null,bd=maxD*maxD;for(const e of G.enemies){if(e.dead)continue;const d=d2(x,y,e.x,e.y);if(d<bd&&(e.los||d<170*170)){bd=d;best=e}}return best}
 function nearestEnemy(x,y,maxD){let best=null,bd=maxD*maxD;for(const e of G.enemies){if(e.dead)continue;const d=d2(x,y,e.x,e.y);if(d<bd){bd=d;best=e}}return best}
-function addXp(v){G.xp+=v*G.stats.xpMul*(G.odStart>=0?1.5:1);while(G.xp>=G.xpNeed){G.xp-=G.xpNeed;G.level++;G.xpNeed=Math.floor(G.xpNeed*1.18+6);G.pending++;
+function addXp(v){G.xp+=v*G.stats.xpMul*(G.odStart>=0?1.5:1);while(G.xp>=G.xpNeed){G.xp-=G.xpNeed;G.level++;G.xpNeed=G.level<12?Math.floor(G.xpNeed*1.16+5):Math.floor(G.xpNeed*1.19+6);G.pending++;
     if(G.tk.dice&&Math.random()<0.15*G.tk.dice){G.pending++;toast('+1','Loaded Dice','Bonus pick')}}}
 
 /* ---------- spawning ---------- */
 // regular cars' HP over a run: gentle for the first few minutes, then accelerating, so it
 // catches back up with the old linear curve (1+t/75) around the 15-minute mark.
 // Juggernauts and Chrome Hunters keep the linear curve so late bosses don't balloon.
-const hpScale=t=>1+t/110+(t/280)**2;
+const hpScale=t=>1+t/90+(t/250)**2;
 function spawnEnemy(type,o={}){
   const d=ETYPES[type],p=G.p,L=G.L;let x,y;
   if(o.x!=null){x=o.x;y=o.y}else[x,y]=spawnPoint(d.r,.6);
