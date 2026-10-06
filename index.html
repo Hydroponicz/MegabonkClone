@@ -368,7 +368,7 @@ body.nocursor,body.nocursor *{cursor:none!important}
 .lv .wx{display:inline-flex;align-items:center;gap:5px}.lv .wx i{width:7px;height:7px;border-radius:50%;background:var(--wc);display:inline-block}
 #traderHud{align-self:flex-start;display:flex;align-items:center;gap:8px;background:rgba(10,9,12,.85);border:1px solid var(--line);padding:5px 10px;font-size:12px;font-weight:700;letter-spacing:.06em;text-shadow:1px 1px 0 var(--ink);font-variant-numeric:tabular-nums}
 #traderHud .tdot{width:9px;height:9px;border-radius:50%;animation:tpulse 1s ease-in-out infinite alternate}
-#traderHud .tarr{display:inline-block;font-size:11px}
+#traderHud .tarr{font-size:11px}.tarr{display:inline-block}.tarr i{display:inline-block;font-style:normal;transform:scaleY(.55)}
 @keyframes tpulse{from{opacity:.4}to{opacity:1}}
 .card.roll{border-style:dashed;border-color:#a46cf5}.card.roll .kind{color:#a46cf5}.card.roll:hover,.card.roll:focus-visible{border-color:#d9c6ff}
 .card .odds{font-size:11px;font-weight:700;letter-spacing:.04em;color:var(--dim);margin-top:auto}
@@ -1951,7 +1951,7 @@ function drawHunterCam(){if((hcamTick^=1)&&!$('hunterCam').hidden)return;const e
   c2.setTransform(r,0,0,r,0,0);c2.strokeStyle='rgba(232,228,238,.9)';c2.lineWidth=1.5;const bl=Math.floor(G.t*3)%2;c2.strokeRect(W/2-22,H/2-22,44,44);
   c2.fillStyle=bl?'#ff3b4e':'rgba(255,59,78,.35)';c2.beginPath();c2.arc(10,10,4,0,TAU);c2.fill();c2.fillStyle='#e8e4ee';c2.font='700 9px ui-monospace,monospace';c2.fillText('LIVE',17,13);c2.textAlign='right';c2.fillText('CHROME HUNTER',W-6,13);c2.textAlign='left';
   const dx=e.x-G.p.x,dy=e.y-G.p.y,left=huntLeft(e);
-  {const h=`${Math.ceil(left)}s · ${Math.round(Math.hypot(dx,dy)/10)}m <span class="tarr" style="transform:rotate(${(Math.round(Math.atan2(dy,dx)*10)/10).toFixed(1)}rad)">▶</span>`;if(hudCache.hc!==h){hudCache.hc=h;$('hcInfo').innerHTML=h}}el.classList.toggle('urgent',left<15)}
+  {const h=`${Math.ceil(left)}s · ${Math.round(Math.hypot(dx,dy)/10)}m <span class="tarr" style="transform:rotate(${(Math.round(Math.atan2(dy,dx)*10)/10).toFixed(1)}rad)"><i>▶</i></span>`;if(hudCache.hc!==h){hudCache.hc=h;$('hcInfo').innerHTML=h}}el.classList.toggle('urgent',left<15)}
 
 /* ---------- traders ---------- */
 // breadth-first route over the wide-clearance grid (room for the truck), trimmed to as few straight legs as possible
@@ -2551,14 +2551,14 @@ function updateHud(){
   const b=G.lboss&&!G.lboss.dead?G.lboss:G.mini&&!G.mini.dead?G.mini:null;$('bossWrap').hidden=!b;
   if(b){setT('bossName',b.type==='lboss'?L.boss.name:'JUGGERNAUT '+['I','II','III','IV','V','VI','VII','VIII'][Math.min(7,(b.num||1)-1)]);setW('bossfill',b.hp/b.maxhp)}
   let obj;
-  if(G.portal){const po=G.portal,dm=Math.round(Math.hypot(po.x-p.x,po.y-p.y)/10),a=Math.atan2(po.y-p.y,po.x-p.x);obj=`<span class="odtag">Overdrive ${roman(Math.max(1,G.odTier))}</span> Exit portal <b>${dm}m</b> <span class="tarr" style="transform:rotate(${a.toFixed(1)}rad)">▶</span> · drive in to bank your run`}
+  if(G.portal){const po=G.portal,dm=Math.round(Math.hypot(po.x-p.x,po.y-p.y)/10),a=Math.atan2(po.y-p.y,po.x-p.x);obj=`<span class="odtag">Overdrive ${roman(Math.max(1,G.odTier))}</span> Exit portal <b>${dm}m</b> <span class="tarr" style="transform:rotate(${a.toFixed(1)}rad)"><i>▶</i></span> · drive in to bank your run`}
   else if(G.cleared)obj=`Track cleared · <b>exit portal opening…</b>`;
   else if(G.lboss||G.bossDue>0)obj=`Level boss · <b>${L.boss.name}</b>`;
   else obj=`Juggernauts <b>${G.miniKills} / ${L.minis}</b> · next in <b>${fmt(Math.max(0,G.nextMini-G.t))}</b>`;
   if(hudCache.obj!==obj){hudCache.obj=obj;$('objective').innerHTML=obj}
   // trader tracker: who, how long they stay, how far, and which way
   const tr0=G.trader,th=$('traderHud');if(tr0&&tr0.phase!=='leave'){const dx=tr0.x-p.x,dy=tr0.y-p.y,dm=Math.round(Math.hypot(dx,dy)/10),a=Math.atan2(dy,dx);
-    const t=`<span class="tdot" style="background:${tr0.T.col}"></span><b style="color:${tr0.T.col}">${tr0.T.name}</b> · ${tr0.phase==='arrive'?'pulling in':'parked '+Math.ceil(tr0.stay)+'s'} · ${dm}m <span class="tarr" style="transform:rotate(${(Math.round(a*10)/10).toFixed(1)}rad)">▶</span>`;
+    const t=`<span class="tdot" style="background:${tr0.T.col}"></span><b style="color:${tr0.T.col}">${tr0.T.name}</b> · ${tr0.phase==='arrive'?'pulling in':'parked '+Math.ceil(tr0.stay)+'s'} · ${dm}m <span class="tarr" style="transform:rotate(${(Math.round(a*10)/10).toFixed(1)}rad)"><i>▶</i></span>`;
     if(hudCache.tr!==t){hudCache.tr=t;th.innerHTML=t}if(th.hidden)th.hidden=false}else if(!th.hidden)th.hidden=true;
   // trader prompt floats over the truck while you are close enough
   const tip=$('tip');if(G.near){const tr=G.trader;tip.hidden=false;tip.style.setProperty('--c',tr.T.col);
