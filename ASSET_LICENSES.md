@@ -89,6 +89,7 @@ Preconnect hints to `fonts.googleapis.com` and `fonts.gstatic.com` are at lines 
 | I20 | Low-HP red screen vignette | `createRadialGradient` line 1446 | Procedural · user-provided code |
 | I21 | Off-screen arrows, touch joystick, airstrike flash, freeze tint | `draw()` | Procedural · user-provided code (arrows, joystick); flash and freeze tint by Claude |
 | I22 | Boss wreckage: flattened containers, barns, cabins, ruins and silos, rubble, tree stumps and bent street lamps left where a Juggernaut or level boss smashed through | `wreckObs()` and `drawWreck()` in `index.html` | Procedural · Claude |
+| I23 | Neon District buildings: glowing neon tube trim, lit windows, rooftop air-con units and water tanks, flickering rooftop signs (BAR, HOTEL, 24/7, RAMEN...) | `neonSprite()` and `drawNeonBuilding()` in `index.html` | Procedural · Claude |
 
 ### UI graphics (CSS)
 

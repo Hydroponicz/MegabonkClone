@@ -1529,8 +1529,7 @@ function drawObstacles(vis){const th=G.L.theme;
   for(const u of G.tumbles){if(!vis(u.x,u.y,30))continue;ctx.save();ctx.globalAlpha=clamp(u.life-u.t,0,1);ctx.translate(u.x,u.y);ctx.rotate(u.rot);ctx.scale(1,.6);drawPropArt(u.k,0,0,u.r,0,u.seed);ctx.restore()}
   for(const o of G.obs){const R=o.rect?Math.max(o.w,o.h)/2:o.r;if(!vis(o.x,o.y,R+30))continue;const k=o.k;if(o.wreck){drawWreck(o,R);continue}
     if(o.rect){const x=o.x-o.w/2,y=o.y-o.h/2;ctx.fillStyle='rgba(0,0,0,.45)';ctx.fillRect(x+8,y+10,o.w,o.h);
-      if(k==='building'){ctx.fillStyle=o.col;ctx.fillRect(x,y,o.w,o.h);ctx.fillStyle='rgba(255,255,255,.05)';ctx.fillRect(x+8,y+8,o.w-16,o.h-16);ctx.strokeStyle=th==='city'?G.L.wall:'#555';ctx.globalAlpha=.55;ctx.lineWidth=2;ctx.strokeRect(x+1,y+1,o.w-2,o.h-2);ctx.globalAlpha=1;
-        ctx.fillStyle='#14121c';const n=Math.min(4,Math.floor(o.w*o.h/9000));for(let i=0;i<n;i++){const a=o.seed*97+i*31;ctx.fillRect(x+14+(a*13%(o.w-40)),y+14+(a*7%(o.h-40)),14,10)}}
+      if(k==='building'){drawNeonBuilding(o,x,y)}
       else if(k==='container'){const cols=['#a23a2a','#2a6aa2','#3a8a4a','#c98a2a'];ctx.fillStyle=cols[Math.floor(o.seed*4)];ctx.fillRect(x,y,o.w,o.h);ctx.strokeStyle='rgba(0,0,0,.3)';ctx.lineWidth=2;ctx.beginPath();
         if(o.w>o.h)for(let i=8;i<o.w;i+=10){ctx.moveTo(x+i,y+3);ctx.lineTo(x+i,y+o.h-3)}else for(let i=8;i<o.h;i+=10){ctx.moveTo(x+3,y+i);ctx.lineTo(x+o.w-3,y+i)}ctx.stroke()}
       else if(k==='parked'){ctx.fillStyle=o.col;rr(x,y,o.w,o.h,5);ctx.fill();ctx.fillStyle='rgba(12,14,22,.8)';if(o.w>o.h)ctx.fillRect(x+o.w*.3,y+3,o.w*.4,o.h-6);else ctx.fillRect(x+3,y+o.h*.3,o.w-6,o.h*.4)}
@@ -1565,6 +1564,37 @@ function drawWreck(o,R){const k=o.k,c=o.wcol;
   ctx.fillStyle='rgba(30,28,34,.85)';for(const [dx,dy,r] of o.specks){ctx.fillRect(o.x+dx-r/2,o.y+dy-r/2,r,r)}
   // a wisp of smoke for a few seconds after the hit
   const age=G.t-o.wt;if(age<4&&Math.random()<.08*(1-age/4)&&!S.lowFx)part(o.x+rand(-R,R)*.4,o.y+rand(-R,R)*.4,rand(-15,15),rand(-40,-15),rand(.8,1.4),rand(8,14),null,'smoke')}
+// Neon District blocks: a cached picture of each roof (glowing tube trim, lit windows round the edge, rooftop kit and a
+// sign), then a cheap pulse of light round the trim every frame and the odd flickering sign
+const NEON_COL=['#ff4fd8','#3fe0d0','#b07aff','#ffd23f','#4fa8ff'],NEON_SIGN=['BAR','HOTEL','24/7','RAMEN','CLUB','NEON','OPEN','GAS','ARCADE','NOODLES','LIVE','MOTEL'];
+function neonSprite(o){const sc=Math.min(DPR,1.5),pad=26,W=o.w+pad*2,H=o.h+pad*2,c=document.createElement('canvas');c.width=Math.ceil(W*sc);c.height=Math.ceil(H*sc);
+  const g=c.getContext('2d'),R=(n=>()=>(n=(n*16807)%2147483647)/2147483647)(1+Math.floor(o.seed*2e9)),col=NEON_COL[Math.floor(o.seed*NEON_COL.length)],col2=NEON_COL[(Math.floor(o.seed*NEON_COL.length)+2)%NEON_COL.length];
+  g.scale(sc,sc);g.translate(pad,pad);const w=o.w,h=o.h;
+  // roof: dark body with a faint gradient, an inset parapet and a tar-paper grid
+  const gr=g.createLinearGradient(0,0,w,h);gr.addColorStop(0,o.col);gr.addColorStop(1,'#0e0c18');g.fillStyle=gr;g.fillRect(0,0,w,h);
+  g.fillStyle='rgba(0,0,0,.3)';g.fillRect(9,9,w-18,h-18);g.strokeStyle='rgba(255,255,255,.035)';g.lineWidth=1;g.beginPath();for(let i=27;i<w-9;i+=18){g.moveTo(i,9);g.lineTo(i,h-9)}for(let i=27;i<h-9;i+=18){g.moveTo(9,i);g.lineTo(w-9,i)}g.stroke();
+  // lit windows along the edges, warm or in the building's neon
+  const win=(x,y,ww,hh)=>{const r=R();g.fillStyle=r<.38?'#1a1626':r<.75?'rgba(255,214,140,.85)':col;g.globalAlpha=r<.38?1:r<.75?.85:.7;g.fillRect(x,y,ww,hh);g.globalAlpha=1};
+  for(let i=20;i<w-24;i+=12){win(i,12,7,4);win(i,h-16,7,4)}for(let i=22;i<h-24;i+=12){win(12,i,4,7);win(w-16,i,4,7)}
+  // rooftop kit: air-con boxes with fans, a water tank
+  const n=1+Math.floor(R()*3);for(let i=0;i<n;i++){const bw=18+R()*14,bh=14+R()*10,bx=16+R()*(w-bw-32),by=16+R()*(h-bh-32);g.fillStyle='#3a3648';g.fillRect(bx,by,bw,bh);g.strokeStyle='#55506a';g.lineWidth=1;g.strokeRect(bx+.5,by+.5,bw-1,bh-1);g.beginPath();g.arc(bx+bw/2,by+bh/2,Math.min(bw,bh)*.3,0,TAU);g.stroke()}
+  if(R()<.5){const tx=20+R()*(w-40),ty=20+R()*(h-40);g.fillStyle='#2a2636';g.beginPath();g.arc(tx,ty,9,0,TAU);g.fill();g.strokeStyle='#4a4560';g.stroke()}
+  // neon tube trim with a glow, a hot white core, and a second-colour accent strip down one side
+  g.shadowColor=col;g.shadowBlur=18;g.strokeStyle=col;g.lineWidth=3.5;g.strokeRect(4,4,w-8,h-8);g.shadowBlur=8;g.strokeRect(4,4,w-8,h-8);g.shadowBlur=0;
+  g.strokeStyle='rgba(255,255,255,.75)';g.lineWidth=1;g.strokeRect(4,4,w-8,h-8);
+  g.shadowColor=col2;g.shadowBlur=12;g.strokeStyle=col2;g.lineWidth=2.5;g.beginPath();if(w>h){g.moveTo(14,h-13);g.lineTo(w-14,h-13)}else{g.moveTo(w-13,14);g.lineTo(w-13,h-14)}g.stroke();g.shadowBlur=0;
+  // rooftop sign
+  let sign=null;if(w>90&&h>60){const t=NEON_SIGN[Math.floor(R()*NEON_SIGN.length)],fs=Math.min(22,Math.max(13,Math.min(w,h)*.16));g.font=`700 ${fs}px "Chakra Petch",sans-serif`;const tw=g.measureText(t).width+16,th=fs+12,sx=(w-tw)/2+(R()-.5)*(w-tw)*.5,sy=(h-th)/2+(R()-.5)*(h-th)*.5;
+    g.fillStyle='rgba(8,6,14,.85)';g.fillRect(sx,sy,tw,th);g.shadowColor=col2;g.shadowBlur=14;g.strokeStyle=col2;g.lineWidth=2;g.strokeRect(sx,sy,tw,th);
+    g.fillStyle=col2;g.textAlign='center';g.textBaseline='middle';g.fillText(t,sx+tw/2,sy+th/2+1);g.shadowBlur=0;g.fillStyle='rgba(255,255,255,.55)';g.fillText(t,sx+tw/2,sy+th/2+1);sign=[sx,sy,tw,th]}
+  return{c,dpr:DPR,pad,col,sign,flick:o.seed<.3}}
+function drawNeonBuilding(o,x,y){if(!o.spr||o.spr.dpr!==DPR)o.spr=neonSprite(o);const sp=o.spr;
+  ctx.drawImage(sp.c,x-sp.pad,y-sp.pad,o.w+sp.pad*2,o.h+sp.pad*2);
+  // a dying sign blinks off now and then
+  if(sp.flick&&sp.sign&&Math.sin(vclock*11+o.seed*60)*Math.sin(vclock*2.3+o.seed*9)>.72){ctx.fillStyle='rgba(8,6,14,.82)';ctx.fillRect(x+sp.sign[0]+1,y+sp.sign[1]+1,sp.sign[2]-2,sp.sign[3]-2)}
+  if(S.lowFx)return;
+  // the trim breathes
+  ctx.save();ctx.globalCompositeOperation='lighter';ctx.strokeStyle=sp.col;ctx.globalAlpha=.1+.1*Math.sin(vclock*2+o.seed*20);ctx.lineWidth=10;ctx.strokeRect(x+4,y+4,o.w-8,o.h-8);ctx.restore()}
 function drawPropArt(k,x,y,r,rot,seed){
   if(k==='crate'){ctx.save();ctx.translate(x,y);ctx.rotate(rot);ctx.fillStyle='#8a5a32';ctx.fillRect(-13,-13,26,26);ctx.strokeStyle='#4a2e16';ctx.lineWidth=2;ctx.strokeRect(-13,-13,26,26);ctx.beginPath();ctx.moveTo(-13,-13);ctx.lineTo(13,13);ctx.moveTo(13,-13);ctx.lineTo(-13,13);ctx.stroke();ctx.restore()}
   else if(k==='hay'){ctx.fillStyle='#c9a24a';ctx.beginPath();ctx.arc(x,y,r,0,TAU);ctx.fill();ctx.strokeStyle='#8a6a28';ctx.lineWidth=2;ctx.beginPath();ctx.arc(x,y,r*.6,0,TAU);ctx.stroke()}
