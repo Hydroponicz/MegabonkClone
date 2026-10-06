@@ -1328,6 +1328,30 @@ const ZONES={napalm:{edps:55},oil:{grip:0.22},ice:{grip:0.1},lava:{dps:24,edps:6
 const OG=200,ON=Math.ceil(ARENA/OG)+1;let ocells=[];
 function gridAdd(o){const r=o.rect?Math.max(o.w,o.h)/2:o.r;const x0=clamp((o.x-r)/OG|0,0,ON-1),x1=clamp((o.x+r)/OG|0,0,ON-1),y0=clamp((o.y-r)/OG|0,0,ON-1),y1=clamp((o.y+r)/OG|0,0,ON-1);
   for(let cx=x0;cx<=x1;cx++)for(let cy=y0;cy<=y1;cy++)ocells[cx*ON+cy].push(o)}
+// juggernauts and level bosses flatten what they drive into (not city buildings or tesla pylons), leaving wreckage.
+// The cleared ground opens up in the flow field so regular cars can use the new gap too
+const UNBREAKABLE={building:1,pylon:1};
+function bossSmash(e){const r=e.r*.85,x0=clamp((e.x-r)/OG|0,0,ON-1),x1=clamp((e.x+r)/OG|0,0,ON-1),y0=clamp((e.y-r)/OG|0,0,ON-1),y1=clamp((e.y+r)/OG|0,0,ON-1);
+  for(let cx=x0;cx<=x1;cx++)for(let cy=y0;cy<=y1;cy++)for(const o of ocells[cx*ON+cy])if(o.solid&&!o.prop&&!UNBREAKABLE[o.k]&&hitsShape(o,e.x,e.y,r))wreckObs(o,e)}
+function wreckCol(o){const th=G.L.theme;return o.k==='container'?['#a23a2a','#2a6aa2','#3a8a4a','#c98a2a'][Math.floor(o.seed*4)]:o.k==='parked'?o.col:o.k==='barn'?'#8a2a22':o.k==='cabin'?'#5a3a26':o.k==='ruin'?'#3a2a26':
+  o.k==='rock'?(th==='inferno'?'#3a2a28':th==='frost'?'#7a8794':'#6e6a64'):o.k==='junk'?'#4a4652':o.k==='tree'?'#3e7a36':o.k==='pine'?'#2a5244':o.k==='burnt'?'#2a201c':o.k==='silo'?'#9aa0a8':'#55525d'}
+function wreckObs(o,e){o.solid=false;o.wreck=true;o.wa=e.a;o.wt=G.t;const big=o.rect?Math.max(o.w,o.h)/2:o.r,col=wreckCol(o),ca=Math.cos(e.a),sa=Math.sin(e.a);
+  // flattened pieces, thrown a little along the boss's heading
+  const n=o.rect?7+Math.min(5,big/30|0):o.k==='lamp'?0:6+Math.min(5,big/10|0);o.shards=[];
+  for(let i=0;i<n;i++){const t=Math.random()*.6;let dx,dy;if(o.rect){dx=rand(-o.w/2,o.w/2)*.85;dy=rand(-o.h/2,o.h/2)*.85}else{const a=rand(0,TAU),d=rand(0,big*.9);dx=Math.cos(a)*d;dy=Math.sin(a)*d}
+    const sz=o.rect?rand(.16,.32)*Math.min(o.w,o.h)+6:rand(.3,.5)*big+4;o.shards.push([dx+ca*t*big*.6,dy+sa*t*big*.6,sz,sz*rand(.45,.9),rand(0,TAU),rand(.6,1)])}
+  // rubble specks
+  o.specks=[];for(let i=0;i<(o.rect?14:8);i++){const a=rand(0,TAU),d=rand(0,big*1.15);o.specks.push([Math.cos(a)*d+ca*big*.3,Math.sin(a)*d+sa*big*.3,rand(2,4.5)])}
+  o.wcol=col;
+  // knock the boss back a touch so the hit has weight
+  if(e.v!=null)e.v*=o.rect||big>30?.8:.92;
+  if(d2(o.x,o.y,G.p.x,G.p.y)<(900+big)**2){for(let i=0;i<(S.lowFx?4:10);i++){const a=e.a+rand(-1.2,1.2),sp=rand(80,280);part(o.x+rand(-big,big)*.5,o.y+rand(-big,big)*.5,Math.cos(a)*sp,Math.sin(a)*sp,rand(.35,.8),rand(3,7),col)}
+    for(let i=0;i<(S.lowFx?2:5);i++)part(o.x,o.y,rand(-70,70),rand(-70,70),rand(.5,1),rand(10,18),null,'smoke');
+    sfx('crash');G.shake=Math.min(16,G.shake+(o.rect||big>30?7:3))}
+  G.obsSmashed=(G.obsSmashed||0)+1;patchFlow(o)}
+// re-test the flow-field cells around a changed obstacle (same tests as buildFlowBlock)
+function patchFlow(o){const R=(o.rect?Math.hypot(o.w,o.h)/2:o.r)+40,x0=clamp((o.x-R)/FC|0,0,FN-1),x1=clamp((o.x+R)/FC|0,0,FN-1),y0=clamp((o.y-R)/FC|0,0,FN-1),y1=clamp((o.y+R)/FC|0,0,FN-1);
+  for(let cx=x0;cx<=x1;cx++)for(let cy=y0;cy<=y1;cy++){const x=cx*FC+FC/2,y=cy*FC+FC/2,i=cx*FN+cy;fBlock[i]=solidAt(x,y,4)?1:0;fWide[i]=solidAt(x,y,22)?1:0;fTruck[i]=solidAt(x,y,32)?1:0}}
 function hitsShape(o,x,y,r){if(o.rect){const cx=clamp(x,o.x-o.w/2,o.x+o.w/2),cy=clamp(y,o.y-o.h/2,o.y+o.h/2);return d2(x,y,cx,cy)<r*r}return d2(x,y,o.x,o.y)<(o.r+r)**2}
 // checks every grid cell the circle overlaps, not just the one under its centre
 function solidAt(x,y,r){if(!ocells.length)return false;const x0=clamp((x-r)/OG|0,0,ON-1),x1=clamp((x+r)/OG|0,0,ON-1),y0=clamp((y-r)/OG|0,0,ON-1),y1=clamp((y+r)/OG|0,0,ON-1);
@@ -1502,7 +1526,7 @@ function drawObstacles(vis){const th=G.L.theme;
   for(const o of G.props){if(o.dead||!vis(o.x,o.y,20))continue;drawPropArt(o.k,o.x,o.y,o.r,o.rot||0,o.seed||0)}
   // knocked-over props lie on their side (squashed), spin as they slide, and fade in their last second
   for(const u of G.tumbles){if(!vis(u.x,u.y,30))continue;ctx.save();ctx.globalAlpha=clamp(u.life-u.t,0,1);ctx.translate(u.x,u.y);ctx.rotate(u.rot);ctx.scale(1,.6);drawPropArt(u.k,0,0,u.r,0,u.seed);ctx.restore()}
-  for(const o of G.obs){const R=o.rect?Math.max(o.w,o.h)/2:o.r;if(!vis(o.x,o.y,R+20))continue;const k=o.k;
+  for(const o of G.obs){const R=o.rect?Math.max(o.w,o.h)/2:o.r;if(!vis(o.x,o.y,R+30))continue;const k=o.k;if(o.wreck){drawWreck(o,R);continue}
     if(o.rect){const x=o.x-o.w/2,y=o.y-o.h/2;ctx.fillStyle='rgba(0,0,0,.45)';ctx.fillRect(x+8,y+10,o.w,o.h);
       if(k==='building'){ctx.fillStyle=o.col;ctx.fillRect(x,y,o.w,o.h);ctx.fillStyle='rgba(255,255,255,.05)';ctx.fillRect(x+8,y+8,o.w-16,o.h-16);ctx.strokeStyle=th==='city'?G.L.wall:'#555';ctx.globalAlpha=.55;ctx.lineWidth=2;ctx.strokeRect(x+1,y+1,o.w-2,o.h-2);ctx.globalAlpha=1;
         ctx.fillStyle='#14121c';const n=Math.min(4,Math.floor(o.w*o.h/9000));for(let i=0;i<n;i++){const a=o.seed*97+i*31;ctx.fillRect(x+14+(a*13%(o.w-40)),y+14+(a*7%(o.h-40)),14,10)}}
@@ -1524,6 +1548,22 @@ function drawObstacles(vis){const th=G.L.theme;
       if(ch>0){ctx.strokeStyle=`rgba(140,230,255,${.25+.5*ch})`;ctx.lineWidth=2;ctx.setLineDash([10,8]);ctx.beginPath();ctx.arc(o.x,o.y,170,0,TAU);ctx.stroke();ctx.setLineDash([])}
       ctx.fillStyle='#3a3644';ctx.beginPath();ctx.arc(o.x,o.y,o.r,0,TAU);ctx.fill();ctx.strokeStyle='#8ce6ff';ctx.lineWidth=3;ctx.beginPath();ctx.arc(o.x,o.y,o.r*.55,0,TAU);ctx.stroke();ctx.fillStyle=`rgba(200,245,255,${.4+.6*ch})`;ctx.beginPath();ctx.arc(o.x,o.y,4+ch*4,0,TAU);ctx.fill()}}
 }
+// what a boss leaves behind: a scuffed footprint, flattened pieces in the object's colour, rubble, and a type-specific remnant
+function drawWreck(o,R){const k=o.k,c=o.wcol;
+  ctx.fillStyle='rgba(0,0,0,.28)';if(o.rect)ctx.fillRect(o.x-o.w/2+4,o.y-o.h/2+4,o.w-8,o.h-8);else{ctx.beginPath();ctx.arc(o.x,o.y,R*.85,0,TAU);ctx.fill()}
+  if(k==='tree'||k==='pine'||k==='burnt'){// stump with rings, the canopy flattened beside it
+    const ca=Math.cos(o.wa),sa=Math.sin(o.wa);ctx.fillStyle=c;ctx.globalAlpha=.75;ctx.beginPath();poly(o.x+ca*R*.9,o.y+sa*R*.9,o.pts,.8);ctx.fill();ctx.globalAlpha=1;
+    ctx.strokeStyle=k==='burnt'?'#140e0c':'#4a3220';ctx.lineWidth=Math.max(5,R*.3);ctx.lineCap='round';ctx.beginPath();ctx.moveTo(o.x,o.y);ctx.lineTo(o.x+ca*R*.8,o.y+sa*R*.8);ctx.stroke();ctx.lineCap='butt';
+    ctx.fillStyle=k==='burnt'?'#241a16':'#6a4a2c';ctx.beginPath();ctx.arc(o.x,o.y,Math.max(5,R*.32),0,TAU);ctx.fill();ctx.strokeStyle=k==='burnt'?'#140e0c':'#3a2614';ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(o.x,o.y,Math.max(2.5,R*.17),0,TAU);ctx.stroke()}
+  else if(k==='lamp'){// pole bent over along the boss's path, smashed bulb
+    const ca=Math.cos(o.wa),sa=Math.sin(o.wa);ctx.strokeStyle='#55525d';ctx.lineWidth=5;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(o.x,o.y);ctx.lineTo(o.x+ca*38-sa*6,o.y+sa*38+ca*6);ctx.stroke();ctx.lineCap='butt';
+    ctx.fillStyle='#3a3842';ctx.beginPath();ctx.arc(o.x,o.y,5,0,TAU);ctx.fill();ctx.fillStyle='rgba(255,243,192,.7)';for(let i=0;i<4;i++){ctx.fillRect(o.x+ca*42-sa*6+(i*7%5)-2,o.y+sa*42+ca*6+(i*5%7)-3,2,2)}}
+  for(const [dx,dy,w,h,rot,sh] of o.shards){ctx.save();ctx.translate(o.x+dx,o.y+dy);ctx.rotate(rot);ctx.fillStyle=c;ctx.globalAlpha=1;ctx.fillRect(-w/2,-h/2,w,h);ctx.fillStyle=`rgba(0,0,0,${(1-sh)*.6+.12})`;ctx.fillRect(-w/2,-h/2,w,h);ctx.fillStyle='rgba(255,255,255,.08)';ctx.fillRect(-w/2,-h/2,w,Math.max(1.5,h*.25));ctx.restore()}
+  if(k==='silo'){ctx.strokeStyle='#6a7078';ctx.lineWidth=4;ctx.beginPath();ctx.arc(o.x,o.y,o.r*.75,o.wa+.6,o.wa+2.4);ctx.stroke();ctx.beginPath();ctx.arc(o.x,o.y,o.r*.6,o.wa+3.4,o.wa+5.2);ctx.stroke()}
+  if(k==='container'){ctx.strokeStyle='rgba(0,0,0,.35)';ctx.lineWidth=2;ctx.strokeRect(o.x-o.w/2+3,o.y-o.h/2+3,o.w-6,o.h-6)}
+  ctx.fillStyle='rgba(30,28,34,.85)';for(const [dx,dy,r] of o.specks){ctx.fillRect(o.x+dx-r/2,o.y+dy-r/2,r,r)}
+  // a wisp of smoke for a few seconds after the hit
+  const age=G.t-o.wt;if(age<4&&Math.random()<.08*(1-age/4)&&!S.lowFx)part(o.x+rand(-R,R)*.4,o.y+rand(-R,R)*.4,rand(-15,15),rand(-40,-15),rand(.8,1.4),rand(8,14),null,'smoke')}
 function drawPropArt(k,x,y,r,rot,seed){
   if(k==='crate'){ctx.save();ctx.translate(x,y);ctx.rotate(rot);ctx.fillStyle='#8a5a32';ctx.fillRect(-13,-13,26,26);ctx.strokeStyle='#4a2e16';ctx.lineWidth=2;ctx.strokeRect(-13,-13,26,26);ctx.beginPath();ctx.moveTo(-13,-13);ctx.lineTo(13,13);ctx.moveTo(13,-13);ctx.lineTo(-13,13);ctx.stroke();ctx.restore()}
   else if(k==='hay'){ctx.fillStyle='#c9a24a';ctx.beginPath();ctx.arc(x,y,r,0,TAU);ctx.fill();ctx.strokeStyle='#8a6a28';ctx.lineWidth=2;ctx.beginPath();ctx.arc(x,y,r*.6,0,TAU);ctx.stroke()}
@@ -2151,8 +2191,8 @@ function updateEnemies(dt){
     e.x+=Math.cos(e.a)*e.v*dt+e.kx*dt;e.y+=Math.sin(e.a)*e.v*dt+e.ky*dt;
     const kd=Math.exp(-5*dt);e.kx*=kd;e.ky*=kd;
     e.x=clamp(e.x,e.r,ARENA-e.r);e.y=clamp(e.y,e.r,ARENA-e.r);
-    // regular cars follow the flow field round walls; bosses plough straight through
-    if(!e.big)collideObs(e,e.r);else if(G.L.bossWalls)collideObs(e,e.r*.85,'building');
+    // regular cars follow the flow field round walls; bosses plough straight through, wrecking what they hit
+    if(!e.big)collideObs(e,e.r);else{bossSmash(e);if(G.L.bossWalls)collideObs(e,e.r*.85,'building')}
     if(e.elite&&e.born!=null&&e.v>40)hunterBump(e);
     if(tr){const R=44+e.r,q=d2(e.x,e.y,tr.x,tr.y);if(q<R*R){const dq=Math.sqrt(q)||1;e.x=tr.x+(e.x-tr.x)/dq*R;e.y=tr.y+(e.y-tr.y)/dq*R}}
     const rr=e.r+p.r;
@@ -2683,7 +2723,8 @@ function pickHover(wx,wy){const p=G.p,in2=(x,y,r)=>d2(wx,wy,x,y)<r*r;
   for(const o of c){if(o.prop){if(!o.dead&&in2(o.x,o.y,o.r+4)){const [n,d]=PROP_INFO[o.k];return card(n,KNOCK[o.k]?'Knock-over prop':'Smashable prop',d,null,'#c9a24a')}continue}
     if(!hitsShape(o,wx,wy,3))continue;
     if(o.k==='pylon')return card('Tesla pylon','Hazard','Glows, then zaps every car and you within 170px.',[['Next zap',Math.max(0,4.5-o.py.t).toFixed(1)+'s'],['Damage to you',Math.round(14*(0.7+0.3*G.L.diff))]],'#8ce6ff');
-    return card(OBS_INFO[o.k]||'Obstacle','Solid obstacle','Blocks you and regular cars. Bosses plough straight through.',null,'#8f8a9c')}
+    if(o.wreck)return card('Wrecked '+(OBS_INFO[o.k]||'obstacle').toLowerCase(),'Wreckage','Flattened by a boss. Drive right over it.',null,'#8f8a9c');
+    return card(OBS_INFO[o.k]||'Obstacle','Solid obstacle',UNBREAKABLE[o.k]?'Blocks you and regular cars. Even bosses can\'t break it.':'Blocks you and regular cars. Juggernauts and bosses smash it flat.',null,'#8f8a9c')}
   for(const z of G.zones){if(!zoneHit(z,wx,wy,0))continue;const [n,d]=ZONE_INFO[z.k],Z=ZONES[z.k],rows=[];if(Z.dps)rows.push(['Damage to you',Z.dps+'/s'],['Damage to cars',Math.round(Z.edps*G.L.diff)+'/s']);if(Z.grip)rows.push(['Grip',Math.round(Z.grip*100)+'%']);if(z.life!=null)rows.push(['Dries up in',Math.ceil(z.life)+'s']);
     return card(n,'Hazard',d,rows,z.k==='lava'?'#ff7a14':z.k==='acid'?'#7ad13a':z.k==='ice'?'#9fe4ff':z.k==='spikes'?'#c9c6d0':'#786ac8')}
   return null}

@@ -88,6 +88,7 @@ Preconnect hints to `fonts.googleapis.com` and `fonts.gstatic.com` are at lines 
 | I19 | Floating damage numbers (Chakra Petch text cached to small canvases) | `textSprite()` line 1359 | Procedural · Claude (uses font F2) |
 | I20 | Low-HP red screen vignette | `createRadialGradient` line 1446 | Procedural · user-provided code |
 | I21 | Off-screen arrows, touch joystick, airstrike flash, freeze tint | `draw()` | Procedural · user-provided code (arrows, joystick); flash and freeze tint by Claude |
+| I22 | Boss wreckage: flattened containers, barns, cabins, ruins and silos, rubble, tree stumps and bent street lamps left where a Juggernaut or level boss smashed through | `wreckObs()` and `drawWreck()` in `index.html` | Procedural · Claude |
 
 ### UI graphics (CSS)
 
