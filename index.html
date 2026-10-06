@@ -1700,7 +1700,10 @@ const RC_COL={rc_medic:'#5cf08a',rc_ram:'#ff5a3a',rc_bomb:'#ffc21a',rc_scav:'#c9
 const rcCount=(k,lv)=>k==='rc_medic'?(lv>=4?2:1):k==='rc_ram'?[0,1,1,2,2,3][lv]:k==='rc_bomb'?(lv>=5?2:1):k==='rc_scav'?(lv>=4?2:1):(lv>=5?2:1);
 function rcDrive(m,tx,ty,spd,dt,charge){const dx=tx-m.x,dy=ty-m.y,d=Math.hypot(dx,dy);
   if(d>4){const tr=charge?(d<90?40:16):10;m.a+=clamp(angDiff(m.a,Math.atan2(dy,dx)),-tr*dt,tr*dt)}const tgt=charge?spd:d<10?0:Math.min(spd,d*6);m.v+=(tgt-m.v)*Math.min(1,7*dt);
-  m.x+=Math.cos(m.a)*m.v*dt;m.y+=Math.sin(m.a)*m.v*dt;collideObs(m,7);m.x=clamp(m.x,20,ARENA-20);m.y=clamp(m.y,20,ARENA-20);return d}
+  m.x+=Math.cos(m.a)*m.v*dt;m.y+=Math.sin(m.a)*m.v*dt;rcKnock(m);collideObs(m,7);m.x=clamp(m.x,20,ARENA-20);m.y=clamp(m.y,20,ARENA-20);return d}
+// minions bowl over tire stacks, hay, cones and the like (knockable props only; crates and barrels are left for you)
+function rcKnock(m){if(m.v<60)return;const r=9,x0=clamp((m.x-r)/OG|0,0,ON-1),x1=clamp((m.x+r)/OG|0,0,ON-1),y0=clamp((m.y-r)/OG|0,0,ON-1),y1=clamp((m.y+r)/OG|0,0,ON-1);
+  for(let cx=x0;cx<=x1;cx++)for(let cy=y0;cy<=y1;cy++)for(const o of ocells[cx*ON+cy])if(o.prop&&!o.dead&&KNOCK[o.k]&&d2(o.x,o.y,m.x,m.y)<(o.r+r)**2)tipProp(o,m.x-Math.cos(m.a)*4,m.y-Math.sin(m.a)*4,m.v)}
 function rcFx(x1,y1,x2,y2,col){G.rcfx.push({x1,y1,x2,y2,col,life:.3})}
 function updateRC(dt,wdt){const p=G.p,s=G.stats,W=G.weapons,up=G.passives.uplink||0,mb=1+.15*up,ms=1+.1*up,mc=1/(1+.087*up);
   // keep the right number of each kind on the road
@@ -1718,7 +1721,7 @@ function updateRC(dt,wdt){const p=G.p,s=G.stats,W=G.weapons,up=G.passives.uplink
       if(m.cd>0||!m.tg||m.tg.dead||d2(m.tg.x,m.tg.y,p.x,p.y)>520*520||(m.t+=dt)>3){if(m.cd<=0){m.t=0;m.tg=null;let bd=420*420;
           for(const e of near(p.x,p.y,490)){if(e.dead||G.rcs.some(o=>o!==m&&o.tg===e))continue;const q=d2(e.x,e.y,p.x,p.y);if(q<bd){bd=q;m.tg=e}}}
         // after a hit it skids back and brakes, then picks the next car from where it is
-        if(m.cd>0){m.v*=Math.exp(-5*dt);m.x+=Math.cos(m.a)*m.v*dt;m.y+=Math.sin(m.a)*m.v*dt;collideObs(m,7)}else if(!m.tg)rcDrive(m,hx,hy,follow,dt)}
+        if(m.cd>0){m.v*=Math.exp(-5*dt);m.x+=Math.cos(m.a)*m.v*dt;m.y+=Math.sin(m.a)*m.v*dt;rcKnock(m);collideObs(m,7)}else if(!m.tg)rcDrive(m,hx,hy,follow,dt)}
       if(m.tg&&m.cd<=0){const e=m.tg;rcDrive(m,e.x,e.y,(lv>=4?640:540)*ms,dt,1);
         if(d2(m.x,m.y,e.x,e.y)<(e.r+12)**2){const dx=e.x-m.x,dy=e.y-m.y,dd=Math.hypot(dx,dy)||1;damageEnemy(e,(24+10*lv+(lv>=4?14:0))*mb*s.dmg);if(!e.big){e.kx+=dx/dd*320;e.ky+=dy/dd*320;e.ice=Math.max(e.ice||0,.5)}
           for(let i=0;i<5;i++)part(m.x,m.y,rand(-220,220),rand(-220,220),rand(.1,.25),2,'#ffe7a0','spark');sfx('crash');m.a+=Math.PI+rand(-.6,.6);m.v=220;m.cd=(.5-.03*lv)*mc*s.cd;m.tg=null}}}
