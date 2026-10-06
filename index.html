@@ -1890,8 +1890,17 @@ const JAM_LEASH=400; // the jammer never parks more than this far from you
 const jamCap=lv=>4+1.2*lv,jamRecharge=(lv,mc)=>(3.5-.2*lv)*mc;
 const RC_COL={rc_medic:'#5cf08a',rc_ram:'#ff5a3a',rc_bomb:'#ffc21a',rc_scav:'#c9a46a',rc_jam:'#b07aff'};
 const rcCount=(k,lv)=>k==='rc_medic'?(lv>=4?2:1):k==='rc_ram'?[0,1,1,2,2,3][lv]:k==='rc_bomb'?(lv>=5?2:1):k==='rc_scav'?(lv>=4?2:1):(lv>=5?2:1);
+// minions steer round walls instead of pinning themselves against them: with no clear line to the goal they take the
+// flow field when the goal is beside you, otherwise they feel along the wall, keeping to one side until the way is clear
+function rcSteer(m,tx,ty,want,d,dt){if(d<30){m.side=0;return want}
+  if((m.nav=(m.nav||0)-dt)<=0){m.nav=.2;m.blk=!segClear(m.x,m.y,tx,ty,8)}
+  if(!m.blk){m.side=0;return want}
+  if(d2(tx,ty,G.p.x,G.p.y)<160*160){const f=fDir[clamp(m.x/FC|0,0,FN-1)*FN+clamp(m.y/FC|0,0,FN-1)];if(f===f)return f}
+  const L=38,free=a=>!solidAt(m.x+Math.cos(a)*L,m.y+Math.sin(a)*L,8);if(free(want))return want;
+  if(!m.side){for(let k=1;k<=7&&!m.side;k++){if(free(want+k*.42))m.side=1;else if(free(want-k*.42))m.side=-1}if(!m.side)m.side=1}
+  for(let k=1;k<=7;k++){const a=want+m.side*k*.42;if(free(a))return a}return want+m.side*Math.PI/2}
 function rcDrive(m,tx,ty,spd,dt,charge){const dx=tx-m.x,dy=ty-m.y,d=Math.hypot(dx,dy);
-  if(d>4){const tr=charge?(d<90?40:16):10;m.a+=clamp(angDiff(m.a,Math.atan2(dy,dx)),-tr*dt,tr*dt)}const tgt=charge?spd:d<10?0:Math.min(spd,d*6);m.v+=(tgt-m.v)*Math.min(1,7*dt);
+  if(d>4){const tr=charge?(d<90?40:16):10;m.a+=clamp(angDiff(m.a,rcSteer(m,tx,ty,Math.atan2(dy,dx),d,dt)),-tr*dt,tr*dt)}const tgt=charge?spd:d<10?0:Math.min(spd,d*6);m.v+=(tgt-m.v)*Math.min(1,7*dt);
   m.x+=Math.cos(m.a)*m.v*dt;m.y+=Math.sin(m.a)*m.v*dt;rcKnock(m);collideObs(m,7);m.x=clamp(m.x,20,ARENA-20);m.y=clamp(m.y,20,ARENA-20);return d}
 // minions bowl over tire stacks, hay, cones and the like (knockable props only; crates and barrels are left for you)
 function rcKnock(m){if(m.v<60)return;const r=9,x0=clamp((m.x-r)/OG|0,0,ON-1),x1=clamp((m.x+r)/OG|0,0,ON-1),y0=clamp((m.y-r)/OG|0,0,ON-1),y1=clamp((m.y+r)/OG|0,0,ON-1);
@@ -1910,8 +1919,8 @@ function updateRC(dt,wdt){const p=G.p,s=G.stats,W=G.weapons,up=G.passives.uplink
       if(m.cd<=0&&p.hp<p.maxhp){const h0=p.hp;p.hp=Math.min(p.maxhp,p.hp+Math.round((3+1.5*lv)*mb*10)/10);const h=p.hp-h0;m.cd=m.cdMax=(9-.6*lv)*mc;if(lv>=5)p.inv=Math.max(p.inv,.6);
         rcFx(m.x,m.y,p.x,p.y,'92,240,138');addText(p.x,p.y-30,'+'+Math.round(h)+' HP','#5cf08a');tone(880,.12,'triangle',.04,1320);G.rcHeal=(G.rcHeal||0)+h}}
     else if(m.k==='rc_ram'){DSRC='rc_ram';m.cd-=wdt;
-      if(m.cd>0||!m.tg||m.tg.dead||d2(m.tg.x,m.tg.y,p.x,p.y)>520*520||(m.t+=dt)>3){if(m.cd<=0){m.t=0;m.tg=null;let bd=420*420;
-          for(const e of near(p.x,p.y,490)){if(e.dead||G.rcs.some(o=>o!==m&&o.tg===e))continue;const q=d2(e.x,e.y,p.x,p.y);if(q<bd){bd=q;m.tg=e}}}
+      if(m.cd>0||!m.tg||m.tg.dead||d2(m.tg.x,m.tg.y,p.x,p.y)>520*520||(m.t+=dt)>3){if(m.cd<=0){if(m.t>3&&m.tg){m.skip=m.tg;m.skipT=G.t+4}m.t=0;m.tg=null;let bd=420*420;
+          for(const e of near(p.x,p.y,490)){if(e.dead||(e===m.skip&&G.t<m.skipT)||G.rcs.some(o=>o!==m&&o.tg===e))continue;const q=d2(e.x,e.y,p.x,p.y);if(q<bd){bd=q;m.tg=e}}}
         // after a hit it skids back and brakes, then picks the next car from where it is
         if(m.cd>0){m.v*=Math.exp(-5*dt);m.x+=Math.cos(m.a)*m.v*dt;m.y+=Math.sin(m.a)*m.v*dt;rcKnock(m);collideObs(m,7)}else if(!m.tg)rcDrive(m,hx,hy,follow,dt)}
       if(m.tg&&m.cd<=0){const e=m.tg;rcDrive(m,e.x,e.y,(lv>=4?640:540)*ms,dt,1);
@@ -1919,7 +1928,7 @@ function updateRC(dt,wdt){const p=G.p,s=G.stats,W=G.weapons,up=G.passives.uplink
           for(let i=0;i<5;i++)part(m.x,m.y,rand(-220,220),rand(-220,220),rand(.1,.25),2,'#ffe7a0','spark');sfx('crash');m.a+=Math.PI+rand(-.6,.6);m.v=220;m.cd=(.4-.03*lv)*mc*s.cd;m.tg=null}}}
     else if(m.k==='rc_bomb'){DSRC='rc_bomb';
       if(m.st===0){m.cd-=wdt;m.x=p.x;m.y=p.y;m.a=p.a;m.v=0;if(m.cd<=0&&near(p.x,p.y,560).some(e=>!e.dead)){m.st=1;m.t=0;m.tg=null}}
-      else{m.t+=dt;if(!m.tg||m.tg.dead){const pool=near(p.x,p.y,560).filter(e=>!e.dead);let bn=-1;for(let k=0;k<6&&pool.length;k++){const c=pool[Math.floor(Math.random()*pool.length)],cnt=near(c.x,c.y,90).length;if(cnt>bn){bn=cnt;m.tg=c}}}
+      else{m.t+=dt;if(!m.tg||m.tg.dead){const pool=near(p.x,p.y,560).filter(e=>!e.dead);let bn=-1;for(let k=0;k<6&&pool.length;k++){const c=pool[Math.floor(Math.random()*pool.length)],cnt=near(c.x,c.y,90).filter(e=>!e.dead).length;if(cnt>bn){bn=cnt;m.tg=c}}}
         if(m.tg)rcDrive(m,m.tg.x,m.tg.y,500*ms,dt,1);else rcDrive(m,hx,hy,follow,dt);
         if(m.t>4.5&&!m.tg){m.st=0;m.cd=.5}
         let boom=m.st===1&&m.t>4.5;if(m.st===1&&!boom)for(const e of near(m.x,m.y,80))if(!e.dead&&d2(m.x,m.y,e.x,e.y)<(e.r+10)**2){boom=true;break}
@@ -1940,7 +1949,7 @@ function updateRC(dt,wdt){const p=G.p,s=G.stats,W=G.weapons,up=G.passives.uplink
       if((m.cd-=dt)<=0){m.cd=.3;m.jx=null;const pool=shuffle(near(p.x,p.y,JAM_LEASH+R).filter(e=>!e.dead&&!e.big&&d2(e.x,e.y,p.x,p.y)<(JAM_LEASH+R)**2));let best=0;
         for(let c=0;c<Math.min(18,pool.length);c++){const e0=pool[c];let n=0,sx=0,sy=0;
           for(const e of near(e0.x,e0.y,R+40))if(!e.dead&&d2(e.x,e.y,e0.x,e0.y)<R*R){const w=e.shoots?2:1;n+=w;sx+=e.x*w;sy+=e.y*w}
-          if(!n)continue;const cx=sx/n,cy=sy/n,cd=Math.hypot(cx-p.x,cy-p.y);if(cd>JAM_LEASH+R*.9)continue;/* still worth it if the field can reach the pack from the end of the leash */let sc=n*(1.2-Math.min(1,cd/(JAM_LEASH+R))*.35);
+          if(!n)continue;const cx=sx/n,cy=sy/n,cd=Math.hypot(cx-p.x,cy-p.y);if(cd>JAM_LEASH+R*.9||solidAt(cx,cy,14))continue;/* still worth it if the field can reach the pack from the end of the leash */let sc=n*(1.2-Math.min(1,cd/(JAM_LEASH+R))*.35);
           for(const o of G.rcs)if(o!==m&&o.k==='rc_jam'&&o.jx!=null&&d2(o.jx,o.jy,cx,cy)<(R*1.4)**2)sc*=.3;
           // stick with the current pack unless a clearly bigger one turns up
           if(m.lx!=null&&d2(m.lx,m.ly,cx,cy)<(R*.6)**2)sc*=1.25;
@@ -2345,7 +2354,7 @@ function updateProjectiles(dt){
     if(b.fuse>=0){b.fuse-=dt;if(b.fuse<0){const B=BTYPES[b.t];b.alive=false;b.respawn=20;G.barrelBooms++;DSRC='barrels';explode(b.x,b.y,B.R,B.dmg*G.stats.dmg,B.hurt);if(B.acid)G.zones.push({k:'acid',x:b.x,y:b.y,r:B.R*.9,life:8,pts:blob(B.R*.9,10,.3)})}}}
 }
 
-function foldGems(bolts){let v=0,x=0,y=0,n=0;prune(G.gems,g=>{if(!!g.b!==bolts||n>=60)return true;if(!n){x=g.x;y=g.y}n++;v+=g.v;return false});
+function foldGems(bolts){let v=0,x=0,y=0,n=0;prune(G.gems,g=>{if(!!g.b!==bolts||n>=60)return true;if(!n){x=g.x;y=g.y}n++;v+=g.v;g.got=true;return false});
   if(n)G.gems.push(bolts?{x,y,v,b:true,vx:0,vy:0,pull:false,sp:0}:{x,y,v,vx:0,vy:0,pull:false,sp:0})}
 function updatePickups(dt){
   const p=G.p,mag=G.stats.magnet;
