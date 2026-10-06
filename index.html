@@ -584,7 +584,7 @@ body.nocursor,body.nocursor *{cursor:none!important}
       <div class="key"><b>Juggernauts</b><span>A mini boss rolls in every 2 minutes. Wreck two of them and the level boss comes for you; while it is out, the horde thins and ambushes hold off.</span></div>
       <div class="key"><b>RC minions</b><span>Some level-ups are little remote-control cars with antennas. They take a weapon slot and work on their own: Medic patches you up, Rammer rams cars, Bomb drives into crowds and blows up, Scavenger fetches scrap and digs up bolts, Jammer hunts down packs of cars, slowing them and stopping gunners firing. Signal Booster makes them all stronger.</span></div>
       <div class="key"><b>Weather</b><span>Every run rolls its own weather, shown as the forecast on the track card. Rain and snow cost grip, blizzards shove you around, thunderstorms drop marked lightning strikes, and dust storms send tornadoes across the track.</span></div>
-      <div class="key"><b>Exit portal</b><span>Beat the level boss and a portal opens in a far corner. Drive in to end the run and bank it. Stay longer and Overdrive kicks in: tougher, faster cars every 40 seconds. Get wrecked before you escape and the run doesn't count.</span></div>
+      <div class="key"><b>Exit portal</b><span>Beat the level boss and a portal opens in a far corner: the camera shows you where, then purple arrows point the way. Drive in to end the run and bank it. Stay longer and Overdrive kicks in: tougher, faster cars every 40 seconds. Get wrecked before you escape and the run doesn't count.</span></div>
       <div class="key"><b>Traders</b><span>From about 2:00, a trader truck parks nearby every couple of minutes. Follow the light beam or the HUD arrow, drive into its ring and press F to buy items with bolts.</span></div>
       <div class="key"><b>Trader's Roll</b><span>Every level up can skip the bolt-on and roll a random item instead: Common, Rare or Epic, each with its own effect.</span></div>
       <div class="key"><b>Account level</b><span>Every run earns account XP. Higher levels open harder tracks.</span></div>
@@ -2063,13 +2063,15 @@ function openPortal(){const p=G.p,m=230;
   const [x,y]=spot;
   // clear loose props off the pad
   for(const o of G.props)if(!o.dead&&d2(o.x,o.y,x,y)<110*110)o.dead=true;
-  G.portal={x,y,r:58,t:0};G.odStart=G.t;G.odTier=0;
+  G.portal={x,y,r:58,t:0};G.odStart=G.t;G.odTier=1;
+  showBanner('Exit portal open','Follow the purple arrows · drive in to bank your run · stay longer for Overdrive');
+  // a short fly-over so you see where it opened: the world holds still while the camera visits it and comes back
+  if(d2(x,y,p.x,p.y)>520*520)G.reveal={t:0};
   G.nextAmbush=Math.min(G.nextAmbush,G.t+20);G.nextElite=Math.min(G.nextElite,G.t+12);G.nextMini=Math.min(G.nextMini,G.t+50);
   sfx('boss');G.shake=12}
 function updatePortal(dt){const o=G.portal,h=odHeat();o.t+=dt;
   const tier=odTierOf(h);if(tier>G.odTier){G.odTier=tier;
-    if(tier===1)showBanner('Exit portal open','Drive in to bank your run · stay for Overdrive');
-    else{showBanner('Overdrive '+roman(tier),'They hit harder and drive faster · the portal is still open');sfx('boss')}}
+    {showBanner('Overdrive '+roman(tier),'They hit harder and drive faster · the portal is still open');sfx('boss')}}
   if(!S.lowFx||Math.random()<.4){const a=rand(0,TAU),R=o.r*rand(1.3,2.2);part(o.x+Math.cos(a)*R,o.y+Math.sin(a)*R,-Math.cos(a)*R*2.2,-Math.sin(a)*R*2.2,.45,rand(2,4),Math.random()<.5?'#c78bff':'#3fe0d0','spark')}
   const p=G.p;if(G.exitT<0&&state==='play'&&d2(p.x,p.y,o.x,o.y)<(o.r-12)**2){G.exitT=0.9;p.inv=2;sfx('level');showBanner('Escaped','Banking your run…')}}
 function pullIntoPortal(dt){const p=G.p,o=G.portal,k=Math.min(1,7*dt);p.x+=(o.x-p.x)*k;p.y+=(o.y-p.y)*k;p.vx=p.vy=0;p.a+=9*dt;p.inv=Math.max(p.inv,.5)}
@@ -2080,15 +2082,18 @@ function fitReport(){const pn=$('scrOver');if(pn.hidden)return;pn.style.zoom='';
   // zoom reflows the text a little, so measure again after each step
   const avail=$('overlay').clientHeight-56;let z=1;for(let i=0;i<4;i++){const h=pn.getBoundingClientRect().height;if(h<=avail)break;z=Math.max(.6,z*avail/h);pn.style.zoom=z.toFixed(3)}}
 addEventListener('resize',()=>{if(cur==='scrOver')fitReport()});
-function drawPortal(o){const t=G.t,r=o.r*Math.min(1,o.t/0.8);if(r<=1)return;
+function drawPortal(o){const t=vclock,r=o.r*Math.min(1,o.t/0.8);if(r<=1)return;
   ctx.save();ctx.globalCompositeOperation='lighter';
+  // beacon: rings of light roll outward so the portal catches your eye from across the screen
+  for(let i=0;i<3;i++){const ph=(t*.55+i/3)%1,R=r+ph*520;ctx.strokeStyle=`rgba(${i%2?'63,224,208':'199,139,255'},${(1-ph)*.55})`;ctx.lineWidth=3+(1-ph)*5;ctx.beginPath();ctx.arc(o.x,o.y,R,0,TAU);ctx.stroke()}
   const g=ctx.createRadialGradient(o.x,o.y,r*.2,o.x,o.y,r*2.6);g.addColorStop(0,'rgba(170,90,255,.6)');g.addColorStop(1,'rgba(170,90,255,0)');ctx.fillStyle=g;ctx.beginPath();ctx.arc(o.x,o.y,r*2.6,0,TAU);ctx.fill();
   for(let i=0;i<3;i++){ctx.strokeStyle=i===1?'rgba(63,224,208,.85)':'rgba(205,130,255,.9)';ctx.lineWidth=4;ctx.beginPath();
     for(let k=0;k<=26;k++){const f=k/26,a=t*(2.6+i*.7)+i*TAU/3+f*4.2,rr=r*(1-f*.86),x=o.x+Math.cos(a)*rr,y=o.y+Math.sin(a)*rr;k?ctx.lineTo(x,y):ctx.moveTo(x,y)}ctx.stroke()}
   ctx.restore();
   ctx.fillStyle='#0b0612';ctx.beginPath();ctx.arc(o.x,o.y,r*.4,0,TAU);ctx.fill();
   ctx.strokeStyle='#c78bff';ctx.lineWidth=5;ctx.setLineDash([14,10]);ctx.lineDashOffset=-t*40;ctx.beginPath();ctx.arc(o.x,o.y,r,0,TAU);ctx.stroke();ctx.setLineDash([]);ctx.lineDashOffset=0;
-  ctx.font='700 13px "Chakra Petch",sans-serif';ctx.textAlign='center';ctx.fillStyle='#ecdcff';ctx.fillText('EXIT',o.x,o.y-r-12);ctx.textAlign='left'}
+  ctx.textAlign='center';ctx.lineWidth=4;ctx.strokeStyle='#0b0612';ctx.font='700 22px "Chakra Petch",sans-serif';const by=o.y-r-18+Math.sin(t*4)*3;ctx.strokeText('EXIT',o.x,by);ctx.fillStyle='#ecdcff';ctx.fillText('EXIT',o.x,by);
+  ctx.font='700 11px "Chakra Petch",sans-serif';ctx.strokeText('DRIVE IN',o.x,o.y+r+20);ctx.fillStyle='#c78bff';ctx.fillText('DRIVE IN',o.x,o.y+r+20);ctx.textAlign='left'}
 
 function spawnTrader(){const p=G.p;let k;do k=Math.floor(Math.random()*3);while(k===G.lastTrader);G.lastTrader=k;const T=TRADERS[k];
   // park somewhere open near the player, then find a drive in from ~900px away along the streets
@@ -2521,7 +2526,7 @@ function draw(){
   // mortar targets
   ctx.strokeStyle='rgba(255,90,31,.6)';ctx.lineWidth=2;ctx.setLineDash([8,6]);ctx.beginPath();for(const s of G.shells){if(!vis(s.tx,s.ty,s.R))continue;const r=s.R*(0.4+0.6*s.t/s.dur);ctx.moveTo(s.tx+r,s.ty);ctx.arc(s.tx,s.ty,r,0,TAU)}ctx.stroke();ctx.setLineDash([]);
   for(const b of G.barrels){if(!b.alive||!vis(b.x,b.y,24))continue;ctx.fillStyle='rgba(0,0,0,.4)';ctx.beginPath();ctx.arc(b.x+3,b.y+4,b.r,0,TAU);ctx.fill();drawBarrel(b)}
-  if(G.portal&&vis(G.portal.x,G.portal.y,160))drawPortal(G.portal);
+  if(G.portal&&vis(G.portal.x,G.portal.y,600))drawPortal(G.portal);
   if(G.trader&&vis(G.trader.x,G.trader.y,150))drawTrader(G.trader);
   // enemies
   const frz=G.buffs.freeze>0;
@@ -2578,7 +2583,7 @@ function draw(){
     const a=Math.atan2(sy2-VH/2,sx2-VW/2),ex=clamp(sx2,28,VW-28),ey=clamp(sy2,110,VH-50);ctx.save();ctx.translate(ex,ey);ctx.rotate(a);ctx.fillStyle=col;ctx.beginPath();ctx.moveTo(14,0);ctx.lineTo(-8,-10);ctx.lineTo(-8,10);ctx.closePath();ctx.fill();ctx.restore()};
   if(state!=='menu')for(const q of G.enemies)if(q.elite&&!q.dead)hunterArrow(q);
   if(state!=='menu')for(const m of G.rcs)if(m.k==='rc_scav')scavArrow(m);
-  if(state!=='menu'){for(const k of G.pickups)if(k.type==='chest')arrow(k.x,k.y,'#ffc21a');else if(k.type!=='wrench'&&k.type!=='magnet')arrow(k.x,k.y,DROPS[k.type].col);if(G.trader&&G.trader.phase!=='leave')traderArrow();if(G.portal)portalArrow()}
+  if(state!=='menu'){for(const k of G.pickups)if(k.type==='chest')arrow(k.x,k.y,'#ffc21a');else if(k.type!=='wrench'&&k.type!=='magnet')arrow(k.x,k.y,DROPS[k.type].col);if(G.trader&&G.trader.phase!=='leave')traderArrow();if(G.portal&&G.portal.t>.3){portalArrow();portalCompass()}}
   // chrome bandit (hunter) off screen: a silver arrow with a CB tag and the seconds it has left
   function hunterArrow(e){const sx2=e.x+ox,sy2=e.y+oy;if(sx2>0&&sx2<VW&&sy2>0&&sy2<VH)return;const a=Math.atan2(sy2-VH/2,sx2-VW/2),ex=clamp(sx2,44,VW-44),ey=clamp(sy2,ex>VW-340?250:200,VH-80),left=huntLeft(e),pl=1+(left<15?.18:.08)*Math.sin(G.t*(left<15?10:5));
     ctx.save();ctx.translate(ex,ey);ctx.save();ctx.rotate(a);ctx.scale(pl,pl);ctx.fillStyle='#e8e4ee';ctx.beginPath();ctx.moveTo(26,0);ctx.lineTo(-6,-16);ctx.lineTo(-6,16);ctx.closePath();ctx.fill();ctx.strokeStyle='#0a090c';ctx.lineWidth=2;ctx.stroke();ctx.restore();
@@ -2590,9 +2595,15 @@ function draw(){
     ctx.strokeStyle='#d9d6e0';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(5,-8);ctx.quadraticCurveTo(9,-16,6+Math.sin(G.t*8)*2,-21);ctx.stroke();ctx.fillStyle=col;ctx.beginPath();ctx.arc(6+Math.sin(G.t*8)*2,-21,2.2,0,TAU);ctx.fill();
     ctx.fillStyle='#0a090c';ctx.beginPath();ctx.arc(0,0,11,0,TAU);ctx.fill();ctx.strokeStyle=col;ctx.lineWidth=2;ctx.stroke();ctx.fillStyle=col;ctx.font='700 9px "Chakra Petch",sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('RC',0,1);ctx.textAlign='left';ctx.textBaseline='alphabetic';ctx.restore()}
   // exit portal off screen: a pulsing purple arrow with a ring
-  function portalArrow(){const o=G.portal,sx2=o.x+ox,sy2=o.y+oy;if(sx2>0&&sx2<VW&&sy2>0&&sy2<VH)return;const a=Math.atan2(sy2-VH/2,sx2-VW/2),ex=clamp(sx2,44,VW-44),ey=clamp(sy2,190,VH-70),pl=1+.15*Math.sin(G.t*7);
-    ctx.save();ctx.translate(ex,ey);ctx.save();ctx.rotate(a);ctx.scale(pl,pl);ctx.fillStyle='#c78bff';ctx.beginPath();ctx.moveTo(30,0);ctx.lineTo(-6,-19);ctx.lineTo(-6,19);ctx.closePath();ctx.fill();ctx.restore();
-    ctx.fillStyle='#0b0612';ctx.beginPath();ctx.arc(0,0,14,0,TAU);ctx.fill();ctx.strokeStyle='#c78bff';ctx.lineWidth=4;ctx.beginPath();ctx.arc(0,0,9,0,TAU);ctx.stroke();ctx.restore()}
+  function portalArrow(){const o=G.portal,sx2=o.x+ox,sy2=o.y+oy;if(sx2>0&&sx2<VW&&sy2>0&&sy2<VH)return;const a=Math.atan2(sy2-VH/2,sx2-VW/2),ex=clamp(sx2,52,VW-52),ey=clamp(sy2,200,VH-80),pl=1+.15*Math.sin(vclock*7);
+    ctx.save();ctx.translate(ex,ey);ctx.save();ctx.rotate(a);ctx.scale(pl,pl);ctx.fillStyle='#c78bff';ctx.strokeStyle='#0b0612';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(40,0);ctx.lineTo(-6,-25);ctx.lineTo(-6,25);ctx.closePath();ctx.stroke();ctx.fill();ctx.restore();
+    ctx.fillStyle='#0b0612';ctx.beginPath();ctx.arc(0,0,20,0,TAU);ctx.fill();ctx.strokeStyle='#c78bff';ctx.lineWidth=3;ctx.stroke();
+    ctx.fillStyle='#ecdcff';ctx.font='700 10px "Chakra Petch",sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('EXIT',0,1);
+    ctx.font='700 11px "Chakra Petch",sans-serif';ctx.fillStyle='#c78bff';ctx.fillText(Math.round(Math.hypot(o.x-G.p.x,o.y-G.p.y)/10)+'m',0,32);ctx.textAlign='left';ctx.textBaseline='alphabetic';ctx.restore()}
+  // two purple chevrons hugging your car that always point at the exit
+  function portalCompass(){const o=G.portal,p=G.p,dx=o.x-p.x,dy=o.y-p.y;if(dx*dx+dy*dy<(o.r+140)**2)return;const a=Math.atan2(dy,dx),R=50+Math.sin(vclock*6)*5;
+    ctx.save();ctx.translate(p.x+ox+Math.cos(a)*R,p.y+oy+Math.sin(a)*R);ctx.rotate(a);ctx.fillStyle='#c78bff';ctx.strokeStyle='#0b0612';ctx.lineWidth=2.5;
+    for(let i=0;i<2;i++){const o2=i*15;ctx.globalAlpha=.6+.4*Math.max(0,Math.sin(vclock*6-i*1.2));ctx.beginPath();ctx.moveTo(13+o2,0);ctx.lineTo(-4+o2,-13);ctx.lineTo(2+o2,0);ctx.lineTo(-4+o2,13);ctx.closePath();ctx.stroke();ctx.fill()}ctx.restore()}
   // trader off screen: a big arrow with a coin sign pinned to the edge
   function traderArrow(){const tr=G.trader,sx2=tr.x+ox,sy2=tr.y+oy;if(sx2>0&&sx2<VW&&sy2>0&&sy2<VH)return;const a=Math.atan2(sy2-VH/2,sx2-VW/2),ex=clamp(sx2,40,VW-40),ey=clamp(sy2,130,VH-60),pl=1+.12*Math.sin(G.t*6);
     ctx.save();ctx.translate(ex,ey);ctx.save();ctx.rotate(a);ctx.scale(pl,pl);ctx.fillStyle=tr.T.col;ctx.beginPath();ctx.moveTo(26,0);ctx.lineTo(-6,-17);ctx.lineTo(-6,17);ctx.closePath();ctx.fill();ctx.restore();
@@ -2636,7 +2647,7 @@ function updateHud(){
   const b=G.lboss&&!G.lboss.dead?G.lboss:G.mini&&!G.mini.dead?G.mini:null;$('bossWrap').hidden=!b;
   if(b){setT('bossName',b.type==='lboss'?L.boss.name:'JUGGERNAUT '+['I','II','III','IV','V','VI','VII','VIII'][Math.min(7,(b.num||1)-1)]);setW('bossfill',b.hp/b.maxhp)}
   let obj;
-  if(G.portal){const po=G.portal,dm=Math.round(Math.hypot(po.x-p.x,po.y-p.y)/10),a=Math.atan2(po.y-p.y,po.x-p.x);obj=`<span class="odtag">Overdrive ${roman(Math.max(1,G.odTier))}</span> Exit portal <b>${dm}m</b> <span class="tarr" style="transform:rotate(${a.toFixed(1)}rad)"><i>▶</i></span> · drive in to bank your run`}
+  if(G.portal){const po=G.portal,dm=Math.round(Math.hypot(po.x-p.x,po.y-p.y)/10),a=Math.atan2(po.y-p.y,po.x-p.x);obj=`<span class="odtag">Overdrive ${roman(Math.max(1,G.odTier))}</span> <b style="color:#c78bff">Exit portal</b> <b>${dm}m</b> <span class="tarr" style="transform:rotate(${a.toFixed(1)}rad)"><i>▶</i></span> · drive in to bank your run`}
   else if(G.cleared)obj=`Track cleared · <b>exit portal opening…</b>`;
   else if(G.lboss||G.bossDue>0)obj=`Level boss · <b>${L.boss.name}</b>`;
   else obj=`Juggernauts <b>${G.miniKills} / ${L.minis}</b> · next in <b>${fmt(Math.max(0,G.nextMini-G.t))}</b>`;
@@ -3034,13 +3045,20 @@ function attract(dt){G.t+=dt;const p=G.p,R=clamp(Math.min(VW,VH)*.4,160,460),w=0
 resize();newGame(curLevel);show('scrMenu');refreshMenu();
 let last=performance.now();
 let wxDt=0;
+// real-time clock for things that keep animating while the world is held still (the portal fly-over)
+let vclock=0;const REVEAL_T=2.7;
+// any key or tap cuts the fly-over short and swings the camera straight back
+addEventListener('keydown',()=>{if(G&&G.reveal&&G.reveal.t<2)G.reveal.t=2});addEventListener('pointerdown',()=>{if(G&&G.reveal&&G.reveal.t<2)G.reveal.t=2});
 function frame(now){requestAnimationFrame(frame);
-  const ms=now-last,dt=clamp(ms/1000,0,0.05);last=now;wxDt=dt;updateWeatherSound();autoQuality(ms);
+  const ms=now-last,dt=clamp(ms/1000,0,0.05);last=now;vclock+=dt;wxDt=dt;updateWeatherSound();autoQuality(ms);
   DBG.ft=DBG.ft*.92+(dt*1000)*.08;if(DBG.msgT>0)DBG.msgT-=dt;
-  if(state==='play'){if(DBG.scale>1){for(let i=0;i<DBG.scale&&state==='play';i++)update(dt)}else update(dt*DBG.scale);if(state==='play'||state==='levelup')updateHud()}
+  if(state==='play'&&G.reveal){G.reveal.t+=dt;if(G.portal)G.portal.t+=dt;G.shake*=Math.exp(-5*dt);if(G.reveal.t>=REVEAL_T)G.reveal=null;updateHud()}
+  else if(state==='play'){if(DBG.scale>1){for(let i=0;i<DBG.scale&&state==='play';i++)update(dt)}else update(dt*DBG.scale);if(state==='play'||state==='levelup')updateHud()}
   else if(state==='menu')attract(dt);
   else if(state==='over'){updateWreck(dt);updateFx(dt);G.shake*=Math.exp(-7*dt)}
-  const c=G.cam,p=G.p,am=state==='menu',tx=am?ARENA/2:p.x+p.vx*.3,ty=am?ARENA/2:p.y+p.vy*.3,k=1-Math.exp(-6*dt);c.x+=(tx-c.x)*k;c.y+=(ty-c.y)*k;
+  const c=G.cam,p=G.p,am=state==='menu';let tx=am?ARENA/2:p.x+p.vx*.3,ty=am?ARENA/2:p.y+p.vy*.3,k=1-Math.exp(-6*dt);
+  if(G.reveal&&G.portal&&state!=='menu'){const t=G.reveal.t,e=x=>x*x*(3-2*x),w=t<.8?e(t/.8):t<2?1:t<REVEAL_T?1-e((t-2)/(REVEAL_T-2)):0;tx+=(G.portal.x-tx)*w;ty+=(G.portal.y-ty)*w;k=1}
+  c.x+=(tx-c.x)*k;c.y+=(ty-c.y)*k;
   draw();drawHunterCam();try{updateHover()}catch(e){$('hoverTip').hidden=true;console.error(e)}renderRadio(false);renderDebug(false);
 }
 requestAnimationFrame(frame);
