@@ -1218,7 +1218,7 @@ const CARS={
   pyro:{name:'Pyro Van',desc:'A rolling furnace. Rolls out with a Flamethrower and Hot Loads.',col:'#3fbf6a',len:48,wid:26,hp:120,speed:0.95,grip:1,ram:1,cost:500,start:{w:{flame:1},p:{warhead:1}},style:'van'},
   volt:{name:'Voltage',desc:'Silent electric coupe. Rolls out with a Tesla Arc and Overclock.',col:'#3fe0d0',len:44,wid:23,hp:90,speed:1.08,grip:1.05,ram:0.9,cost:800,start:{w:{tesla:1},p:{cool:1}},style:'ev'},
   junker:{name:'Junker',desc:'Monster truck on scrap tires. Rolls out with a Junk Mortar and Mine Dropper.',col:'#a07f5c',len:52,wid:32,hp:140,speed:0.9,grip:1.2,ram:1.3,cost:1200,start:{w:{mortar:1,mines:1}},style:'monster'},
-  hydro:{name:'Hydro Van',secret:1,desc:'Secret build. A pressurized tanker van carrying the Hydro Cannon, a weapon no other car can mount.',col:'#2a8cff',len:48,wid:27,hp:130,speed:1,grip:1.05,ram:1.1,cost:0,start:{w:{hydro:1}},style:'hydro'},
+  hydro:{name:'Hydro Van',secret:1,desc:'Secret build. A pressurized tanker van carrying the Hydro Cannon, a weapon no other car can mount.',col:'#53fc18',tread:'83,252,24',len:48,wid:27,hp:130,speed:1,grip:1.05,ram:1.1,cost:0,start:{w:{hydro:1}},style:'hydro'},
 };
 
 /* ---------- garage: permanent upgrades bought with scrap ---------- */
@@ -1513,7 +1513,7 @@ function drawRig(x,y,a,C,W,Pa,blink,t,flameOn){const len=C.len,wid=C.wid,st=C.st
     if(st==='coupe'){ctx.fillStyle='#141318';ctx.fillRect(-len*.5,-3,len*.36,6);ctx.fillRect(len*.24,-3,len*.26,6)}
     else if(st==='dozer'){ctx.fillStyle='#8f8a9c';ctx.beginPath();ctx.moveTo(len/2,-wid/2-7);ctx.lineTo(len/2+9,-wid/2-3);ctx.lineTo(len/2+9,wid/2+3);ctx.lineTo(len/2,wid/2+7);ctx.closePath();ctx.fill();ctx.fillStyle='#141318';ctx.fillRect(-len*.45,-wid*.3-2,len*.3,4);ctx.fillRect(-len*.45,wid*.3-2,len*.3,4)}
     else if(st==='rod'){ctx.fillStyle='#141318';ctx.fillRect(-len/2-4,-wid/2-2,5,wid+4);ctx.fillStyle='#b9b6c2';ctx.fillRect(len*.18,-wid*.24,len*.24,wid*.48);ctx.fillStyle='#fff';ctx.fillRect(-len*.45,-1.5,len*.6,3)}
-    else if(st==='van'||st==='hydro'){ctx.fillStyle=shade(C.col,1.2);rr(-len*.46,-wid*.42,len*.6,wid*.84,3);ctx.fill();ctx.fillStyle=st==='hydro'?'#bff3ff':'#ff7a1f';ctx.fillRect(-len*.4,-wid*.42,len*.48,3);ctx.fillRect(-len*.4,wid*.42-3,len*.48,3)}
+    else if(st==='van'||st==='hydro'){ctx.fillStyle=shade(C.col,1.2);rr(-len*.46,-wid*.42,len*.6,wid*.84,3);ctx.fill();ctx.fillStyle=st==='hydro'?'#0e0e10':'#ff7a1f';ctx.fillRect(-len*.4,-wid*.42,len*.48,3);ctx.fillRect(-len*.4,wid*.42-3,len*.48,3)}
     else if(st==='ev'){ctx.strokeStyle='#bffff6';ctx.lineWidth=1.5;rr(-len/2+2,-wid/2+2,len-4,wid-4,wid*.22);ctx.stroke()}
     else if(st==='monster'){ctx.fillStyle='#55525d';ctx.fillRect(-len*.42,-wid*.48,len*.84,4);ctx.fillRect(-len*.42,wid*.48-4,len*.84,4)}
     // passives
@@ -1540,8 +1540,8 @@ function drawRig(x,y,a,C,W,Pa,blink,t,flameOn){const len=C.len,wid=C.wid,st=C.st
     if(lv('scatter')){ctx.fillStyle='#3a3644';ctx.fillRect(len*.14,-wid*.46,len*.36,5);ctx.fillStyle='#8f8a9c';ctx.fillRect(len*.46,-wid*.46-1,5,7)}
     if(lv('disc')){ctx.fillStyle='#c9c6d0';ctx.beginPath();ctx.arc(-len*.12,-wid*.2,5,0,TAU);ctx.fill();ctx.fillStyle='#141318';ctx.beginPath();ctx.arc(-len*.12,-wid*.2,1.8,0,TAU);ctx.fill()}
     if(lv('trail')){ctx.fillStyle='#55525d';ctx.fillRect(-len/2-5,wid*.16,6,4);ctx.fillRect(-len/2-5,-wid*.16-4,6,4);if(Math.random()<.7){ctx.fillStyle='#ff7a1f';ctx.fillRect(-len/2-9-Math.random()*4,wid*.16,4,4);ctx.fillRect(-len/2-9-Math.random()*4,-wid*.16-4,4,4)}}
-    if(lv('hydro')){ctx.fillStyle='#9fb8cc';rr(-len*.42,-wid*.3,len*.5,wid*.6,wid*.3);ctx.fill();ctx.fillStyle='#5f7a90';for(const xx of[-.32,-.16,0])ctx.fillRect(len*xx,-wid*.3,2,wid*.6);
-      ctx.save();ctx.translate(len*.16,0);ctx.rotate((W.hydro.aim??a)-a);ctx.fillStyle='#2b2930';ctx.beginPath();ctx.arc(0,0,6,0,TAU);ctx.fill();ctx.fillStyle='#8f8a9c';ctx.fillRect(0,-2.5,15+lv('hydro'),5);ctx.fillStyle='#6fd0ff';ctx.fillRect(13+lv('hydro'),-2,3,4);ctx.restore()}
+    if(lv('hydro')){ctx.fillStyle='#1d2121';rr(-len*.42,-wid*.3,len*.5,wid*.6,wid*.3);ctx.fill();ctx.fillStyle='#53fc18';for(const xx of[-.32,-.16,0])ctx.fillRect(len*xx,-wid*.3,2,wid*.6);
+      ctx.save();ctx.translate(len*.16,0);ctx.rotate((W.hydro.aim??a)-a);ctx.fillStyle='#2b2930';ctx.beginPath();ctx.arc(0,0,6,0,TAU);ctx.fill();ctx.fillStyle='#8f8a9c';ctx.fillRect(0,-2.5,15+lv('hydro'),5);ctx.fillStyle='#53fc18';ctx.fillRect(13+lv('hydro'),-2,3,4);ctx.restore()}
     if(lv('rc_medic')||lv('rc_ram')||lv('rc_bomb')||lv('rc_scav')||lv('rc_jam')){ctx.strokeStyle='#d9d6e0';ctx.lineWidth=1.3;ctx.beginPath();ctx.moveTo(-len*.36,wid*.3);ctx.lineTo(-len*.5-9,wid*.3+3);ctx.stroke();ctx.fillStyle='#ff3b4e';ctx.beginPath();ctx.arc(-len*.5-9,wid*.3+3,2,0,TAU);ctx.fill()}
     if(lv('drone')){ctx.strokeStyle='#3fe0d0';ctx.lineWidth=1.5;ctx.strokeRect(-len*.34,wid*.04,9,9)}
     if(pv('crit')){ctx.fillStyle='#ffd65a';for(const [xx,yy] of[[len*.3,-wid/2+1],[len*.3,wid/2-3],[-len*.3,-wid/2+1],[-len*.3,wid/2-3]])ctx.fillRect(xx-1.5,yy,3,2)}
@@ -1563,7 +1563,7 @@ function newGame(li){const L=LEVELS[li];curLevel=li;const wk=FORECAST[L.id]||rol
     miniKills:0,minisSpawned:0,eliteKills:0,ramKills:0,barrelBooms:0,lowAt:-1,newAch:[],achT:0,
     bolts:0,tk:{},bought:0,trader:null,lastTrader:-1,near:false,nextTrader:100+rand(0,40),
     bossDue:-1,lboss:null,mini:null,cleared:false,clearT:-1,portalT:-1,portal:null,odStart:-1,odTier:0,exitT:-1,escaped:false,forfeit:false,dmgBy:{},dmgTaken:0,dist:0,boltsGot:0,shieldT:0,gain:0,car:C,scrapRaw:0,sack:0,scrapGain:0,propsBroken:0,powerups:0,flashT:0,
-    buffs:{nitro:0,fury:0,freeze:0,bubble:0},discs:[],trail:[],drones:[],rcs:[],rcfx:[],glove:[],tumbles:[],flowT:0,frame:0,leashT:1,recycled:0,revives:gl('revive'),obs:Wd.obs,props:Wd.props,zones:Wd.zones,pylons:Wd.pylons,deco:Wd.deco,
+    buffs:{nitro:0,fury:0,freeze:0,bubble:0},discs:[],trail:[],treads:[],drones:[],rcs:[],rcfx:[],glove:[],tumbles:[],flowT:0,frame:0,leashT:1,recycled:0,revives:gl('revive'),obs:Wd.obs,props:Wd.props,zones:Wd.zones,pylons:Wd.pylons,deco:Wd.deco,
     p:{x:ARENA/2,y:ARENA/2+200,a:-Math.PI/2,vx:0,vy:0,hp:100,maxhp:100,r:Math.max(C.len,C.wid)*.43,inv:0},
     stats:{},weapons:start,passives:Object.assign({},C.start.p),
     enemies:[],bullets:[],ebullets:[],missiles:[],mines:[],gems:[],pickups:[],parts:[],texts:[],rings:[],booms:[],barrels:Wd.barrels,decals:[],arcs:[],beams:[],shells:[],
@@ -2093,7 +2093,7 @@ function updateEnemies(dt){
     e.a+=clamp(da,-turn*dt,turn*dt);
     if(!e.orbit)target*=0.45+0.55*Math.max(0,Math.cos(da));
     if(e.jam>0)target*=e.big?.85:.5;
-    if(e.wet>0){target*=e.big?.85:.7;if(Math.random()<dt*5)part(e.x+rand(-e.r,e.r)*.7,e.y+rand(-e.r,e.r)*.7,0,0,.35,2.5,'#8fd4ff','spark')}
+    if(e.wet>0){target*=e.big?.85:.7;if(Math.random()<dt*5)part(e.x+rand(-e.r,e.r)*.7,e.y+rand(-e.r,e.r)*.7,0,0,.35,2.5,'#8dff5a','spark')}
     e.v+=(target-e.v)*Math.min(1,2.2*dt);
     }else e.v*=Math.exp(-6*dt);
     e.x+=Math.cos(e.a)*e.v*dt+e.kx*dt;e.y+=Math.sin(e.a)*e.v*dt+e.ky*dt;
@@ -2196,12 +2196,12 @@ function updateWeapons(dt){
     const cand=near(p.x,p.y,R+70).filter(e=>!e.dead&&d2(p.x,p.y,e.x,e.y)<R*R&&(e.los||d2(p.x,p.y,e.x,e.y)<170*170)).sort((A,B)=>d2(p.x,p.y,A.x,A.y)-d2(p.x,p.y,B.x,B.y)).slice(0,n);
     if(cand.length){const t0=cand[0];w.aim=(w.aim??p.a)+angDiff(w.aim??p.a,Math.atan2(t0.y-p.y,t0.x-p.x))*Math.min(1,12*dt)}
     for(const e of cand){const dx=e.x-p.x,dy=e.y-p.y,dd=Math.hypot(dx,dy)||1;w.jets.push([e.x,e.y]);e.wet=Math.max(e.wet||0,2.2);
-      const amt=dps*dt;e.soak=(e.soak||0)+amt;damageEnemy(e,amt,false);if(e.soak>=20&&!e.dead){if(S.dmgNums)addText(e.x,e.y-e.r,Math.round(e.soak),'#8fd4ff');e.soak=0}
+      const amt=dps*dt;e.soak=(e.soak||0)+amt;damageEnemy(e,amt,false);if(e.soak>=20&&!e.dead){if(S.dmgNums)addText(e.x,e.y-e.r,Math.round(e.soak),'#8dff5a');e.soak=0}
       const k=(e.big?60:560+60*lv)*dt;e.kx+=dx/dd*k;e.ky+=dy/dd*k;
-      if(Math.random()<(S.lowFx?.4:1))for(let i=0;i<2;i++){const a=Math.atan2(-dy,-dx)+rand(-1.1,1.1),sp=rand(80,260);part(e.x-dx/dd*e.r,e.y-dy/dd*e.r,Math.cos(a)*sp,Math.sin(a)*sp,rand(.2,.4),rand(2,4),'#8fd4ff','spark')}}
+      if(Math.random()<(S.lowFx?.4:1))for(let i=0;i<2;i++){const a=Math.atan2(-dy,-dx)+rand(-1.1,1.1),sp=rand(80,260);part(e.x-dx/dd*e.r,e.y-dy/dd*e.r,Math.cos(a)*sp,Math.sin(a)*sp,rand(.2,.4),rand(2,4),'#8dff5a','spark')}}
     for(const b of G.barrels)if(b.alive&&b.fuse<0&&cand.length&&d2(b.x,b.y,cand[0].x,cand[0].y)<(b.r+20)**2)b.fuse=0.3;
     if(cand.length&&(w.snd=(w.snd||0)-dt)<=0){w.snd=.13;noise(.16,.03,2800)}
-    if(lv>=5){w.wave=(w.wave??5)-wdt;if(w.wave<=0&&nearestEnemy(p.x,p.y,300)){w.wave=5*s.cd;G.rings.push({src:'hydro',x:p.x,y:p.y,r:20,max:320,dmg:50*s.dmg,hit:new Set(),col:'90,180,255',soak:1});noise(.6,.12,900);tone(160,.5,'sine',.08,60)}}}
+    if(lv>=5){w.wave=(w.wave??5)-wdt;if(w.wave<=0&&nearestEnemy(p.x,p.y,300)){w.wave=5*s.cd;G.rings.push({src:'hydro',x:p.x,y:p.y,r:20,max:320,dmg:50*s.dmg,hit:new Set(),col:'83,252,24',soak:1});noise(.6,.12,900);tone(160,.5,'sine',.08,60)}}}
   updateRC(dt,wdt);
   if(W.drone){DSRC='drone';const w=W.drone,lv=w.lvl,n=lv>=5?3:lv>=3?2:1;G.drones.length=Math.min(G.drones.length,n);
     for(let i=0;i<n;i++){const d=G.drones[i]||(G.drones[i]={x:p.x,y:p.y,cd:rand(0,.5),aim:0});const a=G.t*1.4+i*TAU/n,tx=p.x+Math.cos(a)*64,ty=p.y+Math.sin(a)*64;d.x+=(tx-d.x)*Math.min(1,6*dt);d.y+=(ty-d.y)*Math.min(1,6*dt);
@@ -2275,8 +2275,17 @@ function updateFx(dt){
   for(const b of G.beams)b.life-=dt;prune(G.beams,b=>b.life>0);
 }
 
+// tire trails: cars with a tread colour leave glowing marks behind their rear wheels that fade out; brighter when you slide
+function updateTreads(dt){const T=G.treads;for(const s of T)s.life-=dt;while(T.length&&T[0].life<=0)T.shift();
+  const C=G.car,p=G.p;if(!C.tread||G.wreck||G.exitT>=0)return;const sp=Math.hypot(p.vx,p.vy);if(sp<40){G.treadAt=null;return}
+  const ca=Math.cos(p.a),sa=Math.sin(p.a),bx=p.x-ca*C.len*.3,by=p.y-sa*C.len*.3,o=C.wid*.4;
+  const pts=[[bx-sa*o,by+ca*o],[bx+sa*o,by-ca*o]],last=G.treadAt;
+  if(last&&d2(bx,by,last.x,last.y)<9*9)return;
+  const slip=Math.abs(-sa*p.vx+ca*p.vy),a=Math.min(1,.45+slip/260);
+  if(last&&d2(bx,by,last.x,last.y)<60*60)for(let i=0;i<2;i++)T.push({x1:last.w[i][0],y1:last.w[i][1],x2:pts[i][0],y2:pts[i][1],a,life:2.4});
+  G.treadAt={x:bx,y:by,w:pts};if(T.length>320)T.splice(0,T.length-320)}
 function update(dt){
-  G.t+=dt;
+  G.t+=dt;updateTreads(dt);
   for(const k in G.buffs)if(G.buffs[k]>0)G.buffs[k]-=dt;G.flashT-=dt;
   G.frame++;if((G.flowT-=dt)<=0){G.flowT=0.25;updateFlow();if(G.L.bossWalls&&G.enemies.some(e=>e.big&&!e.dead))updateBossFlow()}
   if((G.leashT-=dt)<=0){G.leashT=0.5;recycleStragglers()}
@@ -2399,6 +2408,9 @@ function draw(){
     ctx.fill()}
   for(const k of G.pickups)if(vis(k.x,k.y,30))drawPickup(k);
   // burnout trail
+  if(G.treads.length){const col=G.car.tread||'83,252,24';ctx.lineCap='round';ctx.globalCompositeOperation='lighter';
+    for(const t of G.treads){const k=t.life/2.4*t.a;ctx.strokeStyle=`rgba(${col},${(k*.28).toFixed(3)})`;ctx.lineWidth=7;ctx.beginPath();ctx.moveTo(t.x1,t.y1);ctx.lineTo(t.x2,t.y2);ctx.stroke();ctx.strokeStyle=`rgba(${col},${(k*.75).toFixed(3)})`;ctx.lineWidth=2.6;ctx.beginPath();ctx.moveTo(t.x1,t.y1);ctx.lineTo(t.x2,t.y2);ctx.stroke()}
+    ctx.globalCompositeOperation='source-over';ctx.lineCap='butt'}
   if(G.trail.length){ctx.globalCompositeOperation='lighter';for(const f of G.trail){if(!vis(f.x,f.y,f.r))continue;const k=f.life/f.max;ctx.fillStyle=`rgba(255,${90+80*k|0},30,${.32*k})`;ctx.beginPath();ctx.arc(f.x,f.y,f.r*(.7+.3*k),0,TAU);ctx.fill()}ctx.globalCompositeOperation='source-over'}
   // mines
   for(const m of G.mines){if(!vis(m.x,m.y,12))continue;ctx.fillStyle='#2a2830';ctx.beginPath();ctx.arc(m.x,m.y,9,0,TAU);ctx.fill();ctx.strokeStyle='#55525d';ctx.lineWidth=2;ctx.stroke();ctx.fillStyle=m.arm<=0&&Math.floor(G.t*6)%2?'#ff3b2a':'#5a1a14';ctx.beginPath();ctx.arc(m.x,m.y,3,0,TAU);ctx.fill()}
@@ -2448,7 +2460,7 @@ function draw(){
   // hydro jets: a wobbling stream from the roof nozzle to each soaked target
   {const w=G.weapons.hydro;if(w&&w.jets&&w.jets.length){const p=G.p,a=w.aim??p.a,nx=p.x+Math.cos(a)*(G.car.len*.16+18),ny=p.y+Math.sin(a)*(G.car.len*.16+18);ctx.lineCap='round';
     for(const [tx,ty] of w.jets){const dx=tx-nx,dy=ty-ny,L=Math.hypot(dx,dy)||1,ux=-dy/L,uy=dx/L;
-      for(const [lw,col] of [[9,'rgba(60,150,255,.35)'],[5,'rgba(120,200,255,.75)'],[2,'rgba(235,250,255,.95)']]){ctx.strokeStyle=col;ctx.lineWidth=lw;ctx.beginPath();
+      for(const [lw,col] of [[9,'rgba(83,252,24,.32)'],[5,'rgba(140,255,90,.75)'],[2,'rgba(235,255,225,.95)']]){ctx.strokeStyle=col;ctx.lineWidth=lw;ctx.beginPath();
         for(let i=0;i<=10;i++){const f=i/10,wob=Math.sin(f*9-G.t*30)*3*Math.sin(f*Math.PI);ctx.lineTo(nx+dx*f+ux*wob,ny+dy*f+uy*wob)}ctx.stroke()}}
     ctx.lineCap='butt'}}
   for(const b of G.beams){const t=b.life/b.max;ctx.save();ctx.translate(b.x,b.y);ctx.rotate(b.a);ctx.fillStyle=`rgba(255,79,216,${t*.55})`;ctx.fillRect(0,-b.w/2,b.len,b.w);ctx.fillStyle=`rgba(255,240,250,${t})`;ctx.fillRect(0,-b.w/6,b.len,b.w/3);ctx.restore()}
