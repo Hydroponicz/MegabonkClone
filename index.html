@@ -34,6 +34,27 @@ html,body{height:100%;margin:0;overflow:hidden;background:var(--asphalt);color:v
 .bossbar{width:min(520px,90vw);height:12px;background:rgba(0,0,0,.65);border:2px solid var(--ink)}
 #bossfill{height:100%;background:linear-gradient(90deg,var(--hp),var(--ember));width:100%}
 #loadout{display:flex;flex-wrap:wrap;gap:6px;max-width:calc(100% - 190px)}
+#loadout .lh,#loadPill{display:none}
+/* phones: the loadout folds into a pill; tapping it opens a compact grid that closes itself after 5s */
+@media (pointer:coarse){
+  #loadPill{display:flex;align-items:center;gap:6px;position:absolute;left:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 14px);pointer-events:auto;background:rgba(10,9,12,.88);border:1px solid var(--line);color:var(--fg);font:700 11px var(--body);letter-spacing:.08em;padding:9px 12px;touch-action:none;-webkit-tap-highlight-color:transparent;user-select:none}
+  #loadPill b{color:var(--hazard)}#loadPill .lp{color:var(--dim)}#loadPill i{font-style:normal;color:var(--dim);transition:transform .2s}
+  #loadPill.pulse{animation:lpulse .5s ease-in-out 3 alternate}@keyframes lpulse{to{border-color:var(--hazard);box-shadow:0 0 12px rgba(255,194,26,.5)}}
+  #hud.loadOpen #loadPill i{transform:rotate(90deg)}
+  #loadout{display:none}
+  #hud.loadOpen #loadout{display:grid;grid-template-columns:repeat(auto-fill,minmax(74px,1fr));gap:4px;position:absolute;left:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 60px);width:min(370px,calc(100vw - 24px));max-width:none;max-height:min(45vh,380px);overflow:auto;background:rgba(10,9,12,.94);border:1px solid var(--line);padding:8px;pointer-events:auto;touch-action:pan-y}
+  #hud.loadOpen #loadout .lh{display:block;grid-column:1/-1;font-size:9px;font-weight:700;letter-spacing:.16em;color:var(--dim);margin-top:2px}
+  #hud.loadOpen #loadout .chip{flex-direction:column;align-items:flex-start;gap:3px;padding:4px 5px;font-size:8.5px;letter-spacing:.02em;line-height:1.12;min-height:30px;justify-content:space-between}
+  #hud.loadOpen #loadout .chip.sel{border-color:var(--hazard)}
+}
+/* pause menu: the whole build, readable, with details on tap or hover */
+.pload{display:flex;flex-direction:column;gap:8px;max-width:640px;margin:4px auto 10px;text-align:left;max-height:min(42vh,420px);overflow:auto}
+body.loadOpen #toasts{opacity:0;transition:opacity .2s}
+@media (max-height:500px){#scrPause h2.big{font-size:34px;margin:0}#scrPause .sub{margin:2px 0 4px}.pload{max-height:30vh;gap:4px;margin-bottom:4px}.pload .chip{padding:3px 7px}#pauseTip{min-height:0;margin-bottom:6px;font-size:12px}}
+.pload .lh{font-size:10px;font-weight:700;letter-spacing:.16em;color:var(--dim)}
+.pload .row{display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-start}
+.pload .chip{cursor:pointer}.pload .chip.sel{border-color:var(--hazard)}
+#pauseTip{min-height:2.6em;max-width:640px;margin:0 auto 12px;color:var(--dim);font-size:13px;line-height:1.4;text-align:left}#pauseTip b{color:var(--fg)}
 #glove{position:absolute;right:16px;bottom:calc(env(safe-area-inset-bottom,0px) + 16px);display:flex;gap:6px;pointer-events:auto}
 #glove .gslot{width:52px;height:46px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;background:rgba(10,9,12,.85);border:2px solid var(--line);color:var(--fg);font:700 13px var(--body);letter-spacing:.06em;padding:0;cursor:pointer}
 #glove .gslot:first-child:not(.empty){border-color:var(--hazard)}#glove .gslot small{font-size:9px;color:var(--hazard);letter-spacing:.14em;min-height:10px}
@@ -49,7 +70,7 @@ html,body{height:100%;margin:0;overflow:hidden;background:var(--asphalt);color:v
 #banner small{display:block;font-family:var(--body);font-weight:700;font-size:14px;letter-spacing:.2em;color:var(--fg);margin-top:8px}
 #banner.show{opacity:1;transform:scale(1)}
 
-#overlay{position:fixed;inset:0;display:grid;place-items:center;padding:24px 16px;background:rgba(9,8,11,.84);overflow:auto}
+#overlay{position:fixed;inset:0;display:grid;place-items:center;place-items:safe center;padding:24px 16px;background:rgba(9,8,11,.84);overflow:auto}
 .panel{width:min(780px,100%);display:flex;flex-direction:column;gap:18px;align-items:center;text-align:center}
 .hazard-stripe{height:10px;width:100%;background:repeating-linear-gradient(135deg,var(--hazard) 0 14px,var(--ink) 14px 28px)}
 .logo{font-family:var(--display);font-weight:400;font-size:clamp(46px,12vw,104px);line-height:.88;color:var(--hazard);text-shadow:5px 5px 0 var(--ink),0 0 50px rgba(255,90,31,.35);margin:0;text-wrap:balance}
@@ -363,7 +384,7 @@ body.nocursor,body.nocursor *{cursor:none!important}
     <div class="xp" data-tip="Experience|Run level|Scrap you pick up fills this bar. When it's full you level up and pick a bolt-on."><div id="xpfill"></div></div>
     <div class="row">
       <div class="left"><div class="stat" data-tip="Run level|This run|Goes up as the XP bar fills. Every level up lets you pick a new weapon or upgrade.">Lvl<b id="lvl">1</b></div><div class="stat" data-tip="Bolts|Currency|Dropped by wrecked cars. Spend them at trader trucks on trinkets for this run."><span class="nut"></span><b id="bolts">0</b></div><div class="stat" data-tip="Scrap banked|Garage currency|Scrap you'll bank when this run ends: a quarter of the scrap you pick up, plus Juggernaut, track-clear and scrap-sack bonuses. Spend it in the Garage."><span class="scrapi"></span><b id="scrapH">0</b></div></div>
-      <div id="timer" data-tip="Time survived|Run clock|A Juggernaut arrives every 3 minutes. Traders start showing up after 5:00.">00:00</div>
+      <div id="timer" data-tip="Time survived|Run clock|A Juggernaut arrives every 2 minutes. Traders start showing up after 5:00.">00:00</div>
       <div class="right"><div class="stat" data-tip="Wrecks|This run|Cars you've destroyed this run. Counts toward achievements and account XP.">Wrecks<b id="kills">0</b></div><button id="pauseBtn" aria-label="Pause" data-tip="Pause|P or Esc|Pause the run, change settings or quit to the menu.">II</button></div>
     </div>
     <div class="row"><div class="hp" data-tip="Health|Your car|Ramming at full speed hurts you less. At zero you're wrecked, unless you have a Spare Tire or Second Wind."><div id="hpfill"></div><div id="hptext">100 / 100</div></div><div id="objective" data-tip="Objective|Track progress|Wreck enough Juggernaut mini bosses and the track's level boss comes for you. Beat it to clear the track."></div></div>
@@ -375,6 +396,7 @@ body.nocursor,body.nocursor *{cursor:none!important}
     <div id="bossWrap" hidden data-tip="Boss health|Boss|Bosses smash straight through props and most walls. Downtown, even they have to drive around the buildings."><div id="bossName">JUGGERNAUT</div><div class="bossbar"><div id="bossfill"></div></div></div>
   </div>
   <div id="loadout"></div>
+  <button id="loadPill" aria-expanded="false" aria-label="Show your build"></button>
   <div id="glove" aria-label="Glovebox"></div>
 </div>
 <div id="banner"></div>
@@ -465,6 +487,7 @@ body.nocursor,body.nocursor *{cursor:none!important}
       <div class="set-row"><label for="shakeRange"><b>Screen shake</b><span class="d">How hard crashes and blasts rattle the camera</span></label><div class="range"><input type="range" id="shakeRange" min="0" max="100" step="10"><output id="shakeOut" for="shakeRange">100%</output></div></div>
       <div class="set-row"><div><b>Damage numbers</b><span class="d">Pop-up numbers when you hit a car</span></div><button class="switch" role="switch" data-set="dmgNums" aria-label="Damage numbers"></button></div>
       <div class="set-row"><div><b>Damage flash</b><span class="d">Red screen edge when hit or low on HP</span></div><button class="switch" role="switch" data-set="flash" aria-label="Damage flash"></button></div>
+      <div class="set-row"><div><b>Auto resolution</b><span class="d">Lowers the drawing resolution a little when the game can't keep up, and raises it again when it can</span></div><button class="switch" role="switch" data-set="autoRes" aria-label="Auto resolution"></button></div>
       <div class="set-row"><div><b>Low-detail mode</b><span class="d">Fewer particles and lower resolution for slower devices</span></div><button class="switch" role="switch" data-set="lowFx" aria-label="Low-detail mode"></button></div>
       <div class="set-row"><div><b>Auto-pause</b><span class="d">Pause when the window loses focus</span></div><button class="switch" role="switch" data-set="autoPause" aria-label="Auto-pause"></button></div>
       <div class="set-row"><div><b>Transfer save</b><span class="d">Move your unlocks and progress to another phone or computer</span></div><button class="btn alt" id="xferBtn">Transfer</button></div>
@@ -508,7 +531,7 @@ body.nocursor,body.nocursor *{cursor:none!important}
       <div class="key"><i class="nut" style="width:14px;height:14px;margin:0"></i><span><b>Bolts</b> · spend them at traders</span></div>
       <div class="key"><i style="background:#6b4a2a;outline:3px solid #ffc21a;outline-offset:-5px"></i><span><b>Supply crate</b> · free bolt-on</span></div>
       <div class="key"><i style="background:#8a5a32"></i><span><b>Wooden crate</b> · smash it for a random drop</span></div>
-      <div class="key"><i style="background:#1e7a45"></i><span><b>Wrench</b> · repairs 30 HP</span></div>
+      <div class="key"><i style="background:#1e7a45"></i><span><b>Wrench</b> · repairs 12% of max HP</span></div>
       <div class="key"><i style="background:#ff5a1f;border-radius:50%"></i><span><b>Airstrike</b> · wrecks everything nearby</span></div>
       <div class="key"><i style="background:#9fe4ff;border-radius:50%"></i><span><b>Cryo</b> · freezes every car for 5s</span></div>
       <div class="key"><i style="background:#4f8bff;border-radius:50%"></i><span><b>Nitro</b> · speed and double ram damage</span></div>
@@ -526,7 +549,7 @@ body.nocursor,body.nocursor *{cursor:none!important}
     </div>
     <div class="keys">
       <div class="key"><b>Chrome hunters</b><span>A shiny loot car shows up now and then. It runs and hides, and gets away after a minute. Follow the silver arrow and the live camera in the corner, and wreck it for a supply crate and bolts.</span></div>
-      <div class="key"><b>Juggernauts</b><span>A mini boss rolls in every 3 minutes. Wreck enough of them and the level boss comes for you.</span></div>
+      <div class="key"><b>Juggernauts</b><span>A mini boss rolls in every 2 minutes. Wreck two of them and the level boss comes for you; while it is out, the horde thins and ambushes hold off.</span></div>
       <div class="key"><b>RC minions</b><span>Some level-ups are little remote-control cars with antennas. They take a weapon slot and work on their own: Medic patches you up, Rammer rams cars, Bomb drives into crowds and blows up, Scavenger fetches scrap and digs up bolts, Jammer hunts down packs of cars, slowing them and stopping gunners firing. Signal Booster makes them all stronger.</span></div>
       <div class="key"><b>Weather</b><span>Every run rolls its own weather, shown as the forecast on the track card. Rain and snow cost grip, blizzards shove you around, thunderstorms drop marked lightning strikes, and dust storms send tornadoes across the track.</span></div>
       <div class="key"><b>Exit portal</b><span>Beat the level boss and a portal opens in a far corner. Drive in to end the run and bank it. Stay longer and Overdrive kicks in: tougher, faster cars every 40 seconds. Get wrecked before you escape and the run doesn't count.</span></div>
@@ -556,6 +579,7 @@ body.nocursor,body.nocursor *{cursor:none!important}
   <section id="scrPause" class="panel" hidden>
     <h2 class="big">Paused</h2>
     <p class="sub" id="pauseLevel"></p>
+    <div id="pauseLoad" class="pload"></div><p id="pauseTip"></p>
     <div class="btns">
       <button class="btn" id="resumeBtn">Resume</button>
       <button class="btn alt" id="pSetBtn">Settings</button>
@@ -620,7 +644,7 @@ let storageOK=true,saveFailed=false;
 function readKey(key){let raw;try{raw=localStorage.getItem(key)}catch(e){storageOK=false;return null}if(raw==null)return null;try{const v=JSON.parse(raw);if(v&&typeof v==='object')return v}catch(e){}return null}
 function load(key,def){return Object.assign({},def,readKey(key)||{})}
 function save(key,v){try{localStorage.setItem(key,JSON.stringify(v));return true}catch(e){if(!saveFailed){saveFailed=true;setTimeout(()=>toast('!','Couldn\'t save','This browser refused to store your progress. Back it up in Settings › Transfer save.'),500)}return false}}
-const S0={sound:true,vol:80,music:true,musVol:60,wxVol:100,ambVol:100,shake:100,dmgNums:true,flash:true,lowFx:false,autoPause:true};
+const S0={sound:true,vol:80,music:true,musVol:60,wxVol:100,ambVol:100,shake:100,dmgNums:true,flash:true,lowFx:false,autoPause:true,autoRes:true};
 const P0={runs:0,kills:0,bossKills:0,eliteKills:0,time:0,best:0,bestKills:0,bestLevel:0,bestRam:0,bestBarrels:0,bestWeapons:0,bestWlvl:0,bestBrink:0,
   acctXp:0,bought:0,lastLevel:0,ach:{},tracks:{},scrap:0,garage:{},cars:{interceptor:1},car:'interceptor',bestProps:0,powerups:0};
 const S=load('carnageSettings',S0);
@@ -644,9 +668,24 @@ const needFor=n=>100+50*(n-1);
 function acctInfo(xp){let lv=1;while(xp>=needFor(lv)){xp-=needFor(lv);lv++}return{lv,into:xp,need:needFor(lv)}}
 
 /* ---------- canvas ---------- */
-const cv=$('cv');let ctx=cv.getContext('2d');
+const cv=$('cv');let ctx=cv.getContext('2d',{alpha:false}); // opaque: every frame paints the whole canvas
 let VW=0,VH=0,DPR=1;
-function resize(){DPR=S.lowFx?1:Math.min(2,window.devicePixelRatio||1);VW=innerWidth;VH=innerHeight;cv.width=Math.round(VW*DPR);cv.height=Math.round(VH*DPR);vignette=null;spriteCache.clear();textCache.clear()}
+// automatic resolution: when frames can't keep up with the display, draw at a lower internal resolution, and step back up when there's headroom.
+// the display's own refresh interval is learned from the fastest recent frames, so 30Hz screens and battery savers don't trigger it
+const AQ={scale:1,ema:0,best:16.7,slowT:0,fastT:0,cool:2,lowParts:false,buf:[],n:0};
+const baseDPR=()=>S.lowFx?1:Math.min(2,window.devicePixelRatio||1);
+function autoQuality(ms){if(!S.autoRes||document.hidden||ms>400){AQ.slowT=AQ.fastT=0;return}const dt=ms/1000;
+  // display interval: the 10th-percentile frame of the last 60 (one early frame from timing jitter can't fool it), drifting up only very slowly
+  AQ.buf[AQ.n++%60]=ms;if(AQ.n%30===0&&AQ.buf.length>=60){const so=AQ.buf.slice().sort((a,b)=>a-b);AQ.best=Math.max(6.5,Math.min(so[6],AQ.best))}AQ.best+=0.001;
+  AQ.ema=AQ.ema?AQ.ema*.94+ms*.06:ms;if((AQ.cool-=dt)>0)return;
+  const busy=state==='play',min=Math.max(.5,.7/baseDPR());
+  if(busy&&AQ.ema>AQ.best*1.35+2)AQ.slowT+=dt;else AQ.slowT=0;
+  if(AQ.ema<AQ.best*1.12+1)AQ.fastT+=dt;else AQ.fastT=0;
+  // far behind (under a third of the display rate): bigger steps, sooner
+  const far=AQ.ema>AQ.best*3;
+  if(AQ.slowT>(far?.6:1.5)){AQ.slowT=0;AQ.cool=far?1:3;if(AQ.scale>min+.01){AQ.scale=Math.max(min,AQ.scale-(far?.25:.15));resize()}else AQ.lowParts=true}
+  else if(AQ.fastT>(busy?10:3)){AQ.fastT=0;AQ.cool=3;if(AQ.lowParts)AQ.lowParts=false;else if(AQ.scale<1){AQ.scale=Math.min(1,AQ.scale+.15);resize()}}}
+function resize(){DPR=baseDPR()*(S.autoRes?AQ.scale:1);VW=innerWidth;VH=innerHeight;cv.width=Math.round(VW*DPR);cv.height=Math.round(VH*DPR);vignette=null;spriteCache.clear();textCache.clear()}
 addEventListener('resize',resize);
 
 /* ---------- audio ---------- */
@@ -816,9 +855,9 @@ const DBG_KEYS=[
   ['=','Skip ahead 60s','`','Close console']];
 function dbgSay(m){DBG.msg=m;DBG.msgT=2.5;renderDebug(true)}
 function toggleDebug(){DBG.on=!DBG.on;if(DBG.on&&G&&G.live)G.dbg=true;$('dbg').hidden=!DBG.on;if(!DBG.on){DBG.scale=1}renderDebug(true)}
-function dbgSpawnMini(){G.minisSpawned++;G.mini=spawnEnemy('mini',{hpMul:1+(G.minisSpawned-1)*0.5,ab:{charge:1}});G.mini.num=G.minisSpawned;showBanner('Juggernaut inbound','Spawned from the console');sfx('boss')}
+function dbgSpawnMini(){G.minisSpawned++;G.mini=spawnEnemy('mini',{hpMul:1+(G.minisSpawned-1)*0.3,ab:{charge:1}});G.mini.num=G.minisSpawned;showBanner('Juggernaut inbound','Spawned from the console');sfx('boss')}
 function dbgSpawnBoss(){if(G.lboss&&!G.lboss.dead)return dbgSay('The level boss is already out');const B=G.L.boss;G.bossDue=-1;
-  G.lboss=spawnEnemy('lboss',{hp:B.hp*(1+G.t/400),col:B.col,spdMul:B.spd||1,ab:B.abil,dmgMul:1.2});showBanner(B.name,'Level boss · spawned from the console');sfx('boss');G.shake=14}
+  G.lboss=spawnEnemy('lboss',{hp:B.hp*(1+G.t/400),col:B.col,spdMul:B.spd||1,ab:B.abil,dmgMul:0.9});showBanner(B.name,'Level boss · spawned from the console');sfx('boss');G.shake=14}
 function dbgWeather(step){const ks=Object.keys(WEATHER),i=(ks.indexOf(G.wx.k)+step+ks.length)%ks.length;G.wx=makeWeather(ks[i]);delete hudCache.wx;dbgSay('Weather: '+WEATHER[ks[i]].name)}
 function dbgMaxRig(){const W=Object.keys(WDEF).filter(k=>unlocked(WDEF[k])||G.weapons[k]),Pa=Object.keys(PDEF).filter(k=>unlocked(PDEF[k])||G.passives[k]);
   for(const k of Object.keys(G.weapons))G.weapons[k].lvl=5;for(const k of W){if(Object.keys(G.weapons).length>=Math.max(5,slotsW()))break;if(!G.weapons[k])G.weapons[k]={lvl:5,cd:0.3,aim:G.p.a}}
@@ -853,7 +892,7 @@ function debugAux(code){if(code==='BracketLeft')DBG.scale=Math.max(0.25,DBG.scal
 function renderDebug(force){if(!DBG.on)return;const el=$('dbg');if(!force&&(DBG.infoT-=1)>0)return;DBG.infoT=12;
   const on=v=>v?'<b class="on">ON</b>':'<b>off</b>',g=G,p=g&&g.p;let h=`<div class="dh">DEV CONSOLE <span>\` to close</span></div>`;
   if(g){const big=g.enemies.filter(e=>e.big&&!e.dead).length,w=g.wx;
-    h+=`<div class="dl"><span>FPS</span><b>${Math.round(1000/DBG.ft)} · ${DBG.ft.toFixed(1)}ms</b></div>
+    h+=`<div class="dl"><span>FPS</span><b>${Math.round(1000/DBG.ft)} · ${DBG.ft.toFixed(1)}ms · res ${Math.round(DPR*100)}%${AQ.lowParts?' · fewer fx':''}</b></div>
 <div class="dl"><span>State</span><b>${state}${g.dbg?' · debug run':''}</b></div>
 <div class="dl"><span>Track</span><b>${g.L.name} · ${g.car.name}</b></div>
 <div class="dl"><span>Time</span><b>${fmt(g.t)} · lvl ${g.level} · ${g.kills} wrecks</b></div>
@@ -933,15 +972,15 @@ cv.addEventListener('pointerup',endTouch);cv.addEventListener('pointercancel',en
 // diff scales enemy HP/damage and account XP; head starts the spawn curve later in time; abil = level boss moves
 const LEVELS=[
   {id:'yard',name:'Scrapyard',desc:'Where every driver earns their plates. Container stacks, junk piles and leaking toxic drums.',req:1,diff:1,head:0,rate:1,minis:2,theme:'yard',barrels:['barrel','barrel','toxic'],
-    ground:'#232128',paint:'255,194,26',wall:'#ffc21a',boss:{name:'THE CRUSHER',col:'#d63434',hp:9000,abil:{charge:1,summon:1}}},
-  {id:'dust',name:'Outskirts',desc:'Farmland at the edge of town. Groves, rock piles, barns and propane tanks.',req:3,diff:1.4,head:40,rate:1.1,minis:2,theme:'outskirts',barrels:['barrel','propane'],
-    ground:'#34361f',paint:'255,236,200',wall:'#e0a050',boss:{name:'SANDSTORM',col:'#c98a3a',hp:15000,abil:{charge:1,ring:1}}},
-  {id:'neon',name:'Neon District',desc:'Downtown after dark. Wide neon boulevards, towering blocks and live tesla pylons.',req:6,diff:1.75,head:80,rate:1.12,minis:3,spd:1.08,theme:'city',bossWalls:1,barrels:['barrel','propane'],
-    ground:'#17142a',paint:'255,79,216',wall:'#ff4fd8',boss:{name:'OVERCLOCK',col:'#7a3cff',hp:22000,spd:1.4,abil:{burst:1,ring:1}}},
-  {id:'frost',name:'Frostbite Flats',desc:'Black ice and pine forest. Your tires barely grip. Theirs grip just fine.',req:10,diff:2.5,head:120,rate:1.3,minis:3,grip:2.6,theme:'frost',barrels:['barrel','propane'],
-    ground:'#26313c',paint:'200,240,255',wall:'#9fe4ff',boss:{name:'GLACIER HAULER',col:'#5aa8d6',hp:32000,abil:{charge:1,ring:1,summon:1}}},
-  {id:'inferno',name:'Inferno Raceway',desc:'The last lap. Lava pools, spike strips, and a boss with every trick.',req:15,diff:3.2,head:160,rate:1.45,minis:3,spd:1.12,theme:'inferno',barrels:['barrel','propane','toxic'],
-    ground:'#2a1512',paint:'255,90,31',wall:'#ff5a1f',boss:{name:'HELLFIRE TITAN',col:'#ff3b1f',hp:45000,abil:{charge:1,ring:1,burst:1,summon:1}}},
+    ground:'#232128',paint:'255,194,26',wall:'#ffc21a',boss:{name:'THE CRUSHER',col:'#d63434',hp:7000,abil:{charge:1,summon:1}}},
+  {id:'dust',name:'Outskirts',desc:'Farmland at the edge of town. Groves, rock piles, barns and propane tanks.',req:3,diff:1.2,head:20,rate:1.05,minis:2,theme:'outskirts',barrels:['barrel','propane'],
+    ground:'#34361f',paint:'255,236,200',wall:'#e0a050',boss:{name:'SANDSTORM',col:'#c98a3a',hp:10500,abil:{charge:1,ring:1}}},
+  {id:'neon',name:'Neon District',desc:'Downtown after dark. Wide neon boulevards, towering blocks and live tesla pylons.',req:6,diff:1.4,head:20,rate:1.04,minis:2,spd:1.08,theme:'city',bossWalls:1,barrels:['barrel','propane'],
+    ground:'#17142a',paint:'255,79,216',wall:'#ff4fd8',boss:{name:'OVERCLOCK',col:'#7a3cff',hp:14500,spd:1.4,abil:{burst:1,ring:1}}},
+  {id:'frost',name:'Frostbite Flats',desc:'Black ice and pine forest. Your tires barely grip. Theirs grip just fine.',req:10,diff:1.55,head:60,rate:1.12,minis:2,grip:2.6,theme:'frost',barrels:['barrel','propane'],
+    ground:'#26313c',paint:'200,240,255',wall:'#9fe4ff',boss:{name:'GLACIER HAULER',col:'#5aa8d6',hp:19500,abil:{charge:1,ring:1,summon:1}}},
+  {id:'inferno',name:'Inferno Raceway',desc:'The last lap. Lava pools, spike strips, and a boss with every trick.',req:15,diff:1.65,head:50,rate:1.15,minis:2,spd:1.12,theme:'inferno',barrels:['barrel','propane','toxic'],
+    ground:'#2a1512',paint:'255,90,31',wall:'#ff5a1f',boss:{name:'HELLFIRE TITAN',col:'#ff3b1f',hp:26000,abil:{charge:1,ring:1,burst:1,summon:1}}},
 ];
 
 /* ---------- definitions ---------- */
@@ -963,7 +1002,7 @@ const WDEF={
   rc_ram:{name:'Rammer RC',rc:1,desc:['A souped-up RC car rams the nearest car over and over, leaving it dazed for a moment.','Harder hits.','A second rammer.','Faster, and hits harder still.','A third rammer.']},
   rc_bomb:{name:'Bomb RC',rc:1,desc:['A rigged RC car drives into the thickest crowd and blows up. A new one is built a few seconds later.','Bigger blast.','Rebuilt faster.','Heavier charge.','Two bomb cars at a time.']},
   rc_scav:{name:'Scavenger RC',rc:1,desc:['A scavenger RC car hoovers up scrap and bolts lying around and sends them your way.','Drives faster, and digs up a few bolts now and then.','Wider vacuum.','A second scavenger.','Digs up bolts twice as often.']},
-  rc_jam:{name:'Jammer RC',rc:1,desc:['A jammer RC car hunts down packs of cars and parks in the middle, scrambling everything in its field: they slow down and gunners can\'t fire.','Bigger field.','Fries enemy bullets that fly into the field.','The field burns cars inside it.','A second jammer.']},
+  rc_jam:{name:'Jammer RC',rc:1,desc:['A jammer RC car hunts down nearby packs of cars and parks in the middle, scrambling everything in its field: they slow down and gunners can\'t fire. Its battery lasts a few seconds of jamming, then it drives back to you to recharge.','Bigger field and a bigger battery.','Fries enemy bullets that fly into the field.','The field burns cars inside it.','A second jammer.']},
   hydro:{name:'Hydro Cannon',only:'hydro',desc:['Roof cannon blasts the nearest car with a high-pressure jet, shoving it back and soaking it (soaked cars slow down).','Longer, harder-hitting jet.','A second jet locks on to another car.','Soaked cars take 25% more damage from everything.','Every 5 seconds a tidal wave bursts out around the van.']},
   drone:{name:'Attack Drone',unlock:'escapee',desc:['A drone circles your car and shoots the nearest car.','Faster fire.','A second drone.','Harder-hitting rounds.','A third drone, and rounds punch through.']},
 };
@@ -990,8 +1029,8 @@ const ETYPES={
   sedan:{r:17,hp:20,spd:178,turn:2.3,dmg:10,xp:2,col:'#4a86d9',len:36,wid:20},
   truck:{r:24,hp:80,spd:118,turn:1.3,dmg:18,xp:6,col:'#8d6a4f',len:52,wid:28},
   gunner:{r:17,hp:28,spd:165,turn:2.4,dmg:8,xp:4,col:'#b44ad0',len:36,wid:20,shoots:true},
-  mini:{r:46,hp:2400,spd:110,turn:0.9,dmg:30,xp:80,col:'#d63434',len:104,wid:54},
-  lboss:{r:62,hp:1,spd:105,turn:0.8,dmg:40,xp:250,col:'#d63434',len:140,wid:72},
+  mini:{r:46,hp:1800,spd:110,turn:0.9,dmg:22,xp:80,col:'#d63434',len:104,wid:54},
+  lboss:{r:62,hp:1,spd:105,turn:0.8,dmg:32,xp:250,col:'#d63434',len:140,wid:72},
 };
 
 /* ---------- traders ---------- */
@@ -1221,7 +1260,7 @@ const BUFFS={nitro:{name:'Nitro',col:'#4f8bff',t:8},fury:{name:'Overdrive',col:'
 // 3.3s, faster with luck, up to 4 saved), and the strongest have their own cooldowns. Early on the bank never runs dry; late
 // in a run it stops huge kill rates from chaining bubble shields, freezes and wrenches back to back.
 // wrenches get a cooldown too, so a burst of wrecks during an ambush can't rain healing on you
-const DROP_CD={bubble:75,freeze:50,nuke:30,fury:25,wrench:10};
+const DROP_CD={bubble:75,freeze:50,nuke:30,fury:25,wrench:6};
 function wreckDrop(){const now=G.t;G.dropBank=Math.min(4,(G.dropBank??2)+(now-(G.dropAt??0))*0.3*G.stats.drop);G.dropAt=now;
   if(G.dropBank<1)return null;const k=rollDrop(1);if(!k)return null;G.dropNext=G.dropNext||{};
   if(DROP_CD[k]&&now<(G.dropNext[k]||0))return null;G.dropBank-=1;if(DROP_CD[k])G.dropNext[k]=now+DROP_CD[k];return k}
@@ -1306,17 +1345,18 @@ function steer(e,d,dx,dy){const p=G.p;e.orbit=false;
   return Math.atan2(ty,tx)+e.flank*clamp((d-220)/500,0,1)}
 // zombie layer on top of steer(): the horde only re-thinks its heading every so often, sways as it shambles,
 // surges and sags in speed, and braces before lunging when it gets close. Pathing stays smart; reflexes don't.
+let SH_T=0; // shamble's second result (target speed), so it doesn't build an array per car per frame
 function shamble(e,dt,d,dx,dy,target){
   if(e.elite&&e.born!=null)return hunterSteer(e,dt,d);
   if((e.react-=dt)<=0){e.react=e.type==='buggy'?rand(.2,.4):rand(.3,.55);e.want=steer(e,d,dx,dy)}
   let want=e.want+(e.big?0:Math.sin(G.t*e.wf+e.wp)*.2*clamp(d/400,.3,1));
-  if(e.big||e.orbit)return[want,target];
+  if(e.big||e.orbit){SH_T=target;return want}
   target*=.8+.2*Math.sin(G.t*e.sf+e.wp);if(d>900&&!e.los)target*=.75;
   e.lungeCd-=dt;
   if(e.windup>0){e.windup-=dt;target*=.25;if(e.windup<=0)e.lunge=.45}
   else if(e.lunge>0){e.lunge-=dt;target*=1.6}
   else if(!e.shoots&&d<190&&e.lungeCd<=0&&Math.cos(angDiff(e.a,Math.atan2(dy,dx)))>.85){e.windup=.3;e.lungeCd=rand(2.5,4)}
-  return[want,target]}
+  SH_T=target;return want}
 // a lumpy outline for rocks and junk piles
 function blob(r,n=9,j=.28){const pts=[];for(let i=0;i<n;i++){const a=i/n*TAU,rr=r*(1-j/2+Math.random()*j);pts.push([Math.cos(a)*rr,Math.sin(a)*rr])}return pts}
 function buildWorld(L){
@@ -1386,7 +1426,7 @@ function updateHazards(dt){const p=G.p;
   updateTumbles(dt)
 }
 function usePickup(k){const p=G.p;G.powerups++;
-  if(k.type==='wrench'){const h=Math.round(30*(1+0.5*(G.tk.toolbox||0)));p.hp=Math.min(p.maxhp,p.hp+h);addText(p.x,p.y-30,'+'+h+' HP','#5cf08a');G.powerups--}
+  if(k.type==='wrench'){const h=Math.round(Math.max(30,p.maxhp*0.12)*(1+0.5*(G.tk.toolbox||0)));p.hp=Math.min(p.maxhp,p.hp+h);addText(p.x,p.y-30,'+'+h+' HP','#5cf08a');G.powerups--}
   else if(k.type==='magnet'){for(const g of G.gems)g.pull=true;showBanner('Scrap magnet','Hoovering every scrap on the map')}
   else if(k.type==='chest'){const n=G.tk.jackpot?2:1;G.pending+=n;showBanner('Supply crate',n>1?'Jackpot · two free bolt-ons':'Free bolt-on');G.powerups--}
   else if(k.type==='nuke'){G.flashT=0.4;G.shake=18;sfx('boom');DSRC='airstrike';for(const e of [...G.enemies]){if(e.dead)continue;damageEnemy(e,e.big?e.maxhp*0.08:e.maxhp*2+50)}showBanner('Airstrike','Every car on the map is scrap')}
@@ -1527,7 +1567,7 @@ function newGame(li){const L=LEVELS[li];curLevel=li;const wk=FORECAST[L.id]||rol
     p:{x:ARENA/2,y:ARENA/2+200,a:-Math.PI/2,vx:0,vy:0,hp:100,maxhp:100,r:Math.max(C.len,C.wid)*.43,inv:0},
     stats:{},weapons:start,passives:Object.assign({},C.start.p),
     enemies:[],bullets:[],ebullets:[],missiles:[],mines:[],gems:[],pickups:[],parts:[],texts:[],rings:[],booms:[],barrels:Wd.barrels,decals:[],arcs:[],beams:[],shells:[],
-    spawnT:0,nextMini:180,nextElite:70,nextAmbush:50,cam:{x:ARENA/2,y:ARENA/2+200},view:{ox:0,oy:0}};
+    spawnT:0,nextMini:100,nextElite:70,nextAmbush:50,cam:{x:ARENA/2,y:ARENA/2+200},view:{ox:0,oy:0}};
   for(let i=0;i<70;i++)G.decals.push({x:rand(0,ARENA),y:rand(0,ARENA),r:rand(18,60),rot:rand(0,TAU),k:'oil'});
   G.wx=makeWeather(wk);
   G.bolts=8*gl('wallet');G.pending=gl('kit');
@@ -1544,7 +1584,7 @@ function recalc(){const P_=G.passives,T=G.tk,s=G.stats,C=G.car;
   const old=G.p.maxhp;G.p.maxhp=Math.round((C.hp+10*gl('frame')+25*(P_.armor||0)+20*(T.cage||0))*(T.glass?0.8:1));G.p.hp=Math.min(G.p.maxhp,G.p.hp+Math.max(0,G.p.maxhp-old));}
 
 /* ---------- effects ---------- */
-const partCap=()=>S.lowFx?350:1000;
+const partCap=()=>S.lowFx?350:AQ.lowParts?550:1000;
 const PPOOL=[];
 function part(x,y,vx,vy,life,size,col,kind){if(G.parts.length>partCap())return;const q=PPOOL.pop()||{};q.x=x;q.y=y;q.vx=vx;q.vy=vy;q.life=life;q.max=life;q.size=size;q.col=col;q.kind=kind;G.parts.push(q)}
 function addText(x,y,txt,col){if(G.texts.length>60)G.texts.shift();G.texts.push({x:x+rand(-8,8),y,txt,col,life:0.7})}
@@ -1587,7 +1627,8 @@ function killEnemy(e){
   if(e.type==='mini'){G.miniKills++;if(G.mini===e)G.mini=G.enemies.find(x=>x.type==='mini'&&!x.dead)||null;explode(e.x,e.y,160,0);
     const left=G.L.minis-G.miniKills;
     if(G.cleared||G.lboss)showBanner('Juggernaut down','Supply crate dropped');
-    else if(left>0)showBanner('Juggernaut down',`${left} more to draw out ${G.L.boss.name}`);
+    // wreck one fast and the next one doesn't keep you waiting
+    else if(left>0){G.nextMini=Math.min(G.nextMini,G.t+25);showBanner('Juggernaut down',`${left} more to draw out ${G.L.boss.name}`)}
     else if(G.bossDue<0){G.bossDue=G.t+6;showBanner('Juggernaut down',`Something bigger is coming…`)}}
   if(e.type==='lboss'){G.lboss=null;G.cleared=true;explode(e.x,e.y,240,0);showBanner(G.L.boss.name+' wrecked','Track cleared · an exit portal is opening');G.clearT=G.t;G.portalT=2.5;
     const T=P.tracks[G.L.id]=Object.assign({best:0,cleared:0},P.tracks[G.L.id]);if(!T.cleared)T.cleared=Date.now();saveProfile();checkAch()}
@@ -1604,11 +1645,15 @@ function hurt(amt){const p=G.p,s=G.stats;if(DBG.god||G.exitT>=0||p.inv>0||state!
 function chip(amt){const p=G.p;if(DBG.god)return;if(G.tk.runflat)amt*=0.5;if(G.exitT>=0||G.buffs.bubble>0||state!=='play')return;p.hp-=amt*G.stats.taken;G.dmgTaken+=amt*G.stats.taken;G.hurtFlash=Math.max(G.hurtFlash,0.12);if(p.hp<=0){p.hp=0.01;p.inv=0;hurt(1)}else if(p.hp<p.maxhp*0.1&&G.lowAt<0)G.lowAt=G.t}
 // a rocket prefers the nearest car no other rocket is already chasing (bosses can take several)
 function missileTarget(m){let best=null,bd=900*900,any=null,ad=900*900;
+  // homing rockets go for the biggest threat in range: a juggernaut or the level boss
+  {const b=[G.lboss,G.mini].find(e=>e&&!e.dead&&d2(m.x,m.y,e.x,e.y)<700*700);if(b)return b}
   for(const e of G.enemies){if(e.dead)continue;const d=d2(m.x,m.y,e.x,e.y);if(d<ad){ad=d;any=e}if(d<bd&&(e.big||!G.missiles.some(o=>o!==m&&o.t===e))){bd=d;best=e}}return best||any}
 // nearest car the gun can actually hit: in clear line of sight, or close enough not to matter
 function nearestVisible(x,y,maxD){let best=null,bd=maxD*maxD;for(const e of G.enemies){if(e.dead)continue;const d=d2(x,y,e.x,e.y);if(d<bd&&(e.los||d<170*170)){bd=d;best=e}}return best}
 function nearestEnemy(x,y,maxD){let best=null,bd=maxD*maxD;for(const e of G.enemies){if(e.dead)continue;const d=d2(x,y,e.x,e.y);if(d<bd){bd=d;best=e}}return best}
-function addXp(v){G.xp+=v*G.stats.xpMul*(G.odStart>=0?1.5:1);while(G.xp>=G.xpNeed){G.xp-=G.xpNeed;G.level++;if(G.passives.recycle)G.p.hp=Math.min(G.p.maxhp,G.p.hp+4*G.passives.recycle);G.xpNeed=Math.floor(G.xpNeed*1.16+5);G.pending++;
+// fewer cars spawn before 4:00 (see spawnUpdate), so early scrap is worth more to keep levelling on the old pace
+const earlyXp=te=>te>=240?1:Math.min(1.7,(0.8+te/22)/(0.8+te/22*Math.sqrt(Math.max(te,1)/240)));
+function addXp(v){G.xp+=v*G.stats.xpMul*(G.odStart>=0?1.5:1)*earlyXp(G.t+G.L.head);while(G.xp>=G.xpNeed){G.xp-=G.xpNeed;G.level++;if(G.passives.recycle)G.p.hp=Math.min(G.p.maxhp,G.p.hp+4*G.passives.recycle);G.xpNeed=Math.floor(G.xpNeed*1.16+5);G.pending++;
     if(G.tk.dice&&Math.random()<0.15*G.tk.dice){G.pending++;toast('+1','Loaded Dice','Bonus pick')}}}
 
 /* ---------- spawning ---------- */
@@ -1622,8 +1667,8 @@ function spawnEnemy(type,o={}){
   x=clamp(x,40,ARENA-40);y=clamp(y,40,ARENA-40);
   // Overdrive (after the level boss): every new car is tougher, hits harder and drives faster the longer you stay
   // (speed tops out at +30% so the fastest buggies stay a touch slower than your car)
-  const od=odHeat(),oh=od<0?1:1.5+od/45,odd=od<0?1:1.3+od/90,osp=od<0?1:1.1+Math.min(.2,od/300);
-  const hm=o.hp?1:(type==='mini'||o.elite?1+G.t/75:hpScale(G.t))*L.diff*(o.hpMul||1)*oh,sc=o.scale||1,hp=o.hp||d.hp*hm;
+  const od=odHeat(),oh=od<0?1:1.4+od/50,odd=od<0?1:1.15+od/110,osp=od<0?1:1.1+Math.min(.2,od/300);
+  const hm=o.hp?1:(type==='mini'?1+G.t/150:o.elite?1+G.t/75:hpScale(G.t))*L.diff*(o.hpMul||1)*oh,sc=o.scale||1,hp=o.hp||d.hp*hm;
   const e={id:eid++,type,x,y,a:Math.atan2(p.y-y,p.x-x),v:0,kx:0,ky:0,hp,maxhp:hp,r:d.r*sc,len:d.len*sc,wid:d.wid*sc,
     spd:d.spd*(o.spdMul||1)*(L.spd||1)*osp*(G.wx&&G.wx.W.eslow||1)*rand(.92,1.08),turn:d.turn,dmg:d.dmg*(1+G.t/400)*(0.7+0.3*L.diff)*(o.dmgMul||1)*odd,xp:d.xp*(o.xpMul||1),col:o.col||d.col,
     shoots:!!d.shoots,odd,big:type==='mini'||type==='lboss',elite:!!o.elite,ab:o.ab||null,flash:0,ccd:0,sawCd:0,scd:rand(1,2.5),
@@ -1648,17 +1693,20 @@ function spawnPoint(r,lean){const p=G.p,sp=Math.hypot(p.vx,p.vy),va=Math.atan2(p
 function pickType(t){const w=[['buggy',5],['sedan',t>35?4:1],['truck',t>80?2:0],['gunner',t>110?2:0]];let tot=0;for(const x of w)tot+=x[1];let r=Math.random()*tot;for(const [k,v] of w){if((r-=v)<0)return k}return'buggy'}
 function spawnUpdate(dt){
   // the horde eases in: the growth term is scaled by sqrt(time/4min), so it reaches the full curve at 4:00
-  const t=G.t,L=G.L,te=t+L.head,od=odHeat(),rate=(0.8+te/22*Math.min(1,Math.sqrt(te/240))+(te>240?(te-240)/14:0))*L.rate*(od<0?1:1.6+od/40);
-  G.spawnT+=DBG.noSpawn?0:dt*rate;
+  const t=G.t,L=G.L,te=t+L.head,od=odHeat(),rate=(0.8+te/22*Math.min(1,Math.sqrt(te/240))+(te>240?(te-240)/28:0))*L.rate*(od<0?1:1.4+od/50);
+  // while the level boss is out the horde thins to half and ambushes hold off, so the fight is about the boss
+  const bossFight=!!(G.lboss&&!G.lboss.dead);
+  G.spawnT+=DBG.noSpawn?0:dt*rate*(bossFight?.4:1);
   while(G.spawnT>=1){G.spawnT-=1;if(G.enemies.length<260)spawnEnemy(pickType(te))}
+  if(bossFight&&t>=G.nextAmbush)G.nextAmbush=t+10;
   if(t>=G.nextAmbush){G.nextAmbush+=od<0?45:20;const n=12+Math.floor(te/30);for(let i=0;i<n&&G.enemies.length<ECAP;i++){const a=i/n*TAU,x=G.p.x+Math.cos(a)*460,y=G.p.y+Math.sin(a)*460;if(x<40||y<40||x>ARENA-40||y>ARENA-40||solidAt(x,y,14))continue;spawnEnemy('buggy',{x,y})}showBanner('Ambush!','They’re boxing you in')}
   if(t>=G.nextElite){G.nextElite+=od<0?70:Math.max(8,20-od/15);spawnHunter()}
-  // mini boss once every 3 minutes
-  if(t>=G.nextMini){G.nextMini+=od<0?180:60;G.minisSpawned++;G.mini=spawnEnemy('mini',{hpMul:1+(G.minisSpawned-1)*0.5,ab:{charge:1}});G.mini.num=G.minisSpawned;
+  // mini boss once every 2 minutes
+  if(t>=G.nextMini){G.nextMini+=od<0?100:60;G.minisSpawned++;G.mini=spawnEnemy('mini',{hpMul:1+(G.minisSpawned-1)*0.3,ab:{charge:1}});G.mini.num=G.minisSpawned;
     showBanner('Juggernaut inbound',G.cleared?'Don’t let it charge you':`Mini boss ${Math.min(G.miniKills+1,L.minis)} of ${L.minis}`);sfx('boss')}
   // level boss after enough mini bosses
   if(G.bossDue>0&&t>=G.bossDue){G.bossDue=-1;const B=L.boss;
-    G.lboss=spawnEnemy('lboss',{hp:B.hp*(1+t/400),col:B.col,spdMul:B.spd||1,ab:B.abil,dmgMul:1.2});showBanner(B.name,'Level boss · wreck it to clear the track');sfx('boss');G.shake=14}
+    G.lboss=spawnEnemy('lboss',{hp:B.hp*(1+t/400),col:B.col,spdMul:B.spd||1,ab:B.abil,dmgMul:0.9});showBanner(B.name,'Level boss · wreck it to clear the track');sfx('boss');G.shake=14}
   if(t>=G.nextTrader&&!G.trader)spawnTrader();
 }
 
@@ -1747,6 +1795,9 @@ function updateWeatherSound(){if(!AC||!master)return;const X=G&&G.wx,W=X&&X.W,on
 
 
 /* ---------- RC minions: tiny remote-control cars with antennas, each with its own job ---------- */
+const JAM_LEASH=300; // the jammer never parks more than this far from you
+// battery: seconds of jamming per charge, and seconds to recharge beside your car
+const jamCap=lv=>4+1.2*lv,jamRecharge=(lv,mc)=>(3.5-.2*lv)*mc;
 const RC_COL={rc_medic:'#5cf08a',rc_ram:'#ff5a3a',rc_bomb:'#ffc21a',rc_scav:'#c9a46a',rc_jam:'#b07aff'};
 const rcCount=(k,lv)=>k==='rc_medic'?(lv>=4?2:1):k==='rc_ram'?[0,1,1,2,2,3][lv]:k==='rc_bomb'?(lv>=5?2:1):k==='rc_scav'?(lv>=4?2:1):(lv>=5?2:1);
 function rcDrive(m,tx,ty,spd,dt,charge){const dx=tx-m.x,dy=ty-m.y,d=Math.hypot(dx,dy);
@@ -1766,7 +1817,7 @@ function updateRC(dt,wdt){const p=G.p,s=G.stats,W=G.weapons,up=G.passives.uplink
     // left behind or stuck somewhere: hop back to the convoy
     if(d2(m.x,m.y,p.x,p.y)>900*900){m.x=p.x-Math.cos(p.a)*30;m.y=p.y-Math.sin(p.a)*30;m.v=0;m.tg=null;if(m.k==='rc_bomb')m.st=0}
     if(m.k==='rc_medic'){rcDrive(m,hx,hy,follow,dt);m.cd-=wdt;
-      if(m.cd<=0&&p.hp<p.maxhp){const h0=p.hp;p.hp=Math.min(p.maxhp,p.hp+Math.round((3+1.5*lv)*mb*10)/10);const h=p.hp-h0;m.cd=m.cdMax=(9-.6*lv)*mc;if(lv>=5)p.inv=Math.max(p.inv,1.2);
+      if(m.cd<=0&&p.hp<p.maxhp){const h0=p.hp;p.hp=Math.min(p.maxhp,p.hp+Math.round((3+1.5*lv)*mb*10)/10);const h=p.hp-h0;m.cd=m.cdMax=(9-.6*lv)*mc;if(lv>=5)p.inv=Math.max(p.inv,.6);
         rcFx(m.x,m.y,p.x,p.y,'92,240,138');addText(p.x,p.y-30,'+'+Math.round(h)+' HP','#5cf08a');tone(880,.12,'triangle',.04,1320);G.rcHeal=(G.rcHeal||0)+h}}
     else if(m.k==='rc_ram'){DSRC='rc_ram';m.cd-=wdt;
       if(m.cd>0||!m.tg||m.tg.dead||d2(m.tg.x,m.tg.y,p.x,p.y)>520*520||(m.t+=dt)>3){if(m.cd<=0){m.t=0;m.tg=null;let bd=420*420;
@@ -1774,46 +1825,53 @@ function updateRC(dt,wdt){const p=G.p,s=G.stats,W=G.weapons,up=G.passives.uplink
         // after a hit it skids back and brakes, then picks the next car from where it is
         if(m.cd>0){m.v*=Math.exp(-5*dt);m.x+=Math.cos(m.a)*m.v*dt;m.y+=Math.sin(m.a)*m.v*dt;rcKnock(m);collideObs(m,7)}else if(!m.tg)rcDrive(m,hx,hy,follow,dt)}
       if(m.tg&&m.cd<=0){const e=m.tg;rcDrive(m,e.x,e.y,(lv>=4?640:540)*ms,dt,1);
-        if(d2(m.x,m.y,e.x,e.y)<(e.r+12)**2){const dx=e.x-m.x,dy=e.y-m.y,dd=Math.hypot(dx,dy)||1;damageEnemy(e,(24+10*lv+(lv>=4?14:0))*mb*s.dmg);if(!e.big){e.kx+=dx/dd*320;e.ky+=dy/dd*320;e.ice=Math.max(e.ice||0,.5)}
-          for(let i=0;i<5;i++)part(m.x,m.y,rand(-220,220),rand(-220,220),rand(.1,.25),2,'#ffe7a0','spark');sfx('crash');m.a+=Math.PI+rand(-.6,.6);m.v=220;m.cd=(.5-.03*lv)*mc*s.cd;m.tg=null}}}
+        if(d2(m.x,m.y,e.x,e.y)<(e.r+12)**2){const dx=e.x-m.x,dy=e.y-m.y,dd=Math.hypot(dx,dy)||1;damageEnemy(e,(32+12*lv+(lv>=4?16:0))*mb*s.dmg);if(!e.big){e.kx+=dx/dd*320;e.ky+=dy/dd*320;e.ice=Math.max(e.ice||0,.5)}
+          for(let i=0;i<5;i++)part(m.x,m.y,rand(-220,220),rand(-220,220),rand(.1,.25),2,'#ffe7a0','spark');sfx('crash');m.a+=Math.PI+rand(-.6,.6);m.v=220;m.cd=(.4-.03*lv)*mc*s.cd;m.tg=null}}}
     else if(m.k==='rc_bomb'){DSRC='rc_bomb';
       if(m.st===0){m.cd-=wdt;m.x=p.x;m.y=p.y;m.a=p.a;m.v=0;if(m.cd<=0&&near(p.x,p.y,560).some(e=>!e.dead)){m.st=1;m.t=0;m.tg=null}}
       else{m.t+=dt;if(!m.tg||m.tg.dead){const pool=near(p.x,p.y,560).filter(e=>!e.dead);let bn=-1;for(let k=0;k<6&&pool.length;k++){const c=pool[Math.floor(Math.random()*pool.length)],cnt=near(c.x,c.y,90).length;if(cnt>bn){bn=cnt;m.tg=c}}}
         if(m.tg)rcDrive(m,m.tg.x,m.tg.y,500*ms,dt,1);else rcDrive(m,hx,hy,follow,dt);
         if(m.t>4.5&&!m.tg){m.st=0;m.cd=.5}
         let boom=m.st===1&&m.t>4.5;if(m.st===1&&!boom)for(const e of near(m.x,m.y,80))if(!e.dead&&d2(m.x,m.y,e.x,e.y)<(e.r+10)**2){boom=true;break}
-        if(boom){explode(m.x,m.y,(80+12*lv+(lv>=2?15:0))*s.blast,(50+18*lv+(lv>=4?25:0))*mb*s.dmg,0);boomFx(m.x,m.y,70);m.st=0;m.tg=null;m.cd=m.cdMax=Math.max(2,(lv>=3?5:6.5)-.3*lv)*mc*s.cd}}}
+        if(boom){explode(m.x,m.y,(80+12*lv+(lv>=2?15:0))*s.blast,(70+24*lv+(lv>=4?30:0))*mb*s.dmg,0);boomFx(m.x,m.y,70);m.st=0;m.tg=null;m.cd=m.cdMax=Math.max(2,(lv>=3?4:5.5)-.3*lv)*mc*s.cd}}}
     else if(m.k==='rc_scav'){const vac=lv>=3?70:34;m.cd-=dt;
       if(m.cd<=0||!m.tg||m.tg.got||m.tg.pull){m.cd=.3;m.tg=null;let bd=650*650;for(const g of G.gems){if(g.pull||G.rcs.some(o=>o!==m&&o.tg===g))continue;const q=d2(g.x,g.y,p.x,p.y);if(q<bd){bd=q;m.tg=g}}}
       if(m.tg)rcDrive(m,m.tg.x,m.tg.y,(lv>=2?520:430)*ms,dt);else rcDrive(m,hx,hy,follow,dt);
       for(const g of G.gems)if(!g.pull&&Math.abs(g.x-m.x)<vac&&Math.abs(g.y-m.y)<vac){g.pull=true;if(Math.random()<.3)part(g.x,g.y,0,0,.25,4,'#c9a46a','spark')}
       if(lv>=2){m.dig+=dt*(lv>=5?2:1);if(m.dig>=20){m.dig=0;dropBolts(m.x,m.y,3+lv);for(let i=0;i<8;i++)part(m.x,m.y,rand(-120,120),rand(-120,120),rand(.3,.6),rand(3,6),'#8a7350','debris');tone(300,.1,'square',.04,600)}}}
-    else if(m.k==='rc_jam'){const R=110+18*lv;m.R=R;
+    else if(m.k==='rc_jam'){const R=110+18*lv,cap=jamCap(lv);m.R=R;if(m.bat==null)m.bat=cap;m.cap=cap;
+      // flat battery: field off, drive back to your car and recharge beside it, then head out again
+      if(m.home){m.on=false;const dd=rcDrive(m,p.x-Math.cos(p.a)*34,p.y-Math.sin(p.a)*34,Math.max(follow,460*ms),dt);
+        if(Math.hypot(m.x-p.x,m.y-p.y)<80){m.bat=Math.min(cap,m.bat+cap/jamRecharge(lv,mc)*dt);if(Math.random()<dt*8)rcFx(m.x,m.y,p.x,p.y,'176,122,255');if(m.bat>=cap){m.home=false;m.jx=undefined;tone(990,.08,'triangle',.03,1500)}}
+        return}
       // hunt for the biggest pack near you (gunners count double, closer packs count more), park in its middle,
       // and leave a pack another jammer is already sitting on
       if(m.jx===undefined)m.cd=0;
-      if((m.cd-=dt)<=0){m.cd=.4;m.jx=null;const pool=near(p.x,p.y,560).filter(e=>!e.dead&&!e.big);let best=0;
+      if((m.cd-=dt)<=0){m.cd=.4;m.jx=null;const pool=near(p.x,p.y,JAM_LEASH+R).filter(e=>!e.dead&&!e.big&&d2(e.x,e.y,p.x,p.y)<(JAM_LEASH+R)**2);let best=0;
         for(let c=0;c<Math.min(10,pool.length);c++){const e0=pool[Math.floor(Math.random()*pool.length)];let n=0,sx=0,sy=0;
           for(const e of near(e0.x,e0.y,R+40))if(!e.dead&&d2(e.x,e.y,e0.x,e0.y)<R*R){const w=e.shoots?2:1;n+=w;sx+=e.x*w;sy+=e.y*w}
-          if(!n)continue;const cx=sx/n,cy=sy/n;let sc=n*(1.3-Math.min(1,Math.hypot(cx-p.x,cy-p.y)/560)*.6);
+          if(!n)continue;const cx=sx/n,cy=sy/n,cd=Math.hypot(cx-p.x,cy-p.y);if(cd>JAM_LEASH+R*.9)continue;/* still worth it if the field can reach the pack from the end of the leash */let sc=n*(1.3-Math.min(1,cd/(JAM_LEASH+R))*.6);
           for(const o of G.rcs)if(o!==m&&o.k==='rc_jam'&&o.jx!=null&&d2(o.jx,o.jy,cx,cy)<(R*1.4)**2)sc*=.3;
           // stick with the current pack unless a clearly bigger one turns up
           if(m.lx!=null&&d2(m.lx,m.ly,cx,cy)<(R*.6)**2)sc*=1.25;
           if(sc>best){best=sc;m.jx=cx;m.jy=cy}}
         if(best<2)m.jx=null;m.lx=m.jx;m.ly=m.jy}
-      if(m.jx!=null)rcDrive(m,m.jx,m.jy,Math.max(follow,420*ms),dt);else rcDrive(m,p.x+Math.cos(G.t*1.1+j)*120,p.y+Math.sin(G.t*1.1+j)*120,follow,dt);
-      for(const e of near(m.x,m.y,R+60)){if(e.dead||d2(e.x,e.y,m.x,m.y)>(R+e.r)**2)continue;e.jam=.3;if(lv>=4){DSRC='rc_jam';damageEnemy(e,10*mb*s.dmg*dt,false)}}
+      // the parking spot is pulled back onto the leash every frame, so the jammer keeps up when you drive off
+      if(m.jx!=null){let tx=m.jx,ty=m.jy;const lx=tx-p.x,ly=ty-p.y,ld=Math.hypot(lx,ly);if(ld>JAM_LEASH){tx=p.x+lx/ld*JAM_LEASH;ty=p.y+ly/ld*JAM_LEASH}rcDrive(m,tx,ty,Math.max(follow,420*ms),dt)}else rcDrive(m,p.x+Math.cos(G.t*1.1+j)*120,p.y+Math.sin(G.t*1.1+j)*120,follow,dt);
+      let hit=0;for(const e of near(m.x,m.y,R+60)){if(e.dead||d2(e.x,e.y,m.x,m.y)>(R+e.r)**2)continue;hit++;e.jam=.3;if(lv>=4){DSRC='rc_jam';damageEnemy(e,16*mb*s.dmg*dt,false)}}
+      m.on=true;if(hit){m.bat-=dt;if(m.bat<=0){m.bat=0;m.home=true;m.jx=null;tone(240,.18,'sawtooth',.03,120)}}
       if(lv>=3)for(const b of G.ebullets)if(b.life>0&&d2(b.x,b.y,m.x,m.y)<R*R){b.life=0;for(let i=0;i<3;i++)part(b.x,b.y,rand(-90,90),rand(-90,90),.15,2,'#b07aff','spark')}}
   });
   for(const f of G.rcfx)f.life-=dt;prune(G.rcfx,f=>f.life>0)}
 function drawRC(vis){
-  for(const m of G.rcs){if(m.k==='rc_jam'&&m.R){ctx.strokeStyle=`rgba(176,122,255,${.18+.08*Math.sin(G.t*6)})`;ctx.lineWidth=2;ctx.setLineDash([6,8]);ctx.beginPath();ctx.arc(m.x,m.y,m.R,0,TAU);ctx.stroke();ctx.setLineDash([])}}
+  for(const m of G.rcs){if(m.k==='rc_jam'&&m.R&&m.on!==false){ctx.strokeStyle=`rgba(176,122,255,${.18+.08*Math.sin(G.t*6)})`;ctx.lineWidth=2;ctx.setLineDash([6,8]);ctx.beginPath();ctx.arc(m.x,m.y,m.R,0,TAU);ctx.stroke();ctx.setLineDash([])}}
   for(const f of G.rcfx){ctx.strokeStyle=`rgba(${f.col},${f.life/.3})`;ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(f.x1,f.y1);ctx.lineTo(f.x2,f.y2);ctx.stroke()}
   // recharge rings: a bomb being rebuilt shows as a ghost car beside you that fills in; medics carry a ring that fills to a full circle
   const p=G.p;G.rcs.forEach((m,j)=>{const col=RC_COL[m.k];let k=-1,x=m.x,y=m.y;
     if(m.k==='rc_bomb'&&m.st===0){const side=G.rcs.filter(o=>o.k==='rc_bomb').indexOf(m)%2?1:-1;x=p.x-Math.cos(p.a)*40-Math.sin(p.a)*side*22;y=p.y-Math.sin(p.a)*40+Math.cos(p.a)*side*22;k=1-Math.max(0,m.cd)/(m.cdMax||1);
       ctx.save();ctx.globalAlpha=.25+.35*k;ctx.translate(x,y);ctx.rotate(p.a);ctx.strokeStyle=col;ctx.lineWidth=1.5;ctx.setLineDash([3,3]);rr(-10.5,-6,21,12,3);ctx.stroke();ctx.setLineDash([]);ctx.restore()}
     else if(m.k==='rc_medic'&&m.cd>0)k=1-m.cd/(m.cdMax||1);
+    else if(m.k==='rc_jam'&&m.home)k=m.bat/(m.cap||1);
     if(k<0)return;ctx.lineWidth=3;ctx.strokeStyle='rgba(0,0,0,.5)';ctx.beginPath();ctx.arc(x,y,17,0,TAU);ctx.stroke();ctx.strokeStyle=col;ctx.beginPath();ctx.arc(x,y,17,-Math.PI/2,-Math.PI/2+TAU*clamp(k,0,1));ctx.stroke()});
   for(const m of G.rcs){if(m.k==='rc_bomb'&&m.st===0)continue;if(!vis(m.x,m.y,30))continue;const col=RC_COL[m.k],L=21,Wd=12;
     drawCar(m.x,m.y,m.a,L,Wd,col,false,()=>{
@@ -1832,6 +1890,13 @@ function spawnHunter(){const e=spawnEnemy(Math.random()<.5?'truck':'sedan',{elit
   showBanner('Chrome hunter spotted','It runs and hides · wreck it within a minute for a supply crate and bolts');return e}
 // pick an escape heading: away from you, clear of walls and the arena edge, preferring spots you can't see.
 // It only drifts once it's well clear of you (over ~1,000px), so it stays on the radar
+// chrome hunters crash through the scenery as they flee: knockable props go flying, crates burst open and barrels get lit
+// (each hit costs the hunter some speed), so a chase through the junk has some consequences for it
+function hunterBump(e){const r=e.r,x0=clamp((e.x-r)/OG|0,0,ON-1),x1=clamp((e.x+r)/OG|0,0,ON-1),y0=clamp((e.y-r)/OG|0,0,ON-1),y1=clamp((e.y+r)/OG|0,0,ON-1);
+  for(let cx=x0;cx<=x1;cx++)for(let cy=y0;cy<=y1;cy++)for(const o of ocells[cx*ON+cy])if(o.prop&&!o.dead&&d2(o.x,o.y,e.x,e.y)<(o.r+r)**2){
+    if(KNOCK[o.k])tipProp(o,e.x-Math.cos(e.a)*6,e.y-Math.sin(e.a)*6,e.v);else breakProp(o);e.v*=.6;e.boost=0}
+  for(const b of G.barrels)if(b.alive&&b.fuse<0&&Math.abs(b.x-e.x)<b.r+r&&Math.abs(b.y-e.y)<b.r+r&&d2(b.x,b.y,e.x,e.y)<(b.r+r)**2){
+    b.fuse=0.35;e.v*=.5;e.boost=0;const dx=e.x-b.x,dy=e.y-b.y,dd=Math.hypot(dx,dy)||1;e.kx+=dx/dd*160;e.ky+=dy/dd*160;sfx('crash')}}
 function hunterSteer(e,dt,d){const p=G.p;
   if((e.react-=dt)<=0){e.react=rand(.25,.4);let best=e.want||0,bs=-1e9;const toP=Math.atan2(p.y-e.y,p.x-e.x);
     for(let i=0;i<12;i++){const a=i/12*TAU+rand(-.12,.12),cx=Math.cos(a),cy=Math.sin(a);let sc=0;
@@ -1846,13 +1911,14 @@ function hunterSteer(e,dt,d){const p=G.p;
   // when you get close it hits a nitro burst to slip away (every 5s)
   e.boostCd=(e.boostCd??2)-dt;if(d<320&&e.boostCd<=0){e.boost=1.1;e.boostCd=5}
   if(e.boost>0){e.boost-=dt;if(Math.random()<.7)part(e.x-Math.cos(e.a)*e.len*.5,e.y-Math.sin(e.a)*e.len*.5,rand(-30,30),rand(-30,30),rand(.2,.35),rand(5,9),'#6fa8ff','spark')}
-  return[e.want,Math.max(e.spd,300)*(d<450?1.25:d>1000?0.8:1.1)*(e.boost>0?1.45:1)]}
+  SH_T=Math.max(e.spd,300)*(d<450?1.25:d>1000?0.8:1.1)*(e.boost>0?1.45:1);return e.want}
 function hunterEscapes(e){e.dead=true;for(let i=0;i<(S.lowFx?6:16);i++)part(e.x+rand(-20,20),e.y+rand(-20,20),rand(-60,60),rand(-60,60),rand(.6,1.1),rand(10,18),null,'smoke');
   toast('CH','Chrome hunter','Got away with the loot')}
 const huntLeft=e=>Math.max(0,HUNT_LIFE-(G.t-(e.born??G.t)));
 // live picture-in-picture of the nearest hunter: the real car sprites, drawn into a small canvas around it
 let hcamCtx=null;
-function drawHunterCam(){const el=$('hunterCam');if(!G||!G.live||state==='menu'){if(!el.hidden)el.hidden=true;return}
+let hcamTick=0;
+function drawHunterCam(){if((hcamTick^=1)&&!$('hunterCam').hidden)return;const el=$('hunterCam');if(!G||!G.live||state==='menu'){if(!el.hidden)el.hidden=true;return}
   let e=null,bd=1e18;for(const q of G.enemies)if(q.elite&&!q.dead){const dd=d2(q.x,q.y,G.p.x,G.p.y);if(dd<bd){bd=dd;e=q}}
   if(!e){if(!el.hidden)el.hidden=true;return}if(el.hidden)el.hidden=false;
   const cvs=$('hcam'),r=Math.min(2,window.devicePixelRatio||1),W=168,H=96;if(cvs.width!==W*r){cvs.width=W*r;cvs.height=H*r}if(!hcamCtx)hcamCtx=cvs.getContext('2d');
@@ -2020,13 +2086,13 @@ function updateEnemies(dt){
     const fz=fr||e.ice>0;if(e.ice>0)e.ice-=dt;if(e.wet>0)e.wet-=dt;if(e.jam>0)e.jam-=dt;
     if(!fz){
     if(e.shoots&&!(e.jam>0)){e.scd-=dt;
-      if(e.scd<=0&&d<560&&(e.los||d<170)){e.scd=rand(1.8,2.6);const a=Math.atan2(dy+p.vy*.25,dx+p.vx*.25);G.ebullets.push({x:e.x,y:e.y,vx:Math.cos(a)*340,vy:Math.sin(a)*340,life:2.5,dmg:9*(1+G.t/400)*(0.7+0.3*G.L.diff)*(e.odd||1)})}}
+      if(e.scd<=0&&d<560&&(e.los||d<170)){e.scd=rand(1.8,2.6);const a=Math.atan2(dy+p.vy*.25,dx+p.vx*.25);G.ebullets.push({x:e.x,y:e.y,vx:Math.cos(a)*340,vy:Math.sin(a)*340,life:2.5,dmg:7*(1+G.t/400)*(0.7+0.3*G.L.diff)*(1+((e.odd||1)-1)*.5)})}}
     if(e.ab)target=bossMoves(e,dt,d,dx,dy);
-    let want;[want,target]=shamble(e,dt,d,dx,dy,target);if(e.orbit)target=e.spd*.65;
+    const want=shamble(e,dt,d,dx,dy,target);target=SH_T;if(e.orbit)target=e.spd*.65;
     const da=angDiff(e.a,want),turn=e.charge>0?0.3:e.turn;
     e.a+=clamp(da,-turn*dt,turn*dt);
     if(!e.orbit)target*=0.45+0.55*Math.max(0,Math.cos(da));
-    if(e.jam>0)target*=e.big?.85:.6;
+    if(e.jam>0)target*=e.big?.85:.5;
     if(e.wet>0){target*=e.big?.85:.7;if(Math.random()<dt*5)part(e.x+rand(-e.r,e.r)*.7,e.y+rand(-e.r,e.r)*.7,0,0,.35,2.5,'#8fd4ff','spark')}
     e.v+=(target-e.v)*Math.min(1,2.2*dt);
     }else e.v*=Math.exp(-6*dt);
@@ -2035,6 +2101,7 @@ function updateEnemies(dt){
     e.x=clamp(e.x,e.r,ARENA-e.r);e.y=clamp(e.y,e.r,ARENA-e.r);
     // regular cars follow the flow field round walls; bosses plough straight through
     if(!e.big)collideObs(e,e.r);else if(G.L.bossWalls)collideObs(e,e.r*.85,'building');
+    if(e.elite&&e.born!=null&&e.v>40)hunterBump(e);
     if(tr){const R=44+e.r,q=d2(e.x,e.y,tr.x,tr.y);if(q<R*R){const dq=Math.sqrt(q)||1;e.x=tr.x+(e.x-tr.x)/dq*R;e.y=tr.y+(e.y-tr.y)/dq*R}}
     const rr=e.r+p.r;
     if(d<rr){
@@ -2046,7 +2113,7 @@ function updateEnemies(dt){
         const kb=(e.big?0.12:1)*(140+impact*0.9);e.kx+=nx*kb;e.ky+=ny*kb;
         p.vx-=nx*impact*(e.big?0.9:0.35);p.vy-=ny*impact*(e.big?0.9:0.35);
         if(e.charge>0){p.vx-=nx*420;p.vy-=ny*420}
-        if(!fz)hurt(e.dmg*(impact>260?0.35:1)*(e.charge>0?1.6:1));
+        if(!fz)hurt(e.dmg*(impact>260?0.35:1)*(e.charge>0?1.3:1));
         if(impact>140){for(let i=0;i<10;i++){const a=Math.atan2(ny,nx)+rand(-1,1);part(p.x+nx*p.r,p.y+ny*p.r,Math.cos(a)*rand(150,420),Math.sin(a)*rand(150,420),rand(.15,.35),2,'#ffd27a','spark')}G.shake=Math.min(16,G.shake+impact/90);sfx('crash')}
       }
     }
@@ -2100,7 +2167,9 @@ function updateWeapons(dt){
     const far=w.cd<=0?G.enemies.filter(e=>!e.dead&&d2(e.x,e.y,p.x,p.y)<620*620):[];
     if(far.length){w.cd=Math.max(1.4,(lv>=4?2.6:3.2)-0.12*lv)*s.cd;const n=lv>=5?3:lv>=3?2:1;
       // each shell goes to the busiest of a few random candidates
-      for(let i=0;i<n&&far.length;i++){let e=null,bestN=-1;for(let k=0;k<6;k++){const c=far[Math.floor(Math.random()*far.length)],cnt=near(c.x,c.y,90).length;if(cnt>bestN){bestN=cnt;e=c}}
+      // the first shell of a volley goes to a juggernaut or the boss when one is in range
+      const big=[G.lboss,G.mini].find(q=>q&&!q.dead&&d2(q.x,q.y,p.x,p.y)<620*620);
+      for(let i=0;i<n&&far.length;i++){let e=i===0&&big?big:null,bestN=-1;if(!e)for(let k=0;k<6;k++){const c=far[Math.floor(Math.random()*far.length)],cnt=near(c.x,c.y,90).length;if(cnt>bestN){bestN=cnt;e=c}}
         G.shells.push({x0:p.x,y0:p.y,tx:e.x+e.v*Math.cos(e.a)*0.8,ty:e.y+e.v*Math.sin(e.a)*0.8,t:0,dur:0.85,R:(70+(lv>=2?25:0)+6*lv)*s.blast,dmg:(44+16*lv)*s.dmg})}
       if(far.length)tone(140,0.15,'square',0.05,60)}}
   if(W.laser){DSRC='laser';const w=W.laser,lv=w.lvl;w.cd-=wdt;
@@ -2116,8 +2185,8 @@ function updateWeapons(dt){
     if(t&&w.cd<=0){w.cd=Math.max(.45,1.35-.13*lv)*s.cd;const a0=Math.atan2(t.y-p.y,t.x-p.x),n=4+lv+(lv>=5?2:0),spr=lv>=5?.75:.5;w.aim=a0;
       for(let i=0;i<n;i++){const a=a0+(i/(n-1)-.5)*spr+rand(-.04,.04),sp=rand(780,900);G.bullets.push({x:p.x+Math.cos(a)*16,y:p.y+Math.sin(a)*16,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,dmg:(6+2.5*lv+(lv>=3?3:0))*s.dmg,life:.34,pierce:lv>=4?1:0,hit:null,src:'scatter',kb:3})}
       noise(0.1,0.1,1800);tone(110,0.1,'square',0.05,55)}}
-  if(W.disc){const w=W.disc,lv=w.lvl;w.cd-=wdt;if(w.cd<=0){const t=nearestEnemy(p.x,p.y,420);if(t){w.cd=Math.max(.9,2.6-.22*lv)*s.cd;const n=lv>=5?3:lv>=3?2:1,a0=Math.atan2(t.y-p.y,t.x-p.x);
-      for(let i=0;i<n;i++)G.discs.push({x:p.x,y:p.y,a:a0+(i-(n-1)/2)*.45,sp:560+(lv>=2?80:0),out:true,dist:0,range:300+(lv>=2?60:0),r:lv>=4?16:12,dmg:(16+7*lv)*s.dmg,hit:new Set(),spin:0,life:4});tone(520,0.08,'triangle',0.04,900)}}}
+  if(W.disc){const w=W.disc,lv=w.lvl;w.cd-=wdt;if(w.cd<=0){const t=nearestEnemy(p.x,p.y,420);if(t){w.cd=Math.max(.8,2.2-.2*lv)*s.cd;const n=lv>=5?3:lv>=3?2:1,a0=Math.atan2(t.y-p.y,t.x-p.x);
+      for(let i=0;i<n;i++)G.discs.push({x:p.x,y:p.y,a:a0+(i-(n-1)/2)*.45,sp:560+(lv>=2?80:0),out:true,dist:0,range:300+(lv>=2?60:0),r:lv>=4?16:12,dmg:(22+9*lv)*s.dmg,hit:new Set(),spin:0,life:4});tone(520,0.08,'triangle',0.04,900)}}}
   if(W.trail){const w=W.trail,lv=w.lvl,bx=p.x-Math.cos(p.a)*G.car.len*.45,by=p.y-Math.sin(p.a)*G.car.len*.45;
     // a fire patch every 18px of road behind the car, at any speed above a crawl
     if(w.lx==null||Math.hypot(p.vx,p.vy)<40){w.lx=bx;w.ly=by}else if(d2(bx,by,w.lx,w.ly)>18*18){w.lx=bx;w.ly=by;const L=2+.4*lv+(lv>=5?.8:0);
@@ -2443,6 +2512,7 @@ function updateHud(){
     for(const m of G.rcs){const left=Math.max(0,m.cd),k=1-left/(m.cdMax||1);
       if(m.k==='rc_bomb')cd+=m.st?chip('BOMB RC',1,'ARMED',true,'Bomb RC|Minion|Armed and driving at the biggest crowd. A new one is built after it blows.'):(left<=0?chip('BOMB RC',1,'WAITING',true,'Bomb RC|Minion|Built and waiting for a car to come within reach.'):chip('BOMB RC',k,'BUILDING '+Math.ceil(left)+'s',false,'Bomb RC|Minion|Building the next bomb car. It rolls out when the bar fills.'));
       else if(m.k==='rc_medic')cd+=chip('MEDIC RC',left>0?k:1,left>0?Math.ceil(left)+'s':'READY',left<=0,'Medic RC|Minion|Patches you up when the bar is full and you\'re hurt.');
+      else if(m.k==='rc_jam'&&m.cap)cd+=m.home?chip('JAMMER',m.bat/m.cap,'RECHARGING',false,'Jammer RC|Minion|Battery flat: it\'s back at your car recharging, then heads out again.'):chip('JAMMER',m.bat/m.cap,m.bat>=m.cap?'READY':Math.ceil(m.bat)+'s',m.bat>=m.cap,'Jammer RC|Minion|Battery drains only while it\'s jamming cars. When it runs flat the jammer comes back to you to recharge.');
       else if(m.k==='rc_scav'&&G.weapons.rc_scav.lvl>=2)cd+=chip('DIG',m.dig/20,Math.ceil((20-m.dig)/(G.weapons.rc_scav.lvl>=5?2:1))+'s',false,'Scavenger RC|Minion|Digs up a pile of bolts when the bar fills.')}
     {const w=G.weapons.hydro;if(w&&w.lvl>=5){const left=Math.max(0,w.wave??5),mx=5*G.stats.cd;cd+=chip('WAVE',1-left/mx,left>0?Math.ceil(left)+'s':'READY',left<=0,'Hydro Cannon|Tidal wave|Bursts out around the van when the bar fills and a car is close.')}}
     cd=cd.replace(/--k:([\d.]+)/g,(m,v)=>'--k:'+Math.round(v*20)/20);if(hudCache.cd!==cd){hudCache.cd=cd;$('cds').innerHTML=cd}}
@@ -2465,13 +2535,36 @@ function updateHud(){
     tip.style.left=clamp(tr.x+G.view.ox,90,VW-90)+'px';tip.style.top=clamp(tr.y+G.view.oy-78,40,VH-20)+'px'}else if(!tip.hidden)tip.hidden=true;
 }
 const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-function updateLoadout(){
+function loadoutGroups(){
   const pips=l=>'<span class="pips">'+[1,2,3,4,5].map(i=>`<i class="${i<=l?'on':''}"></i>`).join('')+'</span>';
-  let h='';for(const k in G.weapons){const l=G.weapons[k].lvl,d=WDEF[k].desc;h+=`<div class="chip" data-tip="${esc(WDEF[k].name)}|Weapon · level ${l} of 5|${esc(d[0]+(l>1?' Upgrades so far: '+d.slice(1,l).join(' '):'')+(l<5?' Next: '+d[l]:' Maxed out.'))}">${WDEF[k].name.toUpperCase()}${pips(l)}</div>`}
+  let h='';const out=[];for(const k in G.weapons){const l=G.weapons[k].lvl,d=WDEF[k].desc;h+=`<div class="chip" data-tip="${esc(WDEF[k].name)}|Weapon · level ${l} of 5|${esc(d[0]+(l>1?' Upgrades so far: '+d.slice(1,l).join(' '):'')+(l<5?' Next: '+d[l]:' Maxed out.'))}">${WDEF[k].name.toUpperCase()}${pips(l)}</div>`}
+  out.push(['Weapons',h]);h='';
   for(const k in G.passives)h+=`<div class="chip p" data-tip="${esc(PDEF[k].name)}|Upgrade · level ${G.passives[k]} of 5|${esc(PDEF[k].desc)} Stacks each level.">${PDEF[k].name.toUpperCase()}${pips(G.passives[k])}</div>`;
+  out.push(['Upgrades',h]);h='';
   for(const k in G.tk)if(G.tk[k])h+=`<div class="chip t" data-tip="${esc(TRINKETS[k].name)}|Trinket · owned ×${G.tk[k]}|${esc(TRINKETS[k].desc)} Lasts until this run ends.">${TRINKETS[k].name.toUpperCase()}${G.tk[k]>1?' ×'+G.tk[k]:''}</div>`;
-  $('loadout').innerHTML=h;
-}
+  out.push(['Trinkets',h]);return out}
+let loadSig='',pulseT=0;
+function updateLoadout(){const g=loadoutGroups();
+  $('loadout').innerHTML=g.map(([t,h])=>h?`<div class="lh">${t.toUpperCase()}</div>${h}`:'').join('');
+  const nW=Object.keys(G.weapons).length,nP=Object.keys(G.passives).length,nT=Object.values(G.tk).filter(Boolean).length,sig=JSON.stringify([G.weapons,G.passives,G.tk]);
+  $('loadPill').innerHTML=`<span class="lp">BUILD</span><b>${nW}</b>W <b>${nP}</b>U <b>${nT}</b>T<i>›</i>`;
+  // the pill pulses when the build changes (not on the first draw of a run)
+  if(loadSig&&sig!==loadSig&&G.t>0.5){const pl=$('loadPill');pl.classList.remove('pulse');void pl.offsetWidth;pl.classList.add('pulse');clearTimeout(pulseT);pulseT=setTimeout(()=>pl.classList.remove('pulse'),1600)}
+  loadSig=sig}
+// phones: tap the pill to peek at the build; it folds itself away after 5s, on another tap, or as soon as you steer
+let loadT=0,tapTipT=0;
+function setLoadOpen(o){$('hud').classList.toggle('loadOpen',o);document.body.classList.toggle('loadOpen',o);$('loadPill').setAttribute('aria-expanded',String(o));clearTimeout(loadT);if(o)loadT=setTimeout(()=>setLoadOpen(false),5000);else hideTapTip()}
+function hideTapTip(){if(tapTipT){tapTipT=0;$('hoverTip').hidden=true;tipKey=''}for(const c of document.querySelectorAll('#loadout .chip.sel'))c.classList.remove('sel')}
+function showTapTip(el){const [t,k,d]=el.dataset.tip.split('|'),c=card(t,k,d,null,null),tip=$('hoverTip');hideTapTip();el.classList.add('sel');tip.innerHTML=c.html;tip.style.setProperty('--c','var(--hazard)');tip.hidden=false;tipKey=c.html;
+  const r=el.getBoundingClientRect(),w=tip.offsetWidth,h=tip.offsetHeight;let y=r.top-h-8;if(y<8)y=r.bottom+8;tip.style.transform=`translate(${clamp(r.left,8,VW-w-8)}px,${Math.max(8,y)}px)`;tapTipT=performance.now()+3500}
+$('loadPill').addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();if(state==='play')setLoadOpen(!$('hud').classList.contains('loadOpen'))});
+$('loadout').addEventListener('pointerdown',e=>{if(!$('hud').classList.contains('loadOpen'))return;e.stopPropagation();setLoadOpen(true);const c=e.target.closest('.chip');if(c)showTapTip(c)});
+document.addEventListener('pointerdown',e=>{if($('hud').classList.contains('loadOpen')&&!e.target.closest('#loadout,#loadPill'))setLoadOpen(false)},true);
+// pause menu: the full build with details on tap or hover
+function renderPauseLoad(){const g=loadoutGroups().filter(([,h])=>h);$('pauseLoad').innerHTML=g.map(([t,h])=>`<div class="lh">${t.toUpperCase()}</div><div class="row">${h}</div>`).join('');$('pauseTip').innerHTML=g.length?'Tap or point at anything to see what it does.':''}
+function pauseTipFor(c){if(!c)return;for(const x of document.querySelectorAll('#pauseLoad .chip.sel'))x.classList.remove('sel');c.classList.add('sel');const [t,k,d]=c.dataset.tip.split('|');$('pauseTip').innerHTML=`<b>${esc(t)}</b> · ${esc(k)}<br>${esc(d)}`}
+$('pauseLoad').addEventListener('click',e=>pauseTipFor(e.target.closest('.chip')));
+$('pauseLoad').addEventListener('mouseover',e=>pauseTipFor(e.target.closest('.chip')));
 
 
 /* ---------- hover cards: name, type and stats for whatever the cursor is over ---------- */
@@ -2484,7 +2577,7 @@ const OBS_INFO={container:'Shipping container',junk:'Junk pile',tires:'Tire stac
 const PROP_INFO={crate:['Wooden crate','Smash it: 60% chance of a random power-up.'],tires:['Tire stack','Knock it over: it tumbles away and is gone in a few seconds. Small chance of a drop.'],hay:['Hay bale','Knock it over: it rolls away and is gone in a few seconds. Small chance of a drop.'],cone:['Traffic cone','Knock it over: it skids away and is gone in a few seconds. Small chance of a drop.'],hydrant:['Fire hydrant','Knock it over: it skids away and is gone in a few seconds. Small chance of a drop.'],snowman:['Snowman','Knock it over: it tumbles away and is gone in a few seconds. Small chance of a drop.']};
 const BARREL_INFO={barrel:['Explosive barrel','Goes off when shot, rammed, burned or caught in a blast. Chains into other barrels.'],propane:['Propane tank','A much bigger blast than a barrel. Chains into other barrels.'],toxic:['Toxic drum','Explodes and leaves a burning acid pool for 8 seconds.']};
 const ZONE_INFO={napalm:['Napalm fire','From your Napalm Tank: burns cars, never you.'],oil:['Oil slick','Your tires lose most of their grip while you\'re on it.'],ice:['Black ice','Almost no grip. Brake early and steer gently.'],lava:['Lava pool','Burns you and every car that drives in.'],acid:['Acid pool','Burns you and every car inside until it dries up.'],spikes:['Spike strip','Shreds tires: damages and slows you, and hurts cars too.']};
-const PICK_INFO={chest:['Supply crate','Pick a free bolt-on.'],wrench:['Wrench','Repairs 30 HP.'],magnet:['Scrap magnet','Pulls every scrap and bolt on the map to you.'],nuke:['Airstrike','Wrecks every regular car on the map, on screen or not, and dents bosses.'],
+const PICK_INFO={chest:['Supply crate','Pick a free bolt-on.'],wrench:['Wrench','Repairs 12% of your max HP (at least 30).'],magnet:['Scrap magnet','Pulls every scrap and bolt on the map to you.'],nuke:['Airstrike','Wrecks every regular car on the map, on screen or not, and dents bosses.'],
   freeze:['Cryo canister','Freezes every car for 5 seconds.'],nitro:['Nitro can','8 seconds of extra speed and double ram damage.'],fury:['Overdrive','10 seconds of double-speed weapon recharge.'],bubble:['Bubble shield','6 seconds of invulnerability.'],sack:['Scrap sack','+15 scrap banked for the Garage.'],bolts:['Bolt bag','+12 bolts to spend at traders.']};
 const mouse={x:0,y:0,overCanvas:false,last:-1e9,inWin:false};
 addEventListener('pointermove',e=>{if(e.pointerType!=='mouse')return;mouse.x=e.clientX;mouse.y=e.clientY;mouse.overCanvas=e.target===cv;mouse.last=performance.now();mouse.inWin=true;document.body.classList.remove('nocursor')});
@@ -2505,7 +2598,7 @@ function rcCard(m){const p=G.p,W=G.weapons[m.k],lv=W?W.lvl:1,d=WDEF[m.k],up=G.pa
   if(m.k==='rc_bomb')return card(d.name,kind+' · armed',d.desc[0],[['Blast damage',Math.round((50+18*lv+(lv>=4?25:0))*mb*s.dmg)],['Blast radius',Math.round((80+12*lv+(lv>=2?15:0))*s.blast)],['Damage this run',dealt]],col);
   if(m.k==='rc_scav')return card(d.name,kind+(m.tg?' · fetching':''),d.desc[0],[['Vacuum reach',(lv>=3?70:34)+'px'],['Next bolt dig',lv>=2?Math.ceil((20-m.dig)/(lv>=5?2:1))+'s':'from level 2']],col,lv>=2?m.dig/20:null);
   const jammed=G.enemies.filter(e=>!e.dead&&e.jam>0&&d2(e.x,e.y,m.x,m.y)<(m.R+e.r)**2).length;
-  return card(d.name,kind+(m.jx!=null?' · jamming a pack':' · circling you'),d.desc[0],[['Field radius',Math.round(m.R||0)+'px'],['Cars jammed now',jammed],['Bullets fried',lv>=3?'yes':'from level 3'],['Damage this run',dealt]],col)}
+  return card(d.name,kind+(m.home?' · recharging at your car':m.jx!=null?' · jamming a pack':' · circling you'),d.desc[0],[['Field radius',Math.round(m.R||0)+'px'],['Battery',`${(m.bat||0).toFixed(1)} / ${(m.cap||0).toFixed(1)}s`],['Recharge',jamRecharge(lv,1/(1+.087*up)).toFixed(1)+'s'],['Cars jammed now',jammed],['Bullets fried',lv>=3?'yes':'from level 3'],['Damage this run',dealt]],col)}
 // what's under the cursor, top-most first
 function pickHover(wx,wy){const p=G.p,in2=(x,y,r)=>d2(wx,wy,x,y)<r*r;
   // RC minions are small and drive among the enemies, so they're checked first
@@ -2531,7 +2624,7 @@ function pickHover(wx,wy){const p=G.p,in2=(x,y,r)=>d2(wx,wy,x,y)<r*r;
     return card(n,'Hazard',d,rows,z.k==='lava'?'#ff7a14':z.k==='acid'?'#7ad13a':z.k==='ice'?'#9fe4ff':z.k==='spikes'?'#c9c6d0':'#786ac8')}
   return null}
 let tipKey='';
-function updateHover(){const tip=$('hoverTip');const idle=performance.now()-mouse.last>5000;
+function updateHover(){const tip=$('hoverTip');if(tapTipT){if(performance.now()<tapTipT)return;hideTapTip()}const idle=performance.now()-mouse.last>5000;
   // the cursor fades out after 5s without mouse movement while driving
   if(state==='play'&&idle&&mouse.inWin)document.body.classList.add('nocursor');else if(state!=='play')document.body.classList.remove('nocursor');
   let c=null;if(state==='play'&&!idle&&mouse.inWin){if(domTip&&domTip.isConnected){const [t,k,d]=domTip.dataset.tip.split('|');c=card(t,k,d,null,getComputedStyle(domTip).getPropertyValue('--c').trim()||null)}
@@ -2543,7 +2636,7 @@ function updateHover(){const tip=$('hoverTip');const idle=performance.now()-mous
 /* ---------- screens ---------- */
 const SCREENS=['scrMenu','scrGarage','scrLevels','scrLevel','scrShop','scrPause','scrOver','scrAch','scrSet','scrHow','scrBoard','scrXfer'],SUBS=['scrLevels','scrGarage','scrAch','scrSet','scrHow','scrBoard','scrXfer'];
 let cur='scrMenu';const navStack=[];
-function show(id){if(codeOpen){codeOpen=false;$('codeBox').hidden=true}cur=id;for(const s of SCREENS)$(s).hidden=s!==id;$('overlay').hidden=!id;$('overlay').classList.toggle('attract',state==='menu');if(id){$('tip').hidden=true;$('banner').classList.remove('show')}}
+function show(id){if(id&&$('hud').classList.contains('loadOpen'))setLoadOpen(false);if(codeOpen){codeOpen=false;$('codeBox').hidden=true}cur=id;for(const s of SCREENS)$(s).hidden=s!==id;$('overlay').hidden=!id;$('overlay').classList.toggle('attract',state==='menu');if(id){$('tip').hidden=true;$('banner').classList.remove('show')}}
 function openSub(id,opener){navStack.push({id:cur||'scrMenu',focus:opener});if(id==='scrXfer')renderXfer();if(id==='scrLevels')rollForecasts();if(id==='scrAch')renderAch();if(id==='scrBoard')renderBoard();if(id==='scrSet')renderSettings();if(id==='scrLevels')renderLevels();if(id==='scrGarage')renderGarage();show(id);
   const f=id==='scrLevels'?$('lv'+curLevel):null;(f&&!f.disabled?f:$(id).querySelector('.back')).focus()}
 function goBack(){const top=navStack.pop()||{id:'scrMenu',focus:null},id=top.id;if(id==='scrLevels')renderLevels();if(id==='scrGarage')renderGarage();show(id);if(id==='scrMenu')refreshMenu();
@@ -2578,7 +2671,7 @@ function startGame(li=curLevel){if(G&&G.live)commitRun();navStack.length=0;initA
   startBanner();checkAch()}
 const startBanner=()=>showBanner(G.L.name,`${G.wx.k==='clear'?'':G.wx.W.name+' · '}Wreck ${G.L.minis} Juggernauts to draw out ${G.L.boss.name}`);
 function toMenu(){if(G&&G.live)commitRun();navStack.length=0;state='menu';newGame(curLevel);$('hud').hidden=true;$('tip').hidden=true;show('scrMenu');refreshMenu();$('startBtn').focus()}
-function togglePause(){if(state==='play'&&G.exitT>=0)return;if(state==='play'){state='paused';$('pauseLevel').textContent=G.L.name+' · '+G.car.name+' · '+fmt(G.t);show('scrPause');$('resumeBtn').focus()}else if(state==='paused'){state='play';show(null);last=performance.now()}}
+function togglePause(){if(state==='play'&&G.exitT>=0)return;if(state==='play'){state='paused';$('pauseLevel').textContent=G.L.name+' · '+G.car.name+' · '+fmt(G.t);renderPauseLoad();show('scrPause');$('resumeBtn').focus()}else if(state==='paused'){state='play';show(null);last=performance.now()}}
 /* ---------- save transfer: export the profile as text (CL1 = deflated, CL0 = plain), move it by code, file or paste ---------- */
 const b64u={enc:u=>{let s='';for(let i=0;i<u.length;i+=0x8000)s+=String.fromCharCode.apply(null,u.subarray(i,i+0x8000));return btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')},
   dec:t=>{t=t.replace(/-/g,'+').replace(/_/g,'/');while(t.length%4)t+='=';const s=atob(t),u=new Uint8Array(s.length);for(let i=0;i<s.length;i++)u[i]=s.charCodeAt(i);return u}};
@@ -2751,7 +2844,9 @@ function buildChoices(){
   const pool=[],nW=Object.keys(G.weapons).length,nP=Object.keys(G.passives).length;
   for(const k in WDEF){if(!unlocked(WDEF[k])&&!G.weapons[k])continue;const l=G.weapons[k]?G.weapons[k].lvl:0;if(l>=5)continue;if(!l&&nW>=slotsW())continue;pool.push({kind:'w',k,next:l+1})}
   for(const k in PDEF){if(!unlocked(PDEF[k])&&!G.passives[k])continue;if(PDEF[k].rcOnly&&!G.passives[k]&&!Object.keys(G.weapons).some(w=>WDEF[w].rc))continue;const l=G.passives[k]||0;if(l>=5)continue;if(!l&&nP>=slotsP())continue;pool.push({kind:'p',k,next:l+1})}
-  shuffle(pool);const out=pool.slice(0,3),canRoll=rollPool().length>0;
+  // things you already own come up 2.5x as often, so a build comes together even with a big pool to draw from
+  const out=[];for(let n=0;n<3&&pool.length;n++){let tot=0;for(const c of pool)tot+=c.w=c.next>1?2.5:1;let r=Math.random()*tot,i=0;while(i<pool.length-1&&(r-=pool[i].w)>=0)i++;out.push(pool.splice(i,1)[0])}
+  const canRoll=rollPool().length>0;
   // nothing left to bolt on and nothing left to roll: no screen at all (see maxedOut)
   if(!out.length&&!canRoll)return out;
   if(!out.length)out.push({kind:'heal'});
@@ -2769,7 +2864,7 @@ function openLevelup(){const ch=buildChoices();if(!ch.length){maxedOut();return}
   const first=$('choice0');if(first)setTimeout(()=>first.focus(),50);
 }
 function renderLevelup(){
-  $('lvlSub').textContent=`Pick a bolt-on or roll an item · keys 1 to ${choices.length} · Weapons ${Object.keys(G.weapons).length}/${slotsW()} · Upgrades ${Object.keys(G.passives).length}/${slotsP()} · Trinkets ${tkCount()}/${slotsT()}`;
+  {const nW=Object.keys(G.weapons).length,nP=Object.keys(G.passives).length;$('lvlSub').textContent=coarse()?`Pick one · Weapons ${nW}/${slotsW()} · Upgrades ${nP}/${slotsP()} · Trinkets ${tkCount()}/${slotsT()}`:`Pick a bolt-on or roll an item · keys 1 to ${choices.length} · Weapons ${nW}/${slotsW()} · Upgrades ${nP}/${slotsP()} · Trinkets ${tkCount()}/${slotsT()}`}
   $('cards').innerHTML=choices.map((c,i)=>{
     if(c.kind==='heal')return`<button class="card" id="choice${i}" data-i="${i}"><span class="num">${i+1}</span><span class="kind">Pit stop</span><h3>Patch-up</h3><p>Repair 50 HP. Your rig is maxed out.</p></button>`;
     if(c.kind==='roll')return`<button class="card roll" id="choice${i}" data-i="${i}"><span class="num">${i+1}</span><span class="kind">Skip · Trader's Roll</span><h3>Roll an item</h3><p>Skip the bolt-on and take a random item from the traders' stock instead.</p><span class="odds"><b style="color:${RAR.common.col}">Common 60%</b> · <b style="color:${RAR.rare.col}">Rare 30%</b> · <b style="color:${RAR.epic.col}">Epic 10%</b></span></button>`;
@@ -2801,7 +2896,7 @@ $('achBtn').onclick=e=>openSub('scrAch',e.currentTarget);$('lbBtn').onclick=e=>o
 $('howBtn').onclick=e=>openSub('scrHow',e.currentTarget);$('pSetBtn').onclick=e=>openSub('scrSet',e.currentTarget);
 for(const b of document.querySelectorAll('.back'))b.onclick=goBack;
 for(const b of document.querySelectorAll('.switch'))b.onclick=()=>{const k=b.dataset.set;S[k]=!S[k];saveSettings();renderSettings();
-  if(k==='sound'){initAudio();applyVolume();sfx('pick')}if(k==='music')initAudio();if(k==='lowFx')resize()};
+  if(k==='sound'){initAudio();applyVolume();sfx('pick')}if(k==='music')initAudio();if(k==='lowFx')resize();if(k==='autoRes'){AQ.scale=1;AQ.lowParts=false;AQ.cool=2;resize()}};
 $('volRange').oninput=e=>{S.vol=+e.target.value;$('volOut').textContent=S.vol+'%';applyVolume()};
 $('volRange').onchange=()=>{saveSettings();initAudio();sfx('pick')};
 for(const [id,k] of [['wx','wxVol'],['amb','ambVol']]){$(id+'Range').oninput=e=>{S[k]=+e.target.value;$(id+'Out').textContent=S[k]+'%';applyVolume()};$(id+'Range').onchange=()=>{saveSettings();initAudio()}}
@@ -2822,7 +2917,7 @@ resize();newGame(curLevel);show('scrMenu');refreshMenu();
 let last=performance.now();
 let wxDt=0;
 function frame(now){requestAnimationFrame(frame);
-  const dt=clamp((now-last)/1000,0,0.05);last=now;wxDt=dt;updateWeatherSound();
+  const ms=now-last,dt=clamp(ms/1000,0,0.05);last=now;wxDt=dt;updateWeatherSound();autoQuality(ms);
   DBG.ft=DBG.ft*.92+(dt*1000)*.08;if(DBG.msgT>0)DBG.msgT-=dt;
   if(state==='play'){if(DBG.scale>1){for(let i=0;i<DBG.scale&&state==='play';i++)update(dt)}else update(dt*DBG.scale);if(state==='play'||state==='levelup')updateHud()}
   else if(state==='menu')attract(dt);
