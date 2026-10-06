@@ -251,6 +251,26 @@ kbd{display:inline-block;font-family:var(--body);font-weight:700;font-size:12px;
 #hoverTip .ts b{font-weight:700;text-align:right}
 #hoverTip .tb{height:5px;background:var(--ink);margin-top:6px}#hoverTip .tb i{display:block;height:100%;background:var(--hp)}
 body.nocursor,body.nocursor *{cursor:none!important}
+#radio{position:fixed;right:16px;top:16px;z-index:6;display:flex;gap:6px;padding:6px;background:linear-gradient(180deg,#34313b,#16151a 55%,#0d0c10);border:2px solid #050407;border-radius:7px;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.14),inset 0 -2px 0 rgba(0,0,0,.6),0 4px 0 #000,0 8px 18px rgba(0,0,0,.45);pointer-events:auto;font-family:var(--body)}
+#radio.inrun{top:112px}
+#radio .rlcd{width:228px;background:radial-gradient(ellipse at 30% 20%,#123a2e,#06170f 75%);border:1px solid #020a06;border-radius:3px;padding:5px 9px 6px;color:#7dffce;
+  text-shadow:0 0 6px rgba(125,255,206,.65);box-shadow:inset 0 0 14px rgba(0,0,0,.75);display:flex;flex-direction:column;gap:3px;overflow:hidden;position:relative}
+#radio .rlcd::after{content:'';position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(0,0,0,.18) 0 1px,transparent 1px 3px);pointer-events:none}
+#radio .r1{display:flex;align-items:baseline;gap:8px;font-weight:700;letter-spacing:.14em;font-size:11px}
+#radio .rcall{background:#7dffce;color:#06170f;text-shadow:none;padding:0 4px;border-radius:2px}
+#radio .rtrk{opacity:.75}#radio .rtrk b{font-variant-numeric:tabular-nums}
+#radio .rfm{margin-left:auto;font-variant-numeric:tabular-nums}#radio .rfm b{font-size:20px;letter-spacing:.04em}#radio .rfm small{font-size:9px;margin-left:3px;opacity:.8}
+#radio .r2{font-weight:700;font-size:14px;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#radio .r3{display:flex;align-items:flex-end;gap:8px;font-size:10px;letter-spacing:.12em;font-weight:700;opacity:.85;text-transform:uppercase;white-space:nowrap;overflow:hidden}
+#radio #rNext{overflow:hidden;text-overflow:ellipsis}
+#radio .eq{display:flex;align-items:flex-end;gap:2px;height:12px;flex:none}#radio .eq i{width:3px;height:12px;background:#7dffce;transform-origin:bottom;transform:scaleY(.1);box-shadow:0 0 4px rgba(125,255,206,.6)}
+#radio.seek .r2{animation:rblink .25s steps(2) infinite}@keyframes rblink{50%{opacity:.35}}
+#radio #rSeek{width:46px;background:linear-gradient(#2c2a31,#18171c);border:1px solid #050407;border-radius:4px;color:#ffc21a;font:700 10px/1.3 var(--body);letter-spacing:.12em;cursor:pointer;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 2px 0 #000}
+#radio #rSeek:active{transform:translateY(2px);box-shadow:inset 0 1px 0 rgba(255,255,255,.08)}
+#radio #rSeek:focus-visible{outline:2px solid var(--hazard);outline-offset:2px}
+@media (max-width:720px){#radio.inrun{display:none}#radio{transform:scale(.85);transform-origin:top right}}
 #wxHud{align-self:flex-start;display:flex;align-items:center;gap:7px;background:rgba(10,9,12,.85);border:1px solid var(--line);padding:4px 10px;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);pointer-events:auto}
 #wxHud i{width:8px;height:8px;border-radius:50%;background:var(--c)}#wxHud b{color:var(--fg)}
 .lv .wx{display:inline-flex;align-items:center;gap:5px}.lv .wx i{width:7px;height:7px;border-radius:50%;background:var(--wc);display:inline-block}
@@ -284,6 +304,14 @@ body.nocursor,body.nocursor *{cursor:none!important}
   <div id="loadout"></div>
 </div>
 <div id="banner"></div>
+<div id="radio" hidden data-tip="Car radio|Music|Shuffles through the station's tracks. Hit SEEK or press N to skip to the next one.">
+  <div class="rlcd">
+    <div class="r1"><span class="rcall" id="rCall">KRSH</span><span class="rtrk">TRK <b id="rTrk">01</b></span><span class="rfm"><b id="rFreq">98.6</b><small>FM</small></span></div>
+    <div class="r2"><span id="rTitle">Scrap Metal Sunrise</span></div>
+    <div class="r3"><span class="eq"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><span id="rNext">NEXT ▸</span></div>
+  </div>
+  <button id="rSeek" aria-label="Next track (N)">SEEK<br>▸▸</button>
+</div>
 <button id="tip" tabindex="-1" hidden></button>
 <div id="hoverTip" hidden></div>
 
@@ -366,6 +394,7 @@ body.nocursor,body.nocursor *{cursor:none!important}
       <div class="key"><b>Drive</b><span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> or arrows</span></div>
       <div class="key"><b>Handbrake drift</b><span><kbd>Space</kbd></span></div>
       <div class="key"><b>Trade</b><span><kbd>F</kbd> next to a parked trader</span></div>
+      <div class="key"><b>Next radio track</b><span><kbd>N</kbd> or the SEEK button</span></div>
       <div class="key"><b>Pause</b><span><kbd>P</kbd> or <kbd>Esc</kbd></span></div>
       <div class="key"><b>Touch</b><span>Drag anywhere to steer. Tap the trader prompt to trade</span></div>
     </div>
@@ -509,31 +538,55 @@ function sfx(n){if(muted())return;const now=performance.now();const gap={shoot:7
   case'ach':[784,988,1175,1568].forEach((f,i)=>tone(f,0.2,'triangle',0.05,null,i*0.08));break;
   case'thunder':noise(1.6,0.3,320);noise(0.25,0.22,2400);tone(55,1.2,'sine',0.14,30);break}}
 
-/* ---------- music: an original chiptune/techno loop, synthesized live (no audio files) ---------- */
-// A minor at 150 BPM, 16 bars: A section Am F C G twice, B section F G Em Am twice.
-// Layers come in with intensity: 1 = kick, rolling bass, arp, hats · 2 = + claps and lead · 3 = + 16th hats, lead harmony, brighter bass
-const BPM=150,STEP=60/BPM/4,SCALE=[0,2,3,5,7,8,10];
-const degMidi=(d,base=57)=>base+12*Math.floor(d/7)+SCALE[((d%7)+7)%7];
+/* ---------- music: an in-car radio of original chiptune/techno tracks, synthesized live (no audio files) ---------- */
+// Each track is note data: tempo, key and mode, a 16-bar chord progression, a lead line (hand-written for track 1,
+// generated from a seeded motif for the rest), an arpeggio, and a drum and bass style. The radio shuffles through them.
+// Layers come in with intensity: 1 = kick, bass, arp, hats · 2 = + claps and lead · 3 = + busier hats, lead harmony, brighter bass
+const MODES={aeolian:[0,2,3,5,7,8,10],dorian:[0,2,3,5,7,9,10],phrygian:[0,1,3,5,7,8,10],ionian:[0,2,4,5,7,9,11]};
 const mtof=m=>440*2**((m-69)/12);
-const SONG=[0,5,2,6, 0,5,2,6, 5,6,4,0, 5,6,4,0]; // chord roots as scale degrees
-// lead: one string per bar, 16 steps; '.' rest, '-' hold, base-36 digit = scale degree above A4
-const LEAD=[
-  '4-.4-.7-6-4-2-3-','5-.5-.7-5-4-2-0-','4-.4-.6-4-2-4-6-','8---7---6-5-6---',
-  '7-.7-.b-9-7-4-7-','9-.9-.c-9-7-5-7-','b-.b-.9-b-9-6-9-','a---b---a-8-a-..',
-  '5.7.9.7.5.7.9.c.','6.8.a.8.6.8.a.d.','4.6.8.b.8.6.4.6.','7---4---7-9-b---',
-  'c-b-9-7-9-b-c-e-','d-b-a-8-a-b-d---','b-9-8-6-8-9-b-8-','7---9---b---e---'];
-const ARP=[0,2,4,7,9,7,4,2];
-let mus=null;const MUS={on:false,step:0,next:0,lvl:1};
+const SONGS=[
+  {title:'Scrap Metal Sunrise',call:'KRSH',fm:'98.6',bpm:150,base:57,mode:'aeolian',drums:'four',bass:'roll',wave:'p25',
+    prog:[0,5,2,6,0,5,2,6,5,6,4,0,5,6,4,0],arp:[0,2,4,7,9,7,4,2],
+    lead:['4-.4-.7-6-4-2-3-','5-.5-.7-5-4-2-0-','4-.4-.6-4-2-4-6-','8---7---6-5-6---','7-.7-.b-9-7-4-7-','9-.9-.c-9-7-5-7-','b-.b-.9-b-9-6-9-','a---b---a-8-a-..',
+      '5.7.9.7.5.7.9.c.','6.8.a.8.6.8.a.d.','4.6.8.b.8.6.4.6.','7---4---7-9-b---','c-b-9-7-9-b-c-e-','d-b-a-8-a-b-d---','b-9-8-6-8-9-b-8-','7---9---b---e---']},
+  {title:'Neon Pursuit',call:'NEON',fm:'101.3',bpm:160,base:52,mode:'aeolian',drums:'four',bass:'octave',wave:'p12',
+    prog:[0,5,6,4,0,5,6,6,3,4,5,6,3,4,6,6],arp:[0,4,7,4,9,7,4,2],gen:{seed:11,rh:['x-.x-.x-x-.x-.x-','x.x.x-x-x---x---'],lift:0}},
+  {title:'Burnout Boulevard',call:'BURN',fm:'94.1',bpm:132,base:50,mode:'dorian',drums:'disco',bass:'walk',wave:'square',arpRate:2,
+    prog:[0,3,0,3,0,3,4,6,2,3,0,0,2,3,4,4],arp:[0,2,4,2],gen:{seed:23,rh:['x--x--x-..x-x-..','x-x-..x--x-.x---'],lift:1}},
+  {title:'Overheat',call:'HEAT',fm:'106.6',bpm:174,base:55,mode:'aeolian',drums:'break',bass:'reese',wave:'sawtooth',arpRate:4,
+    prog:[0,0,5,5,3,3,4,4,0,0,5,5,6,6,4,4],arp:[0,7,4,9],gen:{seed:37,rh:['x-------x---x---','x---x-------x---'],lift:2}},
+  {title:'Chrome Hunter',call:'CHRM',fm:'89.9',bpm:128,base:48,mode:'phrygian',drums:'four',bass:'offbeat',wave:'p12',
+    prog:[0,0,1,0,0,0,6,1,0,0,1,0,5,6,1,0],arp:[0,2,4,7,4,2,0,2],gen:{seed:41,rh:['x..x..x.........','x..x..x...x.x...'],lift:0}},
+  {title:'Last Lap',call:'LAP1',fm:'103.5',bpm:156,base:55,mode:'ionian',drums:'four',bass:'roll',wave:'p25',
+    prog:[0,4,5,3,0,4,5,3,5,3,0,4,5,3,4,4],arp:[0,4,2,4,7,4,2,4],gen:{seed:59,rh:['x-x-x-x-x---x-x-','x---x-x-x-x-x---'],lift:2}},
+];
+// a lead line from a seeded motif: the same rhythm and shape over the first three bars of each phrase (moved to the chord),
+// a cadence that settles on the chord root in the fourth, and the whole second half lifted for a climax
+function genLead(S_){let st=S_.gen.seed*7919+17;const rnd=()=>(st=st*16807%2147483647)/2147483647,T=[0,2,4,7,9];
+  const motif=[0,1].map(()=>Array.from({length:16},()=>Math.floor(rnd()*4))),rows=[];let prev=7;
+  for(let b=0;b<16;b++){const r=S_.prog[b],sec=b>=8?1:0,cad=b%4===3,rh=S_.gen.rh[cad?1:0],m=motif[sec];let row='',k=0;
+    const ons=[...rh].reduce((a,c,i)=>c==='x'?a.concat(i):a,[]);
+    for(let i=0;i<16;i++){const c=rh[i];if(c!=='x'){row+=c;continue}
+      let d=r+T[m[k%m.length]]+(sec?S_.gen.lift+2:S_.gen.lift);
+      if(cad&&i===ons[ons.length-1])d=r+7*(Math.round((prev-r)/7));
+      else if(k%2===1&&rnd()<.3)d=prev+(rnd()<.5?1:-1);
+      while(d-prev>5)d-=7;while(prev-d>5)d+=7;d=clamp(d,2,18);prev=d;row+=d.toString(36);k++}
+    rows.push(row)}return rows}
+for(const S_ of SONGS){if(!S_.lead)S_.lead=genLead(S_);S_.scale=MODES[S_.mode];S_.step=60/S_.bpm/4}
+let CUR=SONGS[0],STEP=CUR.step;
+const degMidi=(d,base=CUR.base)=>base+12*Math.floor(d/7)+CUR.scale[((d%7)+7)%7];
+let mus=null;const MUS={on:false,step:0,next:0,lvl:1,len:0,idx:0,list:[],seekAt:0,from:null};
 function pulseWave(duty){const n=40,re=new Float32Array(n),im=new Float32Array(n);for(let i=1;i<n;i++)re[i]=2/(i*Math.PI)*Math.sin(i*Math.PI*duty);return AC.createPeriodicWave(re,im)}
 function musicNodes(){if(mus||!AC)return mus;
-  const out=AC.createGain(),comp=AC.createDynamicsCompressor(),filt=AC.createBiquadFilter(),duck=AC.createGain(),dly=AC.createDelay(1),fb=AC.createGain(),dlf=AC.createBiquadFilter(),send=AC.createGain();
+  const out=AC.createGain(),comp=AC.createDynamicsCompressor(),filt=AC.createBiquadFilter(),duck=AC.createGain(),dly=AC.createDelay(1),fb=AC.createGain(),dlf=AC.createBiquadFilter(),send=AC.createGain(),an=AC.createAnalyser();
   comp.threshold.value=-14;comp.ratio.value=4;comp.attack.value=0.003;comp.release.value=0.12;
-  filt.type='lowpass';filt.frequency.value=18000;filt.Q.value=0.8;out.gain.value=0;
+  filt.type='lowpass';filt.frequency.value=18000;filt.Q.value=0.8;out.gain.value=0;an.fftSize=64;an.smoothingTimeConstant=.6;
   dly.delayTime.value=STEP*3;fb.gain.value=0.32;dlf.type='lowpass';dlf.frequency.value=2800;send.gain.value=0.28;
-  duck.connect(filt);send.connect(dly);dly.connect(dlf);dlf.connect(fb);fb.connect(dly);dlf.connect(filt);filt.connect(comp);comp.connect(out);out.connect(AC.destination);
-  return mus={out,filt,duck,send,p25:pulseWave(0.25),p12:pulseWave(0.125)}}
+  duck.connect(filt);send.connect(dly);dly.connect(dlf);dlf.connect(fb);fb.connect(dly);dlf.connect(filt);filt.connect(comp);comp.connect(out);out.connect(AC.destination);out.connect(an);
+  return mus={out,filt,duck,send,dly,an,bins:new Uint8Array(32),p25:pulseWave(0.25),p12:pulseWave(0.125)}}
 const musVolume=()=>S.music?S.musVol/100*0.8:0;
 function nbufGet(){if(!nbuf){nbuf=AC.createBuffer(1,AC.sampleRate,AC.sampleRate);const d=nbuf.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1}return nbuf}
+const waveOf=w=>w==='p25'?mus.p25:w==='p12'?mus.p12:w;
 function mOsc(f,t,dur,wave,vol,dest,att=0.004){const o=AC.createOscillator(),g=AC.createGain();if(typeof wave==='string')o.type=wave;else o.setPeriodicWave(wave);o.frequency.setValueAtTime(f,t);
   g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol,t+att);g.gain.setTargetAtTime(vol*0.6,t+att,dur*0.5);g.gain.setValueAtTime(vol*0.6,t+dur);g.gain.linearRampToValueAtTime(0,t+dur+0.03);
   o.connect(g);g.connect(dest);o.start(t);o.stop(t+dur+0.05);return o}
@@ -543,38 +596,75 @@ function mKick(t){const o=AC.createOscillator(),g=AC.createGain();o.type='sine';
   g.gain.setValueAtTime(0.55,t);g.gain.exponentialRampToValueAtTime(0.001,t+0.3);o.connect(g);g.connect(mus.filt);o.start(t);o.stop(t+0.32);
   // sidechain pump on the synths
   const d=mus.duck.gain;d.cancelScheduledValues(t);d.setValueAtTime(0.3,t);d.linearRampToValueAtTime(1,t+0.16)}
-function mBass(m,t,lvl){const o=AC.createOscillator(),f=AC.createBiquadFilter(),g=AC.createGain();o.type='sawtooth';o.frequency.setValueAtTime(mtof(m),t);
-  f.type='lowpass';f.Q.value=6;f.frequency.setValueAtTime(lvl>=3?2400:1500,t);f.frequency.exponentialRampToValueAtTime(220,t+0.09);
-  g.gain.setValueAtTime(0.55,t);g.gain.exponentialRampToValueAtTime(0.001,t+0.095);o.connect(f);f.connect(g);g.connect(mus.duck);o.start(t);o.stop(t+0.1)}
-function playStep(n,t,lvl){const step=n%16,bar=(n>>4)%SONG.length,root=SONG[bar],fill=bar%8===7&&step>=12;
+function mBass(m,t,lvl,len=0.095){const o=AC.createOscillator(),f=AC.createBiquadFilter(),g=AC.createGain();o.type='sawtooth';o.frequency.setValueAtTime(mtof(m),t);
+  f.type='lowpass';f.Q.value=6;f.frequency.setValueAtTime(lvl>=3?2400:1500,t);f.frequency.exponentialRampToValueAtTime(220,t+Math.min(len,0.2));
+  g.gain.setValueAtTime(0.55,t);g.gain.exponentialRampToValueAtTime(0.001,t+len);o.connect(f);f.connect(g);g.connect(mus.duck);o.start(t);o.stop(t+len+0.01)}
+// a long detuned "reese" bass with a slow filter swell
+function mReese(m,t,dur,lvl){const f=AC.createBiquadFilter(),g=AC.createGain();f.type='lowpass';f.Q.value=4;f.frequency.setValueAtTime(260,t);f.frequency.linearRampToValueAtTime(lvl>=3?1400:900,t+dur*.5);f.frequency.linearRampToValueAtTime(300,t+dur);
+  g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(0.25,t+0.02);g.gain.setValueAtTime(0.25,t+dur-0.05);g.gain.linearRampToValueAtTime(0,t+dur);f.connect(g);g.connect(mus.duck);
+  for(const dt of[-9,9]){const o=AC.createOscillator();o.type='sawtooth';o.frequency.setValueAtTime(mtof(m),t);o.detune.value=dt;o.connect(f);o.start(t);o.stop(t+dur+0.02)}}
+const WALK={0:0,3:0,6:4,8:7,11:4,14:2};
+function playStep(n,t,lvl){const S_=CUR,step=n%16,bar=(n>>4)%16,root=S_.prog[bar],fill=bar%8===7&&step>=12,D=S_.drums;
   // drums
-  if(step%4===0&&!(fill&&lvl>=2))mKick(t);
+  const kick=D==='break'?(step===0||step===10||(bar%2===1&&step===7)):step%4===0;
+  if(kick&&!(fill&&lvl>=2))mKick(t);
   if(step===0&&bar%8===0&&lvl>=2)mNoise(t,1.3,0.3,'highpass',3500);
   if(lvl>=2&&(step===4||step===12)&&!fill){mNoise(t,0.16,1,'bandpass',1700,0.9);mOsc(190,t,0.04,'triangle',0.3,mus.filt,0.001)}
+  if(D==='break'&&lvl>=2&&(step===14||step===9)&&!fill)mNoise(t,0.06,0.25,'bandpass',2200,0.9);
   if(fill&&lvl>=2)mNoise(t,0.1,0.45+0.15*(step-12),'bandpass',1500+300*(step-12),0.9);
-  if(step%4===2)mNoise(t,0.09,0.35,'highpass',7500);else if(lvl>=3&&step%2===1)mNoise(t,0.03,0.16,'highpass',9000);
-  // rolling bass: rests under the kick, octave jump on the last 16th of each beat
-  if(step%4)mBass(degMidi(root,33)+(step%4===3?12:0),t,lvl);
+  if(D==='disco'){if(step%4===2)mNoise(t,0.22,0.3,'highpass',6500);else if(lvl>=2)mNoise(t,0.03,0.1,'highpass',9500)}
+  else if(D==='break'){if(step%2===0)mNoise(t,0.05,0.24,'highpass',8000);else if(lvl>=3)mNoise(t,0.025,0.12,'highpass',9500)}
+  else{if(step%4===2)mNoise(t,0.09,0.35,'highpass',7500);else if(lvl>=3&&step%2===1)mNoise(t,0.03,0.16,'highpass',9000)}
+  // bass
+  const B=S_.bass,bm=degMidi(root,S_.base-24);
+  if(B==='roll'){if(step%4)mBass(bm+(step%4===3?12:0),t,lvl)}
+  else if(B==='octave'){if(step%2===0)mBass(bm+(step%4===2?12:0),t,lvl,0.12)}
+  else if(B==='offbeat'){if(step%4===2)mBass(bm,t,lvl,STEP*1.7)}
+  else if(B==='walk'){if(WALK[step]!=null)mBass(degMidi(root+WALK[step],S_.base-24),t,lvl,STEP*1.6)}
+  else if(B==='reese'){if(step===0||step===8)mReese(bm,t,STEP*8,lvl)}
   // arp over the chord
-  mOsc(mtof(degMidi(root+ARP[step%8],57+12)),t,STEP*0.7,mus.p12,lvl>=2?0.09:0.12,mus.duck);
+  const ar=S_.arpRate||1;if(step%ar===0)mOsc(mtof(degMidi(root+S_.arp[(step/ar|0)%S_.arp.length],S_.base+12)),t,STEP*ar*0.7,mus.p12,(lvl>=2?0.09:0.12)*(ar>1?1.2:1),mus.duck);
   // lead
-  if(lvl>=2){const row=LEAD[bar],ch=row[step];if(ch!=='.'&&ch!=='-'){let len=1;while(step+len<16&&row[step+len]==='-')len++;const d=parseInt(ch,36)+7,f=mtof(degMidi(d));
-    const o=mOsc(f,t,STEP*len-0.02,mus.p25,0.18,mus.filt);mOsc(f,t,STEP*len-0.02,mus.p25,0.08,mus.send);
-    if(len>=3){const v=AC.createOscillator(),vg=AC.createGain();v.frequency.value=6;vg.gain.setValueAtTime(0,t);vg.gain.linearRampToValueAtTime(f*0.012,t+STEP*len);v.connect(vg);vg.connect(o.frequency);v.start(t);v.stop(t+STEP*len+0.05)}
+  if(lvl>=2){const row=S_.lead[bar],ch=row[step];if(ch!=='.'&&ch!=='-'){let len=1;while(step+len<16&&row[step+len]==='-')len++;const d=parseInt(ch,36)+7,f=mtof(degMidi(d)),w=waveOf(S_.wave),v=S_.wave==='sawtooth'?0.11:S_.wave==='square'?0.13:0.18;
+    const o=mOsc(f,t,STEP*len-0.02,w,v,mus.filt);mOsc(f,t,STEP*len-0.02,w,v*0.45,mus.send);
+    if(len>=3){const vi=AC.createOscillator(),vg=AC.createGain();vi.frequency.value=6;vg.gain.setValueAtTime(0,t);vg.gain.linearRampToValueAtTime(f*0.012,t+STEP*len);vi.connect(vg);vg.connect(o.frequency);vi.start(t);vi.stop(t+STEP*len+0.05)}
     if(lvl>=3)mOsc(mtof(degMidi(d-2)),t,STEP*len-0.02,'square',0.06,mus.filt)}}}
+// the radio: shuffle without repeats, a burst of tuning static between tracks
+// a fresh shuffle never opens with the last two tracks you heard
+function peekSong(){if(!MUS.list.length){let l,k=0;const rec=MUS.recent||[];do l=shuffle(SONGS.map((_,i)=>i));while((rec.includes(l[0])||rec.includes(l[1]))&&++k<50);MUS.list=l}return MUS.list[0]}
+function changeSong(t,sweep){MUS.from=CUR;MUS.idx=peekSong();MUS.list.shift();MUS.recent=[MUS.idx,...(MUS.recent||[])].slice(0,2);CUR=SONGS[MUS.idx];STEP=CUR.step;MUS.step=0;
+  // play each track for about 75-100 seconds
+  MUS.len=256*Math.max(2,Math.round(85/(256*STEP)));if(mus)mus.dly.delayTime.setValueAtTime(STEP*3,t);
+  if(sweep&&mus){radioStatic(t);MUS.next=t+0.8;MUS.seekAt=performance.now()}else MUS.next=t;peekSong()}
+function radioStatic(t){const s=AC.createBufferSource(),f=AC.createBiquadFilter(),g=AC.createGain();s.buffer=nbufGet();f.type='bandpass';f.Q.value=3;f.frequency.setValueAtTime(500,t);f.frequency.exponentialRampToValueAtTime(3500,t+0.35);f.frequency.exponentialRampToValueAtTime(900,t+0.7);
+  g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(0.22,t+0.05);g.gain.setValueAtTime(0.22,t+0.6);g.gain.linearRampToValueAtTime(0,t+0.78);s.connect(f);f.connect(g);g.connect(mus.filt);s.start(t);s.stop(t+0.8);
+  for(const [dt,fr] of[[0.02,1400],[0.4,2200],[0.7,1800]])mOsc(fr,t+dt,0.04,'square',0.05,mus.filt,0.001)}
+function skipSong(){if(!MUS.on||!AC)return;changeSong(AC.currentTime+0.03,true);renderRadio(true)}
 // what the music should be doing right now
 function musicMood(){if(state==='over'||!G)return null;
   if(state==='menu')return{lvl:2,muffle:false};
   const boss=G.lboss||(G.mini&&!G.mini.dead)||G.portal;const lvl=G.t<8?1:boss||G.t>=420?3:2;
   return{lvl,muffle:state==='paused'||state==='levelup'||state==='shop'}}
 function musicTick(){if(!AC||AC.state!=='running')return;const m=musicMood(),now=AC.currentTime;
-  if(!m||!S.music||S.musVol<=0){if(MUS.on){MUS.on=false;mus.out.gain.setTargetAtTime(0,now,0.25)}return}
-  musicNodes();if(!MUS.on){MUS.on=true;MUS.step=0;MUS.lvl=m.lvl;MUS.next=now+0.08}
+  if(!m||!S.music||S.musVol<=0){if(MUS.on){MUS.on=false;mus.out.gain.setTargetAtTime(0,now,0.25);renderRadio(true)}return}
+  // every time the music starts up again (a new run, back from the results screen) the radio moves on to a new track
+  musicNodes();if(!MUS.on){MUS.on=true;MUS.lvl=m.lvl;changeSong(now+0.08,false);renderRadio(true)}
   mus.out.gain.setTargetAtTime(musVolume()*(m.muffle?0.6:1),now,0.15);mus.filt.frequency.setTargetAtTime(m.muffle?650:18000,now,0.08);
   // a throttled background tab falls behind: skip ahead instead of firing a burst of late notes
   if(MUS.next<now-0.05)MUS.next=now+0.02;
-  while(MUS.next<now+0.14){if(MUS.step%16===0)MUS.lvl=m.lvl;playStep(MUS.step,MUS.next,MUS.lvl);MUS.next+=STEP;MUS.step++}}
+  while(MUS.next<now+0.14){if(MUS.step>=MUS.len){changeSong(MUS.next,true);renderRadio(true);continue}
+    if(MUS.step%16===0)MUS.lvl=m.lvl;playStep(MUS.step,MUS.next,MUS.lvl);MUS.next+=STEP;MUS.step++}}
 setInterval(musicTick,25);
+// the head unit in the top-right corner: station, track, what's next, and a little spectrum readout
+let radioKey='';
+function renderRadio(force){const el=$('radio');if(!el)return;const on=MUS.on&&S.music&&S.musVol>0;
+  if(el.hidden===on)el.hidden=!on;if(!on)return;el.classList.toggle('inrun',state!=='menu');
+  const seeking=performance.now()-MUS.seekAt<800,nx=SONGS[peekSong()],key=MUS.idx+'|'+seeking+'|'+nx.title;
+  if(seeking){const f=MUS.from||CUR,k=(performance.now()-MUS.seekAt)/800,fq=(+f.fm+(+CUR.fm-+f.fm)*k+(Math.random()-.5)*.6).toFixed(1);$('rFreq').textContent=fq;$('rCall').textContent='SEEK';$('rTitle').textContent='· · · tuning · · ·';el.classList.add('seek')}
+  else if(force||key!==radioKey){$('rFreq').textContent=CUR.fm;$('rCall').textContent=CUR.call;$('rTitle').textContent=CUR.title;$('rTrk').textContent=String(MUS.idx+1).padStart(2,'0');
+    $('rNext').textContent='NEXT ▸ '+nx.title;el.classList.remove('seek')}
+  radioKey=key;
+  if(mus){mus.an.getByteFrequencyData(mus.bins);const bars=el.querySelectorAll('.eq i');for(let i=0;i<bars.length;i++){const v=mus.bins[1+i*2]/255;bars[i].style.transform=`scaleY(${Math.max(.08,v*v*1.3).toFixed(2)})`}}}
 // browsers only allow audio after a gesture: start the menu music on the first click or key
 for(const ev of['pointerdown','keydown'])addEventListener(ev,()=>{if(!AC||AC.state!=='running')initAudio()},{capture:true});
 /* ---------- input ---------- */
@@ -586,6 +676,7 @@ addEventListener('keydown',e=>{
   if(e.repeat&&(/^(Digit[1-4]|KeyP|KeyF|KeyR|Escape)$/.test(e.code)||(state!=='play'&&/^(Space|Enter|NumpadEnter)$/.test(e.code)))){if(state!=='play')e.preventDefault();return}
   if(state!=='play'&&(e.code==='ArrowUp'||e.code==='ArrowDown'))menuNav(e);
   if(SUBS.includes(cur)){if(e.code==='Escape')goBack();return}
+  if(e.code==='KeyN'&&!e.repeat&&!(e.target&&e.target.tagName==='INPUT')){skipSong();if(state==='play')return}
   if(state==='shop'){if(e.code==='Escape'||e.code==='KeyF')closeShop();else if(e.code==='KeyR')restock();else if(/^Digit[1-3]$/.test(e.code))buy(+e.code.slice(5)-1);return}
   if(e.code==='KeyF'&&state==='play'&&G.near){openShop();return}
   if(e.code==='KeyP'||e.code==='Escape')togglePause();
@@ -1991,7 +2082,7 @@ $('lbTabs').addEventListener('click',e=>{const b=e.target.closest('.lbtab');if(!
 function lbSaveName(){const nm=lbClean($('lbName').value);if(nm.length<2){$('lbMsg').textContent='Names need at least 2 letters or numbers.';return}
   P.lbName=nm;saveProfile();$('lbName').value=nm;if(!lbOnline){$('lbMsg').textContent='Name saved on this device.';return}
   lbPost({action:'name'}).then(()=>{$('lbMsg').textContent='Name saved.';renderBoard()}).catch(e=>{$('lbMsg').textContent='Name saved on this device. '+lbErrText(e.code)})}
-$('lbSave').onclick=lbSaveName;$('lbName').addEventListener('keydown',e=>{if(e.code==='Enter'||e.code==='NumpadEnter'){e.preventDefault();lbSaveName()}});
+$('lbSave').onclick=lbSaveName;$('rSeek').onclick=e=>{e.currentTarget.blur();initAudio();skipSong()};$('lbName').addEventListener('keydown',e=>{if(e.code==='Enter'||e.code==='NumpadEnter'){e.preventDefault();lbSaveName()}});
 lbFlush();
 const SRCNAME={weather:'Weather',ram:'Ramming',bumpers:'Blast Bumpers',cables:'Jumper Cables',napalm:'Napalm Tank',hazard:'Hazards',barrels:'Barrels',airstrike:'Airstrikes',other:'Other'};
 function renderReport(){const od=G.odStart>=0?(G.escaped||G.forfeit?G.t-G.odStart:0):-1,items=Object.values(G.tk).reduce((a,b)=>a+b,0);
@@ -2104,7 +2195,7 @@ function frame(now){
   else if(state==='menu')attract(dt);
   else if(state==='over'){updateWreck(dt);updateFx(dt);G.shake*=Math.exp(-7*dt)}
   const c=G.cam,p=G.p,am=state==='menu',tx=am?ARENA/2:p.x+p.vx*.3,ty=am?ARENA/2:p.y+p.vy*.3,k=1-Math.exp(-6*dt);c.x+=(tx-c.x)*k;c.y+=(ty-c.y)*k;
-  draw();updateHover();requestAnimationFrame(frame);
+  draw();updateHover();renderRadio(false);requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);
 $('startBtn').focus();
