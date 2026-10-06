@@ -40,6 +40,8 @@ runs on their device, then uploads them once the server works.
   - `lbname` hash (display names)
   - `rl:<ip>` counter that expires after 60 seconds, used for rate limiting
     (30 posts per minute per address)
+  - `xfer:<code>` an exported save parked for **Settings › Transfer save**. It
+    expires after 15 minutes and is deleted the first time the code is used.
 - **Cheating:** the server rejects impossible runs (time, wreck rate and level
   limits). The game runs entirely in the browser, though, so someone who
   edits it can still post a fake score. Stopping that would need server-side
@@ -48,3 +50,12 @@ runs on their device, then uploads them once the server works.
 - **Privacy (for store listings):** the leaderboard stores the chosen display
   name, the random player id and run stats. IP addresses are only held for
   60 seconds by the rate limiter.
+
+## Save transfer
+
+Settings › Transfer save moves a player's progress (unlocks, garage, scrap,
+stats, achievements and leaderboard identity) to another device. It can use a
+6-character code that lasts 15 minutes and works once, which needs the database
+above. It can also use a save text or file, which works with no server at all.
+Loading a save replaces that device's progress after a confirmation step.
+Device settings such as volume are not transferred.
