@@ -2430,7 +2430,7 @@ function results(title){const T=P.tracks[G.L.id]||{best:G.t};$('overTitle').text
   $('rTime').textContent=fmt(G.t);$('rKills').textContent=G.kills;$('rLvl').textContent=G.level;$('rBest').textContent=fmt(T.best);
   fillAcct('oAcct',null,'oAcctFill');$('oGain').innerHTML=`+${G.gain} XP · +${G.scrapGain} <span class="scrapi"></span>scrap`;
   lbAfterRun();$('rAchWrap').hidden=!G.newAch.length;{const seen=new Set(),list=G.newAch.filter(a=>!seen.has(a.id)&&seen.add(a.id));$('rAch').innerHTML=list.slice(0,8).map(a=>`<span class="achip" title="${esc(a.desc)}"><i>${a.ic}</i>${esc(a.name)}</span>`).join('')+(list.length>8?`<span class="achip more">+${list.length-8} more</span>`:'')}}
-function gameOver(){state='over';commitRun();results(G.forfeit?'Run lost':'Wrecked');$('tip').hidden=true;const p=G.p;
+function gameOver(title){state='over';commitRun();results(title||(G.forfeit?'Run lost':'Wrecked'));$('tip').hidden=true;const p=G.p;
   // the car blows apart: a big blast, pieces of bodywork in the car's colour, then a burning shell
   explode(p.x,p.y,170,0);G.shake=24;G.wreck={t:0,booms:[.18,.4,.65]};sfx('boom');
   for(let i=0;i<(S.lowFx?10:24);i++){const a=rand(0,TAU),sp=rand(160,560);part(p.x,p.y,Math.cos(a)*sp,Math.sin(a)*sp,rand(.9,1.7),rand(5,12),i%3?G.car.col:'#2b2930','debris')}
@@ -2496,7 +2496,8 @@ $('carPick').addEventListener('click',e=>{const c=e.target.closest('.car');if(!c
 $('garBtn').onclick=e=>openSub('scrGarage',e.currentTarget);
 $('startBtn').onclick=e=>openSub('scrLevels',e.currentTarget);
 $('againBtn').onclick=()=>startGame();$('quitBtn').onclick=()=>startGame();
-$('pMenuBtn').onclick=toMenu;$('oMenuBtn').onclick=toMenu;
+// quitting mid-run ends it like a wreck: the car blows up and the after-action report follows
+$('pMenuBtn').onclick=()=>{if(G&&G.live&&state==='paused'){show(null);gameOver(G.portal?'Run lost':'Run ended')}else toMenu()};$('oMenuBtn').onclick=toMenu;
 $('shopLeave').onclick=closeShop;$('shopReroll').onclick=restock;$('tip').onclick=()=>{if(state==='play'&&G.near)openShop()};
 $('pauseBtn').onclick=()=>{$('pauseBtn').blur();togglePause()};$('resumeBtn').onclick=togglePause;
 $('achBtn').onclick=e=>openSub('scrAch',e.currentTarget);$('lbBtn').onclick=e=>openSub('scrBoard',e.currentTarget);$('setBtn').onclick=e=>openSub('scrSet',e.currentTarget);
