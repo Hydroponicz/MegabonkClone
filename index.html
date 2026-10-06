@@ -307,7 +307,7 @@ body.nocursor,body.nocursor *{cursor:none!important}
     <div id="traderHud" hidden data-tip="Trader|Shop on wheels|Drive into the dashed ring around the truck and press F (or tap the prompt) to buy items with bolts. Items also come from the Trader's Roll on level up."></div>
     <div id="wxHud" hidden></div>
     <div id="buffs"></div>
-    <div id="bossWrap" hidden data-tip="Boss health|Boss|Bosses ignore walls and smash straight through props."><div id="bossName">JUGGERNAUT</div><div class="bossbar"><div id="bossfill"></div></div></div>
+    <div id="bossWrap" hidden data-tip="Boss health|Boss|Bosses smash straight through props and most walls. Downtown, even they have to drive around the buildings."><div id="bossName">JUGGERNAUT</div><div class="bossbar"><div id="bossfill"></div></div></div>
   </div>
   <div id="loadout"></div>
   <div id="glove" aria-label="Glovebox"></div>
@@ -712,7 +712,7 @@ const LEVELS=[
     ground:'#232128',paint:'255,194,26',wall:'#ffc21a',boss:{name:'THE CRUSHER',col:'#d63434',hp:9000,abil:{charge:1,summon:1}}},
   {id:'dust',name:'Outskirts',desc:'Farmland at the edge of town. Groves, rock piles, barns and propane tanks.',req:3,diff:1.4,head:40,rate:1.1,minis:2,theme:'outskirts',barrels:['barrel','propane'],
     ground:'#34361f',paint:'255,236,200',wall:'#e0a050',boss:{name:'SANDSTORM',col:'#c98a3a',hp:15000,abil:{charge:1,ring:1}}},
-  {id:'neon',name:'Neon District',desc:'Downtown after dark. Tight streets, alleys and live tesla pylons.',req:6,diff:1.75,head:80,rate:1.12,minis:3,spd:1.08,theme:'city',barrels:['barrel','propane'],
+  {id:'neon',name:'Neon District',desc:'Downtown after dark. Wide neon boulevards, towering blocks and live tesla pylons.',req:6,diff:1.75,head:80,rate:1.12,minis:3,spd:1.08,theme:'city',bossWalls:1,barrels:['barrel','propane'],
     ground:'#17142a',paint:'255,79,216',wall:'#ff4fd8',boss:{name:'OVERCLOCK',col:'#7a3cff',hp:22000,spd:1.4,abil:{burst:1,ring:1}}},
   {id:'frost',name:'Frostbite Flats',desc:'Black ice and pine forest. Your tires barely grip. Theirs grip just fine.',req:10,diff:2.5,head:120,rate:1.3,minis:3,grip:2.6,theme:'frost',barrels:['barrel','propane'],
     ground:'#26313c',paint:'200,240,255',wall:'#9fe4ff',boss:{name:'GLACIER HAULER',col:'#5aa8d6',hp:32000,abil:{charge:1,ring:1,summon:1}}},
@@ -1006,9 +1006,9 @@ function solidAt(x,y,r){if(!ocells.length)return false;const x0=clamp((x-r)/OG|0
   for(let cx=x0;cx<=x1;cx++)for(let cy=y0;cy<=y1;cy++)for(const o of ocells[cx*ON+cy])if(o.solid&&hitsShape(o,x,y,r))return true;return false}
 // push a circle (b.x,b.y radius r) out of solid obstacles; returns the last push normal or null
 const HIT={nx:0,ny:0};
-function collideObs(b,r){let hit=null;for(let pass=0;pass<3;pass++){const h=collideOnce(b,r);if(!h)break;hit=h}return hit}
-function collideOnce(b,r){let hit=null;const x0=clamp((b.x-r)/OG|0,0,ON-1),x1=clamp((b.x+r)/OG|0,0,ON-1),y0=clamp((b.y-r)/OG|0,0,ON-1),y1=clamp((b.y+r)/OG|0,0,ON-1);
-  for(let cx=x0;cx<=x1;cx++)for(let cy=y0;cy<=y1;cy++){const c=ocells[cx*ON+cy];for(let i=0;i<c.length;i++){const o=c[i];if(!o.solid)continue;
+function collideObs(b,r,only){let hit=null;for(let pass=0;pass<3;pass++){const h=collideOnce(b,r,only);if(!h)break;hit=h}return hit}
+function collideOnce(b,r,only){let hit=null;const x0=clamp((b.x-r)/OG|0,0,ON-1),x1=clamp((b.x+r)/OG|0,0,ON-1),y0=clamp((b.y-r)/OG|0,0,ON-1),y1=clamp((b.y+r)/OG|0,0,ON-1);
+  for(let cx=x0;cx<=x1;cx++)for(let cy=y0;cy<=y1;cy++){const c=ocells[cx*ON+cy];for(let i=0;i<c.length;i++){const o=c[i];if(!o.solid||(only&&o.k!==only))continue;
     if(o.rect){const hw=o.w/2,hh=o.h/2,qx=clamp(b.x,o.x-hw,o.x+hw),qy=clamp(b.y,o.y-hh,o.y+hh);let dx=b.x-qx,dy=b.y-qy;const dd=dx*dx+dy*dy;if(dd>=r*r)continue;
       if(dd<1e-6){const px=hw-Math.abs(b.x-o.x),py=hh-Math.abs(b.y-o.y);if(px<py){dx=Math.sign(b.x-o.x)||1;dy=0;b.x=o.x+dx*(hw+r)}else{dy=Math.sign(b.y-o.y)||1;dx=0;b.y=o.y+dy*(hh+r)}HIT.nx=dx;HIT.ny=dy}
       else{const d=Math.sqrt(dd);HIT.nx=dx/d;HIT.ny=dy/d;b.x=qx+HIT.nx*r;b.y=qy+HIT.ny*r}hit=HIT}
@@ -1019,6 +1019,23 @@ function collideOnce(b,r){let hit=null;const x0=clamp((b.x-r)/OG|0,0,ON-1),x1=cl
 // so routes keep to the middle of streets. Each cell then stores a smoothed downhill direction.
 const FC=50,FN=Math.ceil(ARENA/FC);let fBlock=new Uint8Array(FN*FN),fWide=new Uint8Array(FN*FN),fTruck=new Uint8Array(FN*FN),fDist=new Int32Array(FN*FN),fDir=new Float32Array(FN*FN);
 const FBK=Array.from({length:16},()=>[]),NBR=[[1,0,5],[-1,0,5],[0,1,5],[0,-1,5],[1,1,7],[1,-1,7],[-1,1,7],[-1,-1,7]];
+// bosses on tracks with bossWalls get their own flow field: cells within 75px of a building are off limits,
+// so their route keeps a big car's whole body on the street
+let bBlock=new Uint8Array(FN*FN),bDist=new Int32Array(FN*FN),bDir=new Float32Array(FN*FN);
+const buildingNear=(x,y,r)=>{const x0=clamp((x-r)/OG|0,0,ON-1),x1=clamp((x+r)/OG|0,0,ON-1),y0=clamp((y-r)/OG|0,0,ON-1),y1=clamp((y+r)/OG|0,0,ON-1);
+  for(let cx=x0;cx<=x1;cx++)for(let cy=y0;cy<=y1;cy++)for(const o of ocells[cx*ON+cy])if(o.k==='building'&&hitsShape(o,x,y,r))return true;return false};
+function buildBossBlock(){bBlock=new Uint8Array(FN*FN);for(let cx=0;cx<FN;cx++)for(let cy=0;cy<FN;cy++){const x=cx*FC+FC/2,y=cy*FC+FC/2;bBlock[cx*FN+cy]=x<70||y<70||x>ARENA-70||y>ARENA-70||buildingNear(x,y,75)?1:0}}
+function updateBossFlow(){const p=G.p;bDist.fill(-1);let s0=clamp(p.x/FC|0,0,FN-1)*FN+clamp(p.y/FC|0,0,FN-1);bDist[s0]=0;FBK[0].push(s0);let pending=1;
+  for(let cur=0;pending>0;cur++){const B=FBK[cur&15];while(B.length){const c=B.pop();pending--;if(bDist[c]!==cur)continue;const cx=c/FN|0,cy=c%FN;
+    for(const [ox,oy,w] of NBR){const nx=cx+ox,ny=cy+oy;if(nx<0||ny<0||nx>=FN||ny>=FN)continue;const n=nx*FN+ny;if(bBlock[n]&&c!==s0)continue;
+      if(ox&&oy&&(bBlock[nx*FN+cy]||bBlock[cx*FN+ny]))continue;const nd=cur+w;if(bDist[n]<0||nd<bDist[n]){bDist[n]=nd;FBK[nd&15].push(n);pending++}}}}
+  for(let c=0;c<FN*FN;c++){const d=bDist[c];if(d<=0){bDir[c]=NaN;continue}const cx=c/FN|0,cy=c%FN;let vx=0,vy=0;
+    for(const [ox,oy,w] of NBR){const nx=cx+ox,ny=cy+oy;if(nx<0||ny<0||nx>=FN||ny>=FN)continue;const dn=bDist[nx*FN+ny];if(dn<0||dn>=d)continue;const g=(d-dn)/w,k=g*g/(ox&&oy?1.414:1);vx+=ox*k;vy+=oy*k}
+    bDir[c]=vx||vy?Math.atan2(vy,vx):NaN}}
+// a boss heads straight for you when nothing is in the way, otherwise it follows its street route
+const bossLine=(x0,y0,x1,y1,r)=>{const dx=x1-x0,dy=y1-y0,n=Math.ceil(Math.hypot(dx,dy)/30);for(let i=0;i<=n;i++)if(buildingNear(x0+dx*i/n,y0+dy*i/n,r))return false;return true};
+function bossAngle(e,dx,dy){if(bossLine(e.x,e.y,G.p.x,G.p.y,e.r*.9))return Math.atan2(dy,dx);
+  const a=bDir[clamp(e.x/FC|0,0,FN-1)*FN+clamp(e.y/FC|0,0,FN-1)];return a===a?a:Math.atan2(dy,dx)}
 function buildFlowBlock(){fBlock=new Uint8Array(FN*FN);fWide=new Uint8Array(FN*FN);fTruck=new Uint8Array(FN*FN);
   for(let cx=0;cx<FN;cx++)for(let cy=0;cy<FN;cy++){const x=cx*FC+FC/2,y=cy*FC+FC/2;fBlock[cx*FN+cy]=solidAt(x,y,4)?1:0;fWide[cx*FN+cy]=solidAt(x,y,22)?1:0;fTruck[cx*FN+cy]=solidAt(x,y,32)?1:0}}
 function updateFlow(){const p=G.p;fDist.fill(-1);const s0=clamp(p.x/FC|0,0,FN-1)*FN+clamp(p.y/FC|0,0,FN-1);fDist[s0]=0;FBK[0].push(s0);let pending=1;
@@ -1042,7 +1059,7 @@ function segClear(x0,y0,x1,y1,r){const dx=x1-x0,dy=y1-y0,n=Math.ceil(Math.hypot(
 // how a car picks its heading: straight at the player (leading the target, from its own flank angle)
 // while the road is clear, otherwise down the flow field. Gunners circle at firing range instead.
 function steer(e,d,dx,dy){const p=G.p;e.orbit=false;
-  if(e.big)return Math.atan2(dy,dx);
+  if(e.big)return G.L.bossWalls?bossAngle(e,dx,dy):Math.atan2(dy,dx);
   if(d>=170&&!e.los)return flowAngle(e,dx,dy);
   // gunners: blend a sideways orbit with closing in or backing off to hold ~330px
   if(e.shoots&&d<560){e.orbit=true;const ux=dx/d,uy=dy/d,k=clamp((d-330)/120,-1,1),sd=e.flank>=0?1:-1,t=1-Math.abs(k);return Math.atan2(ux*sd*t+uy*k,-uy*sd*t+ux*k)}
@@ -1078,29 +1095,27 @@ function buildWorld(L){
   const pylons=n=>{for(let i=0,t=0;i<n&&t<n*30;t++){const x=rand(200,ARENA-200),y=rand(200,ARENA-200);if(!free(x,y,60))continue;const py={x,y,t:rand(0,4)};W.pylons.push(py);add({k:'pylon',x,y,r:16,solid:true,py});i++}};
   const th=L.theme;
   if(th==='city'){
-    // city blocks between the painted roads every 600px; the middle block is an open plaza
-    const E=[0,600,1200,1800,2400,3000],pal=['#2a2540','#30284a','#222a44','#3a2440','#262236'];
-    for(let bx=0;bx<5;bx++)for(let by=0;by<5;by++){// outer blocks stop 150px short of the wall, leaving a ring road instead of a dead-end lane
-      const x0=E[bx]+(bx?72:150),x1=E[bx+1]-(bx<4?72:150),y0=E[by]+(by?72:150),y1=E[by+1]-(by<4?72:150);
-      W.deco.push({x:(x0+x1)/2,y:(y0+y1)/2,w:x1-x0,h:y1-y0});if(bx===2&&by===2)continue;
-      const ix0=x0+28,iy0=y0+28,iw=x1-x0-56,ih=y1-y0-56,lay=Math.floor(Math.random()*4),al=56,bld=(x,y,w,h)=>add({k:'building',x:x+w/2,y:y+h/2,w,h,rect:true,solid:true,col:pal[Math.floor(Math.random()*pal.length)],seed:Math.random()});
-      if(lay===0)bld(ix0,iy0,iw,ih);
-      else if(lay===1){const s=iw*rand(.35,.6);bld(ix0,iy0,s-al/2,ih);bld(ix0+s+al/2,iy0,iw-s-al/2,ih)}
-      else if(lay===2){const s=ih*rand(.35,.6);bld(ix0,iy0,iw,s-al/2);bld(ix0,iy0+s+al/2,iw,ih-s-al/2)}
-      else{const a=iw/2-al/2,b=ih/2-al/2;bld(ix0,iy0,a,b);bld(ix0+a+al,iy0,a,b);bld(ix0,iy0+b+al,a,b);bld(ix0+a+al,iy0+b+al,a,b)}}
-    // tesla pylons sit in the middle of street intersections (the only open ground big enough downtown)
+    // city blocks between the painted roads every 600px, with wide boulevards (~330px) so even bosses can drive them.
+    // one compact building per block, no alleys; the middle block and a couple of random lots stay open
+    const E=[0,600,1200,1800,2400,3000],pal=['#2a2540','#30284a','#222a44','#3a2440','#262236'],M=165,EDGE=175;
+    const open=new Set(['2,2']);while(open.size<4){const b=Math.floor(Math.random()*5),c=Math.floor(Math.random()*5);if(Math.abs(b-2)+Math.abs(c-2)>1)open.add(b+','+c)}
+    for(let bx=0;bx<5;bx++)for(let by=0;by<5;by++){// outer blocks stop short of the wall, leaving a ring road
+      const x0=E[bx]+(bx?M:EDGE),x1=E[bx+1]-(bx<4?M:EDGE),y0=E[by]+(by?M:EDGE),y1=E[by+1]-(by<4?M:EDGE);
+      W.deco.push({x:(x0+x1)/2,y:(y0+y1)/2,w:x1-x0,h:y1-y0});if(open.has(bx+','+by))continue;
+      const aw=x1-x0-24,ah=y1-y0-24,w=aw*rand(.62,1),h=ah*rand(.62,1),x=x0+12+rand(0,aw-w),y=y0+12+rand(0,ah-h);
+      add({k:'building',x:x+w/2,y:y+h/2,w,h,rect:true,solid:true,col:pal[Math.floor(Math.random()*pal.length)],seed:Math.random()})}
+    // tesla pylons sit in the middle of street intersections
     {const X=[];for(let i=1;i<5;i++)for(let j=1;j<5;j++)X.push([E[i],E[j]]);shuffle(X);let n=0;for(const [x,y] of X){if(n>=5)break;if(d2(x,y,sx,sy)<500*500||!free(x,y,16))continue;const py={x,y,t:rand(0,4)};W.pylons.push(py);add({k:'pylon',x,y,r:16,solid:true,py});n++}}
-    for(let i=1;i<5;i++)for(let s=120;s<ARENA-60;s+=260)for(const off of[-86,86]){if(Math.random()<.5)continue;const a=E[i]+off;if(!solidAt(a,s,62)&&d2(a,s,sx,sy)>300*300)add({k:'lamp',x:a,y:s,r:7,solid:true});if(!solidAt(s,a,62)&&d2(s,a,sx,sy)>300*300)add({k:'lamp',x:s,y:a,r:7,solid:true})}
-    for(let i=0,t=0;i<26&&t<400;t++){const line=E[1+Math.floor(Math.random()*4)],along=rand(100,ARENA-100),side=Math.random()<.5?-46:46,hz=Math.random()<.5,x=hz?along:line+side,y=hz?line+side:along,w=hz?42:22,h=hz?22:42;
-      if(d2(x,y,sx,sy)<400*400||solidAt(x,y,80))continue;add({k:'parked',x,y,w,h,rect:true,solid:true,col:['#4a86d9','#b8c93e','#8d6a4f','#c9c6d0','#b44ad0'][i%5]});i++}
-    prop('cone',40,9);prop('hydrant',18,8);prop('crate',16,13);zone('oil',8,40,70);
+    // street lamps along the curbs
+    for(let i=1;i<5;i++)for(let s=120;s<ARENA-60;s+=300)for(const off of[-138,138]){if(Math.random()<.45)continue;const a=E[i]+off;if(!solidAt(a,s,40)&&d2(a,s,sx,sy)>300*300)add({k:'lamp',x:a,y:s,r:7,solid:true});if(!solidAt(s,a,40)&&d2(s,a,sx,sy)>300*300)add({k:'lamp',x:s,y:a,r:7,solid:true})}
+    prop('cone',50,9);prop('hydrant',22,8);prop('crate',20,13);zone('oil',10,40,80);
   }else if(th==='yard'){rect('container',22,120,160,44,52);circ('junk',16,34,58);prop('tires',24,16);zone('oil',10,40,80)}
   else if(th==='outskirts'){grove('tree',14,3,16,28);circ('rock',18,16,44);rect('barn',4,140,180,90,120);circ('silo',3,32,40);prop('hay',30,15);prop('crate',20,13);zone('oil',5,40,60)}
   else if(th==='frost'){grove('pine',16,3,16,26);circ('rock',16,18,46);rect('cabin',5,90,120,70,90);prop('snowman',22,14);prop('crate',20,13);zone('ice',14,60,140)}
   else{circ('rock',26,20,56);grove('burnt',8,3,12,20);rect('ruin',8,80,140,60,100);prop('crate',25,13);zone('lava',12,50,110);strips(8);pylons(4)}
   for(let i=0,t=0;i<30&&t<600;t++){const k=L.barrels[Math.floor(Math.random()*L.barrels.length)],B=BTYPES[k],x=rand(120,ARENA-120),y=rand(120,ARENA-120);
     if(d2(x,y,sx,sy)<320*320||solidAt(x,y,B.r+6)||W.zones.some(z=>d2(x,y,z.x,z.y)<z.r*z.r))continue;W.barrels.push({x,y,r:B.r,t:k,alive:true,respawn:0,fuse:-1});i++}
-  buildFlowBlock();return W}
+  buildFlowBlock();if(L.bossWalls)buildBossBlock();return W}
 // props that get knocked over (and tumble away) instead of smashing
 const KNOCK={tires:1,hay:1,cone:1,hydrant:1,snowman:1};
 function propsTouch(x,y,r,vx=0,vy=0){let n=0;const x0=clamp((x-r)/OG|0,0,ON-1),x1=clamp((x+r)/OG|0,0,ON-1),y0=clamp((y-r)/OG|0,0,ON-1),y1=clamp((y+r)/OG|0,0,ON-1);
@@ -1643,7 +1658,7 @@ function updateEnemies(dt){
     const kd=Math.exp(-5*dt);e.kx*=kd;e.ky*=kd;
     e.x=clamp(e.x,e.r,ARENA-e.r);e.y=clamp(e.y,e.r,ARENA-e.r);
     // regular cars follow the flow field round walls; bosses plough straight through
-    if(!e.big)collideObs(e,e.r);
+    if(!e.big)collideObs(e,e.r);else if(G.L.bossWalls)collideObs(e,e.r*.85,'building');
     if(tr){const R=44+e.r,q=d2(e.x,e.y,tr.x,tr.y);if(q<R*R){const dq=Math.sqrt(q)||1;e.x=tr.x+(e.x-tr.x)/dq*R;e.y=tr.y+(e.y-tr.y)/dq*R}}
     const rr=e.r+p.r;
     if(d<rr){
@@ -1806,7 +1821,7 @@ function updateFx(dt){
 function update(dt){
   G.t+=dt;
   for(const k in G.buffs)if(G.buffs[k]>0)G.buffs[k]-=dt;G.flashT-=dt;
-  G.frame++;if((G.flowT-=dt)<=0){G.flowT=0.25;updateFlow()}
+  G.frame++;if((G.flowT-=dt)<=0){G.flowT=0.25;updateFlow();if(G.L.bossWalls&&G.enemies.some(e=>e.big&&!e.dead))updateBossFlow()}
   if((G.leashT-=dt)<=0){G.leashT=0.5;recycleStragglers()}
   G.dist+=Math.hypot(G.p.vx,G.p.vy)*dt;DSRC='other';
   if(G.tk.piggy&&G.t>=(G.piggyAt??20)){G.piggyAt=G.t+20;const g=Math.min(6*G.tk.piggy,Math.floor(G.bolts*0.03*G.tk.piggy));if(g>0){G.bolts+=g;G.boltsGot+=g;addText(G.p.x,G.p.y-30,'+'+g+' interest','#ffd65a')}}
