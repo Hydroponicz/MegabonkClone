@@ -727,6 +727,18 @@ const SONGS=[
     prog:[0,0,1,0,0,0,6,1,0,0,1,0,5,6,1,0],arp:[0,2,4,7,4,2,0,2],gen:{seed:41,rh:['x..x..x.........','x..x..x...x.x...'],lift:0}},
   {title:'Last Lap',call:'LAP1',fm:'103.5',bpm:156,base:55,mode:'ionian',drums:'four',bass:'roll',wave:'p25',
     prog:[0,4,5,3,0,4,5,3,5,3,0,4,5,3,4,4],arp:[0,4,2,4,7,4,2,4],gen:{seed:59,rh:['x-x-x-x-x---x-x-','x---x-x-x-x-x---'],lift:2}},
+  {title:'Midnight Interstate',call:'NITE',fm:'92.7',bpm:112,base:52,mode:'dorian',drums:'half',bass:'eighths',wave:'p25',arpRate:2,
+    prog:[0,0,3,3,5,5,4,4,0,0,3,3,5,4,6,6],arp:[0,4,7,9,7,4],gen:{seed:71,rh:['x---x-.x--x---x-','x---x-x---------'],lift:1}},
+  {title:'Junkyard Dog',call:'DOGG',fm:'99.1',bpm:140,base:52,mode:'phrygian',drums:'shuffle',bass:'gallop',wave:'square',arpRate:2,
+    prog:[0,0,1,1,0,0,6,5,0,0,1,1,3,2,1,0],arp:[0,3,4,7],gen:{seed:83,rh:['x.x.x-..x.x.x-..','x.x.x---x-------'],lift:0}},
+  {title:'Ice Road',call:'FRST',fm:'88.3',bpm:124,base:57,mode:'dorian',drums:'four',bass:'sub',wave:'p12',
+    prog:[0,4,5,3,0,4,5,5,3,4,0,5,3,4,6,4],arp:[0,2,4,7,9,11,9,7],gen:{seed:97,rh:['x-----x-x-----x-','x-------x-------'],lift:1}},
+  {title:'Hellfire Titan',call:'HELL',fm:'107.7',bpm:180,base:50,mode:'phrygian',drums:'break',bass:'reese',wave:'sawtooth',arpRate:2,
+    prog:[0,0,1,0,6,6,5,1,0,0,1,0,3,2,1,1],arp:[0,4,7,4],gen:{seed:101,rh:['x-x-x---x-x-x---','x---x---x-------'],lift:2}},
+  {title:'Gridlock Groove',call:'GRID',fm:'95.5',bpm:118,base:53,mode:'dorian',drums:'disco',bass:'walk',wave:'square',arpRate:2,
+    prog:[0,0,3,3,0,0,4,3,1,1,4,4,0,3,4,4],arp:[0,2,4,6],gen:{seed:113,rh:['x.-x.-x.x-.x..x-','x.x.x-x---------'],lift:1}},
+  {title:'Toxic Drift',call:'TOXX',fm:'91.9',bpm:146,base:55,mode:'aeolian',drums:'half',bass:'gallop',wave:'p12',
+    prog:[0,5,3,4,0,5,3,6,5,3,0,4,5,3,4,4],arp:[0,4,7,11,7,4,2,4],gen:{seed:127,rh:['x-x---x-x-x---x-','x---x---x---x---'],lift:2}},
 ];
 // a lead line from a seeded motif: the same rhythm and shape over the first three bars of each phrase (moved to the chord),
 // a cadence that settles on the chord root in the fourth, and the whole second half lifted for a climax
@@ -774,14 +786,16 @@ function mReese(m,t,dur,lvl){const f=AC.createBiquadFilter(),g=AC.createGain();f
 const WALK={0:0,3:0,6:4,8:7,11:4,14:2};
 function playStep(n,t,lvl){const S_=CUR,step=n%16,bar=(n>>4)%16,root=S_.prog[bar],fill=bar%8===7&&step>=12,D=S_.drums;
   // drums
-  const kick=D==='break'?(step===0||step===10||(bar%2===1&&step===7)):step%4===0;
+  const kick=D==='break'?(step===0||step===10||(bar%2===1&&step===7)):D==='half'?(step===0||step===10||(bar%2===1&&step===14)):step%4===0;
   if(kick&&!(fill&&lvl>=2))mKick(t);
   if(step===0&&bar%8===0&&lvl>=2)mNoise(t,1.3,0.3,'highpass',3500);
-  if(lvl>=2&&(step===4||step===12)&&!fill){mNoise(t,0.16,1,'bandpass',1700,0.9);mOsc(190,t,0.04,'triangle',0.3,mus.filt,0.001)}
+  if(lvl>=2&&(D==='half'?step===8:(step===4||step===12))&&!fill){mNoise(t,0.16,1,'bandpass',1700,0.9);mOsc(190,t,0.04,'triangle',0.3,mus.filt,0.001)}
   if(D==='break'&&lvl>=2&&(step===14||step===9)&&!fill)mNoise(t,0.06,0.25,'bandpass',2200,0.9);
   if(fill&&lvl>=2)mNoise(t,0.1,0.45+0.15*(step-12),'bandpass',1500+300*(step-12),0.9);
   if(D==='disco'){if(step%4===2)mNoise(t,0.22,0.3,'highpass',6500);else if(lvl>=2)mNoise(t,0.03,0.1,'highpass',9500)}
   else if(D==='break'){if(step%2===0)mNoise(t,0.05,0.24,'highpass',8000);else if(lvl>=3)mNoise(t,0.025,0.12,'highpass',9500)}
+  else if(D==='half'){if(step%2===0)mNoise(t,0.05,0.22,'highpass',8500);else if(lvl>=3&&step%4===3)mNoise(t,0.03,0.12,'highpass',9500)}
+  else if(D==='shuffle'){if(step%4===3)mNoise(t,0.08,0.34,'highpass',7800);else if(step%4===1&&lvl>=2)mNoise(t,0.03,0.14,'highpass',9500);if(step%4===2&&lvl>=3)mNoise(t,0.04,0.12,'bandpass',5000,0.8)}
   else{if(step%4===2)mNoise(t,0.09,0.35,'highpass',7500);else if(lvl>=3&&step%2===1)mNoise(t,0.03,0.16,'highpass',9000)}
   // bass
   const B=S_.bass,bm=degMidi(root,S_.base-24);
@@ -790,6 +804,9 @@ function playStep(n,t,lvl){const S_=CUR,step=n%16,bar=(n>>4)%16,root=S_.prog[bar
   else if(B==='offbeat'){if(step%4===2)mBass(bm,t,lvl,STEP*1.7)}
   else if(B==='walk'){if(WALK[step]!=null)mBass(degMidi(root+WALK[step],S_.base-24),t,lvl,STEP*1.6)}
   else if(B==='reese'){if(step===0||step===8)mReese(bm,t,STEP*8,lvl)}
+  else if(B==='gallop'){if(step%4!==1)mBass(bm+(step%8===6?12:0),t,lvl,STEP*.9)}
+  else if(B==='eighths'){if(step%2===0)mBass(bm+(bar%2&&step>=12?7:0),t,lvl,STEP*1.6)}
+  else if(B==='sub'){if(step===0||step===8)mBass(bm,t,lvl,STEP*7);else if(lvl>=3&&step===14)mBass(bm+12,t,lvl,STEP*1.5)}
   // arp over the chord
   const ar=S_.arpRate||1;if(step%ar===0)mOsc(mtof(degMidi(root+S_.arp[(step/ar|0)%S_.arp.length],S_.base+12)),t,STEP*ar*0.7,mus.p12,(lvl>=2?0.09:0.12)*(ar>1?1.2:1),mus.duck);
   // lead
