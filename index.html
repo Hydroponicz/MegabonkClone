@@ -2009,7 +2009,7 @@ function driveTrader(tr,dt,brake){const w=tr.path[tr.wi],dx=w[0]-tr.x,dy=w[1]-tr
   if(d<(last?4:24)){if(last)return true;tr.wi++;return false}
   tr.v=brake&&last?Math.min(320,40+d*1.2):Math.min(380,tr.v+260*dt);tr.a+=angDiff(tr.a,Math.atan2(dy,dx))*Math.min(1,5*dt);tr.x+=dx/d*Math.min(d,tr.v*dt);tr.y+=dy/d*Math.min(d,tr.v*dt);return false}
 function updateTrader(dt){const tr=G.trader,p=G.p;G.near=false;if(!tr)return;
-  if(tr.phase==='arrive'){if(driveTrader(tr,dt,true)){tr.phase='parked';tr.v=0;sfx('horn');toast('$',tr.T.name+' has parked','Drive into the ring and press F to trade')}}
+  if(tr.phase==='arrive'){if(driveTrader(tr,dt,true)){tr.phase='parked';tr.v=0;sfx('horn');toast('$',tr.T.name+' has parked',coarse()?'Drive into the ring to trade':'Drive into the ring and press F to trade')}}
   else if(tr.phase==='parked'){tr.stay-=dt;if(tr.stay<=0){tr.phase='leave';tr.v=60;
     // drive back out the way it came in
     tr.path=tr.path.slice(0,-1).reverse().concat([tr.home]);tr.wi=0;showBanner(tr.T.name+' is leaving','')}}
@@ -2020,8 +2020,10 @@ function updateTrader(dt){const tr=G.trader,p=G.p;G.near=false;if(!tr)return;
   // the truck is solid; shove the player out of it
   const R=44+p.r,dd=d2(p.x,p.y,tr.x,tr.y);if(dd<R*R){const d=Math.sqrt(dd)||1,nx=(p.x-tr.x)/d,ny=(p.y-tr.y)/d;p.x=tr.x+nx*R;p.y=tr.y+ny*R;const vn=p.vx*nx+p.vy*ny;if(vn<0){p.vx-=nx*vn*1.4;p.vy-=ny*vn*1.4}}
   G.near=tr.phase==='parked'&&dd<140*140;
+  // phones: driving into the ring opens the shop by itself, once; after you leave the shop it stays shut until you've driven out of the ring
+  if(!G.near)G.shopLatch=false;else if(!G.shopLatch&&state==='play'&&coarse())openShop();
 }
-function openShop(){if(!G.trader)return;state='shop';touch.active=false;for(const k in keys)keys[k]=false;renderShop();show('scrShop');
+function openShop(){if(!G.trader)return;G.shopLatch=true;state='shop';touch.active=false;for(const k in keys)keys[k]=false;renderShop();show('scrShop');
   const f=$('shopCards').querySelector('button:not(:disabled)')||$('shopLeave');f.focus()}
 function renderShop(){const tr=G.trader;if(!tr)return;$('scrShop').style.setProperty('--c',tr.T.col);
   $('shopTitle').textContent=tr.T.title;$('shopSlots').textContent=`Trinkets ${tkCount()}/${slotsT()} · max ${TK_STACK} of each`;$('shopName').textContent=tr.T.name;$('shopBolts').textContent=G.bolts;
