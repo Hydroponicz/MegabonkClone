@@ -481,7 +481,7 @@ body.nocursor,body.nocursor *{cursor:none!important}
   </section>
 
   <section id="scrShop" class="panel" hidden>
-    <div class="shophead"><span class="who" id="shopTitle">Firepower</span><h2 class="big" id="shopName">Trader</h2><span class="wallet"><span class="nut"></span><span id="shopBolts">0</span></span></div>
+    <div class="shophead"><span class="who" id="shopTitle">Firepower</span><h2 class="big" id="shopName">Trader</h2><span class="wallet"><span class="nut"></span><span id="shopBolts">0</span></span><span class="sub" id="shopSlots"></span></div>
     <p class="sub">Buy with keys 1 to 3 · <kbd>R</kbd> to restock · <kbd>F</kbd> or <kbd>Esc</kbd> to leave</p>
     <div class="cards" id="shopCards"></div>
     <div class="btns"><button class="btn alt" id="shopReroll">Restock</button><button class="btn alt" id="shopLeave">Hit the road</button></div>
@@ -935,7 +935,10 @@ const TRINKETS={
   nitrocan:{name:'Nitro Canister',desc:'8 seconds of Nitro when you use it: top speed and ramming way up.',cost:12,cat:'luck',rar:'common',shop:1,glove:'NOS'},
   empnade:{name:'EMP Grenade',desc:'Stuns every car around you for 3 seconds when you use it.',cost:20,cat:'luck',rar:'common',shop:1,glove:'EMP'},
 };
-const itemOpen=k=>(G.tk[k]||0)<(TRINKETS[k].max||5);
+// trinket limits: a few different trinkets per run (more with the garage's Trinket Case), and at most 3 of any one
+const TK_STACK=3,tkCap=k=>Math.min(TK_STACK,TRINKETS[k].max||TK_STACK),tkCount=()=>Object.keys(G.tk).filter(k=>G.tk[k]>0).length;
+const itemOpen=k=>{const n=G.tk[k]||0;return n?n<tkCap(k):tkCount()<slotsT()};
+const tkWhyNot=k=>(G.tk[k]||0)?`Maxed ×${tkCap(k)}`:'Trinket slots full';
 // a Trader's Roll: any non-consumable item you can still stack
 const rollPool=()=>Object.keys(TRINKETS).filter(k=>!TRINKETS[k].shop&&itemOpen(k));
 function rollItem(){const pool=rollPool();if(!pool.length)return'patch';
@@ -958,7 +961,7 @@ const coarse=()=>matchMedia('(pointer: coarse)').matches;
 function updateGlove(){const el=$('glove');if(!el||!G)return;let h='';const tap=coarse();for(let i=0;i<GLOVE_MAX;i++){const id=G.glove[i],d=id&&TRINKETS[id];
     h+=d?`<button class="gslot" data-i="${i}" aria-label="Use ${esc(d.name)}" data-tip="${esc(d.name)}|Glovebox · ${tap?'tap to use':i?'click to use':'Q or click to use'}|${esc(d.desc)}"><b>${d.glove}</b><small>${tap?'TAP':i?'':'Q'}</small></button>`:`<span class="gslot empty"></span>`}
   el.innerHTML=h}
-function grantItem(id){if(TRINKETS[id].glove){if(G.glove.length<GLOVE_MAX)G.glove.push(id);updateGlove()}else if(id==='voucher')G.pending++;else{G.tk[id]=(G.tk[id]||0)+1;recalc()}updateLoadout()}
+function grantItem(id){if(!TRINKETS[id].shop&&!itemOpen(id))return;if(TRINKETS[id].glove){if(G.glove.length<GLOVE_MAX)G.glove.push(id);updateGlove()}else if(id==='voucher')G.pending++;else{G.tk[id]=(G.tk[id]||0)+1;recalc()}updateLoadout()}
 const stockFor=cat=>{const ks=Object.keys(TRINKETS).filter(k=>TRINKETS[k].cat===cat),items=shuffle(ks.filter(k=>!TRINKETS[k].shop&&itemOpen(k))),cons=shuffle(ks.filter(k=>TRINKETS[k].shop));
   return[...items.slice(0,cons.length?2:3),...cons.slice(0,1)].map(id=>({id,sold:false}))};
 // unique item effects that trigger on a wreck
@@ -1071,6 +1074,7 @@ const CARS={
 const GARAGE={
   wslots:{name:'Weapon Bay',desc:'One more weapon slot every run (you start with 2).',max:3,cost:90},
   pslots:{name:'Upgrade Rack',desc:'One more upgrade slot every run (you start with 2).',max:3,cost:80},
+  tslots:{name:'Trinket Case',desc:'One more trinket slot every run (you start with 4).',max:4,cost:100},
   frame:{name:'Reinforced Frame',desc:'+10 max HP per level.',max:5,cost:40},
   engine:{name:'Tuned Engine',desc:'+3% top speed per level.',max:5,cost:50},
   ammo:{name:'Better Ammo',desc:'+5% weapon damage per level.',max:5,cost:60},
@@ -1084,7 +1088,7 @@ const GARAGE={
 };
 const gl=k=>P.garage[k]||0;
 // how many different weapons / upgrades a run can carry
-const slotsW=()=>2+gl('wslots'),slotsP=()=>2+gl('pslots');
+const slotsW=()=>2+gl('wslots'),slotsP=()=>2+gl('pslots'),slotsT=()=>4+gl('tslots');
 const gcost=k=>Math.round(GARAGE[k].cost*Math.pow(1.6,gl(k)));
 
 /* ---------- random drops ---------- */
@@ -1710,11 +1714,11 @@ function updateTrader(dt){const tr=G.trader,p=G.p;G.near=false;if(!tr)return;
 function openShop(){if(!G.trader)return;state='shop';touch.active=false;for(const k in keys)keys[k]=false;renderShop();show('scrShop');
   const f=$('shopCards').querySelector('button:not(:disabled)')||$('shopLeave');f.focus()}
 function renderShop(){const tr=G.trader;if(!tr)return;$('scrShop').style.setProperty('--c',tr.T.col);
-  $('shopTitle').textContent=tr.T.title;$('shopName').textContent=tr.T.name;$('shopBolts').textContent=G.bolts;
+  $('shopTitle').textContent=tr.T.title;$('shopSlots').textContent=`Trinkets ${tkCount()}/${slotsT()} · max ${TK_STACK} of each`;$('shopName').textContent=tr.T.name;$('shopBolts').textContent=G.bolts;
   const rc=restockCost();$('shopReroll').innerHTML=`Restock · <span class="nut"></span>${rc}`;$('shopReroll').disabled=G.bolts<rc;
   $('shopCards').innerHTML=tr.offers.map((o,i)=>{const d=TRINKETS[o.id],c=price(o.id),own=G.tk[o.id]||0;
-    const full=d.glove&&G.glove.length>=GLOVE_MAX;return`<button class="card${o.sold?' sold':''}" data-i="${i}" ${o.sold||G.bolts<c||full?'disabled':''}><span class="num">${i+1}</span><span class="kind" style="color:${RAR[d.rar].col}">${d.glove?(full?'Glovebox full':'Consumable · glovebox'):d.shop?'Consumable':RAR[d.rar].name+' item'}</span><h3>${d.name}</h3><p>${d.desc}</p>${own?`<span class="owned">Owned ×${own}</span>`:''}<span class="price">${o.sold?'Sold':`<span class="nut"></span>${c}`}</span></button>`}).join('')}
-function buy(i){const tr=G.trader;if(!tr||state!=='shop')return;const o=tr.offers[i];if(!o||o.sold)return;const c=price(o.id);if(G.bolts<c||(TRINKETS[o.id].glove&&G.glove.length>=GLOVE_MAX))return;
+    const full=d.glove?G.glove.length>=GLOVE_MAX:!d.shop&&!o.sold&&!itemOpen(o.id);return`<button class="card${o.sold?' sold':''}" data-i="${i}" ${o.sold||G.bolts<c||full?'disabled':''}><span class="num">${i+1}</span><span class="kind" style="color:${RAR[d.rar].col}">${d.glove?(full?'Glovebox full':'Consumable · glovebox'):d.shop?'Consumable':full?tkWhyNot(o.id):RAR[d.rar].name+' item'}</span><h3>${d.name}</h3><p>${d.desc}</p>${own?`<span class="owned">Owned ×${own}</span>`:''}<span class="price">${o.sold?'Sold':`<span class="nut"></span>${c}`}</span></button>`}).join('')}
+function buy(i){const tr=G.trader;if(!tr||state!=='shop')return;const o=tr.offers[i];if(!o||o.sold)return;const c=price(o.id);if(G.bolts<c||(TRINKETS[o.id].glove&&G.glove.length>=GLOVE_MAX)||(!TRINKETS[o.id].shop&&!itemOpen(o.id)))return;
   G.bolts-=c;o.sold=true;G.bought++;sfx('buy');grantItem(o.id);
   renderShop();checkAch();const f=$('shopCards').querySelector('button:not(:disabled)')||$('shopLeave');f.focus()}
 const restockCost=()=>4+4*G.trader.restocks;
@@ -2384,7 +2388,7 @@ function buildChoices(){
 // a fully maxed rig: level ups and supply crates turn into banked scrap instead of pausing the game (and instead of free heals)
 function maxedOut(){const n=G.pending;G.pending=0;if(state==='levelup'){state='play';show(null);last=performance.now()}G.sack+=10*n;toast('MAX','Fully loaded',`+${10*n} scrap banked`);sfx('pick')}
 function openLevelup(){const ch=buildChoices();if(!ch.length){maxedOut();return}state='levelup';choices=ch;sfx('level');
-  $('lvlSub').textContent=`Pick a bolt-on or roll an item · keys 1 to ${choices.length} · Weapons ${Object.keys(G.weapons).length}/${slotsW()} · Upgrades ${Object.keys(G.passives).length}/${slotsP()}`;
+  $('lvlSub').textContent=`Pick a bolt-on or roll an item · keys 1 to ${choices.length} · Weapons ${Object.keys(G.weapons).length}/${slotsW()} · Upgrades ${Object.keys(G.passives).length}/${slotsP()} · Trinkets ${tkCount()}/${slotsT()}`;
   $('cards').innerHTML=choices.map((c,i)=>{
     if(c.kind==='heal')return`<button class="card" id="choice${i}" data-i="${i}"><span class="num">${i+1}</span><span class="kind">Pit stop</span><h3>Full patch-up</h3><p>Repair 50 HP. Your rig is maxed out.</p></button>`;
     if(c.kind==='roll')return`<button class="card roll" id="choice${i}" data-i="${i}"><span class="num">${i+1}</span><span class="kind">Skip · Trader's Roll</span><h3>Roll an item</h3><p>Skip the bolt-on and take a random item from the traders' stock instead.</p><span class="odds"><b style="color:${RAR.common.col}">Common 60%</b> · <b style="color:${RAR.rare.col}">Rare 30%</b> · <b style="color:${RAR.epic.col}">Epic 10%</b></span></button>`;
