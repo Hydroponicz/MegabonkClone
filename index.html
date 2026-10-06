@@ -375,6 +375,38 @@ body.nocursor,body.nocursor *{cursor:none!important}
 @media (max-width:520px){#timer{font-size:22px}.stat b{font-size:16px}.mstats div{padding:6px 12px}.mstats b{font-size:16px}}
 @media (hover:none){.hint{display:none}}
 @media (prefers-reduced-motion:reduce){.card,#banner,.mbtn,.toast{transition:none;animation:none}}
+/* level-up flair: the cards never move, only their borders, glow and the backdrop do */
+@property --lva{syntax:'<angle>';inherits:false;initial-value:0deg}
+#scrLevel .lvfx{position:fixed;inset:0;pointer-events:none;z-index:-1;overflow:hidden}
+#scrLevel .lvfx::before{content:'';position:absolute;left:50%;top:38%;width:220vmax;height:220vmax;margin:-110vmax 0 0 -110vmax;background:repeating-conic-gradient(rgba(255,194,26,.11) 0 6deg,transparent 6deg 18deg);-webkit-mask:radial-gradient(circle,#000 0,rgba(0,0,0,.6) 18%,transparent 42%);mask:radial-gradient(circle,#000 0,rgba(0,0,0,.6) 18%,transparent 42%);animation:lvspin 60s linear infinite}
+#scrLevel .lvfx::after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 40%,rgba(255,194,26,.16),transparent 55%);animation:lvbreathe 3s ease-in-out infinite alternate}
+#scrLevel .lvfx i{position:absolute;bottom:-12px;width:5px;height:5px;background:#ffe07a;box-shadow:0 0 6px 1px rgba(255,194,26,.8);transform:rotate(45deg);opacity:0;animation:lvspark linear infinite}
+@keyframes lvspin{to{transform:rotate(360deg)}}
+@keyframes lvbreathe{from{opacity:.55}to{opacity:1}}
+@keyframes lvspark{0%{opacity:0;transform:translateY(0) rotate(45deg) scale(.6)}12%{opacity:1}80%{opacity:.8}100%{opacity:0;transform:translateY(-78vh) rotate(405deg) scale(1.1)}}
+#scrLevel h2.big{background:linear-gradient(100deg,#ff9d00 0%,#ffc21a 30%,#fff6c8 45%,#ffc21a 60%,#ff9d00 100%);background-size:250% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;text-shadow:none;filter:drop-shadow(4px 4px 0 var(--ink)) drop-shadow(0 0 18px rgba(255,194,26,.35));animation:lvshine 2.6s linear infinite,lvpop .5s cubic-bezier(.2,1.6,.4,1) both}
+@keyframes lvshine{from{background-position:120% 0}to{background-position:-130% 0}}
+@keyframes lvpop{from{transform:scale(.6);opacity:0}to{transform:none;opacity:1}}
+#scrLevel .card{--g1:#ffc21a;--g2:#fff1a8;--g3:#b86b00;border:2px solid transparent;overflow:hidden;
+  background:linear-gradient(var(--panel),var(--panel)) padding-box,conic-gradient(from var(--lva),var(--g3),var(--g1),var(--g2),var(--g1),var(--g3),var(--g1),var(--g2),var(--g1),var(--g3)) border-box;
+  box-shadow:0 0 0 1px rgba(10,9,12,.9),0 0 14px rgba(255,194,26,.18),inset 0 0 22px rgba(255,194,26,.06);
+  animation:lvborder 4s linear infinite,lvglow 2.4s ease-in-out infinite alternate,lvfade .32s ease-out both;transition:box-shadow .15s,filter .15s}
+#scrLevel .card:nth-child(2){animation-delay:-1s,-.6s,.07s}#scrLevel .card:nth-child(3){animation-delay:-2s,-1.2s,.14s}#scrLevel .card:nth-child(4){animation-delay:-3s,-1.8s,.21s}
+#scrLevel .card.p{--g1:#ffc21a;--g2:#9ff5ec;--g3:#1f8f86}
+#scrLevel .card.roll{border-style:solid;--g1:#c79bff;--g2:#ffe07a;--g3:#5a2aa8}
+#scrLevel .card::after{content:'';position:absolute;inset:0;pointer-events:none;background:linear-gradient(105deg,transparent 38%,rgba(255,236,170,.16) 47%,rgba(255,255,255,.28) 50%,rgba(255,236,170,.16) 53%,transparent 62%);background-size:300% 100%;background-position:150% 0;animation:lvsheen 3.6s ease-in-out infinite}
+#scrLevel .card:nth-child(2)::after{animation-delay:.45s}#scrLevel .card:nth-child(3)::after{animation-delay:.9s}#scrLevel .card:nth-child(4)::after{animation-delay:1.35s}
+#scrLevel .card .num{color:#1a1206;background:radial-gradient(circle at 35% 30%,#fff3b8,#ffc21a 55%,#b86b00);width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-size:15px;top:9px;right:9px;box-shadow:0 0 0 2px var(--ink),0 0 10px rgba(255,194,26,.5)}
+#scrLevel .card .kind{color:#ffd24a;text-shadow:0 0 8px rgba(255,194,26,.35)}#scrLevel .card.p .kind{color:var(--xp);text-shadow:0 0 8px rgba(63,224,208,.35)}#scrLevel .card.roll .kind{color:#c79bff}
+#scrLevel .card:hover,#scrLevel .card:focus-visible{transform:none;box-shadow:0 0 0 1px rgba(10,9,12,.9),0 0 26px rgba(255,194,26,.55),inset 0 0 30px rgba(255,194,26,.14)}
+#scrLevel .card.p:hover,#scrLevel .card.p:focus-visible{box-shadow:0 0 0 1px rgba(10,9,12,.9),0 0 26px rgba(63,224,208,.5),inset 0 0 30px rgba(63,224,208,.12)}
+#scrLevel .card.roll:hover,#scrLevel .card.roll:focus-visible{box-shadow:0 0 0 1px rgba(10,9,12,.9),0 0 26px rgba(199,155,255,.55),inset 0 0 30px rgba(199,155,255,.14)}
+@keyframes lvborder{to{--lva:360deg}}
+@keyframes lvglow{from{filter:brightness(1)}to{filter:brightness(1.08)}}
+@keyframes lvfade{from{opacity:0}to{opacity:1}}
+@keyframes lvsheen{0%,55%{background-position:150% 0}100%{background-position:-50% 0}}
+@media (prefers-reduced-motion:reduce){#scrLevel .lvfx,#scrLevel .lvfx::before,#scrLevel .lvfx::after,#scrLevel .lvfx i,#scrLevel h2.big,#scrLevel .card,#scrLevel .card::after{animation:none}#scrLevel .lvfx i{display:none}}
+
 </style>
 
 <canvas id="cv"></canvas>
@@ -563,6 +595,7 @@ body.nocursor,body.nocursor *{cursor:none!important}
   </section>
 
   <section id="scrLevel" class="panel" hidden>
+    <div class="lvfx" id="lvfx" aria-hidden="true"></div>
     <h2 class="big">Level up</h2>
     <p class="sub" id="lvlSub">Pick a bolt-on · keys 1 to 3</p>
     <div class="cards" id="cards"></div>
@@ -2890,7 +2923,8 @@ function maxedOut(){const n=G.pending;G.pending=0;if(state==='levelup'){state='p
 const rerollCost=()=>{const n=G.rerolls||0;return n===0?0:Math.round(5*n*(1+0.15*(n-1)))};
 function rerollLevelup(){if(state!=='levelup')return;const c=rerollCost();if(G.bolts<c)return;G.bolts-=c;G.rerolls=(G.rerolls||0)+1;
   const ch=buildChoices();if(!ch.length)return;choices=ch;sfx('buy');renderLevelup();const f=$('choice0');if(f)f.focus()}
-function openLevelup(){const ch=buildChoices();if(!ch.length){maxedOut();return}state='levelup';choices=ch;sfx('level');renderLevelup();
+function lvSparks(){const fx=$('lvfx');if(fx.childElementCount)return;let h='';for(let i=0;i<16;i++)h+=`<i style="left:${(i*6.3+Math.random()*5).toFixed(1)}%;animation-duration:${(3.5+Math.random()*3).toFixed(2)}s;animation-delay:${(-Math.random()*6).toFixed(2)}s"></i>`;fx.innerHTML=h}
+function openLevelup(){lvSparks();const ch=buildChoices();if(!ch.length){maxedOut();return}state='levelup';choices=ch;sfx('level');renderLevelup();
   show('scrLevel');touch.active=false;for(const k in keys)keys[k]=false;
   const first=$('choice0');if(first)setTimeout(()=>first.focus(),50);
 }
