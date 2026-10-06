@@ -424,7 +424,7 @@ body.nocursor,body.nocursor *{cursor:none!important}
     <div id="wxHud" hidden></div>
     <div id="buffs"></div>
     <div id="cds"></div>
-    <div id="hunterCam" hidden data-tip="Chrome hunter|Loot piñata|Runs and hides from you, and gets away a minute after it shows up. Wreck it for a supply crate and bolts. Follow the silver arrow."><canvas id="hcam" width="168" height="96"></canvas><div class="hc"><span id="hcInfo"></span></div></div>
+    <div id="hunterCam" hidden data-tip="Chrome bandit|Loot piñata|Runs and hides from you, and gets away a minute after it shows up. Wreck it for a supply crate and bolts. Follow the silver arrow."><canvas id="hcam" width="168" height="96"></canvas><div class="hc"><span id="hcInfo"></span></div></div>
     <div id="bossWrap" hidden data-tip="Boss health|Boss|Bosses smash straight through props and most walls. Downtown, even they have to drive around the buildings."><div id="bossName">JUGGERNAUT</div><div class="bossbar"><div id="bossfill"></div></div></div>
   </div>
   <div id="loadout"></div>
@@ -580,7 +580,7 @@ body.nocursor,body.nocursor *{cursor:none!important}
       <div class="key"><i style="background:#8ce6ff;border-radius:50%"></i><span><b>Tesla pylon</b> · glows, then zaps everything close</span></div>
     </div>
     <div class="keys">
-      <div class="key"><b>Chrome hunters</b><span>A shiny loot car shows up now and then. It runs and hides, and gets away after a minute. Follow the silver arrow and the live camera in the corner, and wreck it for a supply crate and bolts.</span></div>
+      <div class="key"><b>Chrome bandits</b><span>A shiny loot car shows up now and then. It runs and hides, and gets away after a minute. Follow the silver arrow and the live camera in the corner, and wreck it for a supply crate and bolts.</span></div>
       <div class="key"><b>Juggernauts</b><span>A mini boss rolls in every 2 minutes. Wreck two of them and the level boss comes for you; while it is out, the horde thins and ambushes hold off.</span></div>
       <div class="key"><b>RC minions</b><span>Some level-ups are little remote-control cars with antennas. They take a weapon slot and work on their own: Medic patches you up, Rammer rams cars, Bomb drives into crowds and blows up, Scavenger fetches scrap and digs up bolts, Jammer hunts down packs of cars, slowing them and stopping gunners firing. Signal Booster makes them all stronger.</span></div>
       <div class="key"><b>Weather</b><span>Every run rolls its own weather, shown as the forecast on the track card. Rain and snow cost grip, blizzards shove you around, thunderstorms drop marked lightning strikes, and dust storms send tornadoes across the track.</span></div>
@@ -892,7 +892,7 @@ for(const ev of['pointerdown','keydown'])addEventListener(ev,()=>{if(!AC||AC.sta
 const DBG={on:false,god:false,ohk:false,noSpawn:false,hit:false,scale:1,ft:16,msg:'',msgT:0,infoT:0};
 const DBG_KEYS=[
   ['F1','God mode','Shift+F1','One-hit kills'],
-  ['F2','Spawn Juggernaut','Shift+F2','Spawn Chrome hunter'],
+  ['F2','Spawn Juggernaut','Shift+F2','Spawn Chrome bandit'],
   ['F3','Spawn level boss','Shift+F3','Wreck every car'],
   ['F4','Next weather','Shift+F4','Previous weather'],
   ['F5','Lightning strike ahead','Shift+F5','Tornado nearby'],
@@ -921,7 +921,7 @@ function debugKey(code,shift){const inRun=state==='play'&&G&&G.live,p=G&&G.p;
     case'F1':DBG.god=!DBG.god;dbgSay('God mode '+(DBG.god?'ON':'off'));break;
     case'F1S':DBG.ohk=!DBG.ohk;dbgSay('One-hit kills '+(DBG.ohk?'ON':'off'));break;
     case'F2':dbgSpawnMini();break;
-    case'F2S':spawnHunter();dbgSay('Chrome hunter spawned');break;
+    case'F2S':spawnHunter();dbgSay('Chrome bandit spawned');break;
     case'F3':dbgSpawnBoss();break;
     case'F3S':{DSRC='debug';let n=0;for(const e of [...G.enemies])if(!e.dead){damageEnemy(e,1e12,false);n++}dbgSay('Wrecked '+n+' cars');break}
     case'F4':dbgWeather(1);break;case'F4S':dbgWeather(-1);break;
@@ -1183,7 +1183,7 @@ const ACH=[
   {id:'derby',ic:'500',name:'Demolition Derby',desc:'Wreck 500 cars in a single run.',k:'kills',n:500},
   {id:'roll',ic:'3m',name:'Still Rolling',desc:'Survive for 3 minutes.',k:'time',n:180,time:true},
   {id:'iron',ic:'10m',name:'Iron Chassis',desc:'Survive for 10 minutes.',k:'time',n:600,time:true},
-  {id:'chrome',ic:'CH',name:'Chrome Polish',desc:'Wreck a Chrome Hunter.',k:'elites',n:1},
+  {id:'chrome',ic:'CB',name:'Chrome Polish',desc:'Wreck a Chrome Bandit.',k:'elites',n:1},
   {id:'giant',ic:'JG',name:'Giant Slayer',desc:'Wreck a Juggernaut mini boss.',k:'bosses',n:1},
   {id:'baron',ic:'x10',name:'Scrap Baron',desc:'Wreck 10 Juggernauts across all runs.',k:'bosses',n:10},
   {id:'breaker',ic:'LB',name:'Boss Breaker',desc:'Defeat a level boss.',k:'clears',n:1},
@@ -1934,10 +1934,10 @@ function drawRC(vis){
       const sw=Math.sin(m.sway)*3.5,bx=-L*.32,by=-Wd*.28,tx=bx-11,ty=by-4+sw;ctx.strokeStyle='#d9d6e0';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(bx,by);ctx.quadraticCurveTo(bx-6,by-1+sw*.4,tx,ty);ctx.stroke();
       ctx.fillStyle=col;ctx.beginPath();ctx.arc(tx,ty,2.3,0,TAU);ctx.fill()})}}
 
-/* ---------- chrome hunters: loot piñatas that run, hide, and get away after a minute ---------- */
+/* ---------- chrome bandits (internally "hunters"): loot piñatas that run, hide, and get away after a minute ---------- */
 const HUNT_LIFE=60;
 function spawnHunter(){const e=spawnEnemy(Math.random()<.5?'truck':'sedan',{elite:true,hpMul:9,scale:1.3,xpMul:5,col:'#e8e4ee',spdMul:1.1});e.born=G.t;e.want=Math.atan2(e.y-G.p.y,e.x-G.p.x);
-  showBanner('Chrome hunter spotted','It runs and hides · wreck it within a minute for a supply crate and bolts');return e}
+  showBanner('Chrome bandit spotted','It runs and hides · wreck it within a minute for a supply crate and bolts');return e}
 // pick an escape heading: away from you, clear of walls and the arena edge, preferring spots you can't see.
 // It only drifts once it's well clear of you (over ~1,000px), so it stays on the radar
 // chrome hunters crash through the scenery as they flee: knockable props go flying, crates burst open and barrels get lit
@@ -1963,7 +1963,7 @@ function hunterSteer(e,dt,d){const p=G.p;
   if(e.boost>0){e.boost-=dt;if(Math.random()<.7)part(e.x-Math.cos(e.a)*e.len*.5,e.y-Math.sin(e.a)*e.len*.5,rand(-30,30),rand(-30,30),rand(.2,.35),rand(5,9),'#6fa8ff','spark')}
   SH_T=Math.max(e.spd,300)*(d<450?1.25:d>1000?0.8:1.1)*(e.boost>0?1.45:1);return e.want}
 function hunterEscapes(e){e.dead=true;for(let i=0;i<(S.lowFx?6:16);i++)part(e.x+rand(-20,20),e.y+rand(-20,20),rand(-60,60),rand(-60,60),rand(.6,1.1),rand(10,18),null,'smoke');
-  toast('CH','Chrome hunter','Got away with the loot')}
+  toast('CB','Chrome bandit','Got away with the loot')}
 const huntLeft=e=>Math.max(0,HUNT_LIFE-(G.t-(e.born??G.t)));
 // live picture-in-picture of the nearest hunter: the real car sprites, drawn into a small canvas around it
 let hcamCtx=null;
@@ -1982,7 +1982,7 @@ function drawHunterCam(){if((hcamTick^=1)&&!$('hunterCam').hidden)return;const e
     if(Math.abs(G.p.x-e.x)<R&&Math.abs(G.p.y-e.y)<R){ctx.setTransform(r*sc,0,0,r*sc,r*(W/2-e.x*sc),r*(H/2-e.y*sc));ctx.fillStyle=G.car.col;ctx.beginPath();ctx.arc(G.p.x,G.p.y,16,0,TAU);ctx.fill();ctx.strokeStyle='#0a090c';ctx.lineWidth=4;ctx.stroke()}}
   finally{ctx=pc;DPR=pd}
   c2.setTransform(r,0,0,r,0,0);c2.strokeStyle='rgba(232,228,238,.9)';c2.lineWidth=1.5;const bl=Math.floor(G.t*3)%2;c2.strokeRect(W/2-22,H/2-22,44,44);
-  c2.fillStyle=bl?'#ff3b4e':'rgba(255,59,78,.35)';c2.beginPath();c2.arc(10,10,4,0,TAU);c2.fill();c2.fillStyle='#e8e4ee';c2.font='700 9px ui-monospace,monospace';c2.fillText('LIVE',17,13);c2.textAlign='right';c2.fillText('CHROME HUNTER',W-6,13);c2.textAlign='left';
+  c2.fillStyle=bl?'#ff3b4e':'rgba(255,59,78,.35)';c2.beginPath();c2.arc(10,10,4,0,TAU);c2.fill();c2.fillStyle='#e8e4ee';c2.font='700 9px ui-monospace,monospace';c2.fillText('LIVE',17,13);c2.textAlign='right';c2.fillText('CHROME BANDIT',W-6,13);c2.textAlign='left';
   const dx=e.x-G.p.x,dy=e.y-G.p.y,left=huntLeft(e);
   {const h=`${Math.ceil(left)}s · ${Math.round(Math.hypot(dx,dy)/10)}m <span class="tarr" style="transform:rotate(${(Math.round(Math.atan2(dy,dx)*10)/10).toFixed(1)}rad)"><i>▶</i></span>`;if(hudCache.hc!==h){hudCache.hc=h;$('hcInfo').innerHTML=h}}el.classList.toggle('urgent',left<15)}
 
@@ -2527,11 +2527,11 @@ function draw(){
   if(state!=='menu')for(const q of G.enemies)if(q.elite&&!q.dead)hunterArrow(q);
   if(state!=='menu')for(const m of G.rcs)if(m.k==='rc_scav')scavArrow(m);
   if(state!=='menu'){for(const k of G.pickups)if(k.type==='chest')arrow(k.x,k.y,'#ffc21a');else if(k.type!=='wrench'&&k.type!=='magnet')arrow(k.x,k.y,DROPS[k.type].col);if(G.trader&&G.trader.phase!=='leave')traderArrow();if(G.portal)portalArrow()}
-  // chrome hunter off screen: a silver arrow with a CH tag and the seconds it has left
+  // chrome bandit (hunter) off screen: a silver arrow with a CB tag and the seconds it has left
   function hunterArrow(e){const sx2=e.x+ox,sy2=e.y+oy;if(sx2>0&&sx2<VW&&sy2>0&&sy2<VH)return;const a=Math.atan2(sy2-VH/2,sx2-VW/2),ex=clamp(sx2,44,VW-44),ey=clamp(sy2,ex>VW-340?250:200,VH-80),left=huntLeft(e),pl=1+(left<15?.18:.08)*Math.sin(G.t*(left<15?10:5));
     ctx.save();ctx.translate(ex,ey);ctx.save();ctx.rotate(a);ctx.scale(pl,pl);ctx.fillStyle='#e8e4ee';ctx.beginPath();ctx.moveTo(26,0);ctx.lineTo(-6,-16);ctx.lineTo(-6,16);ctx.closePath();ctx.fill();ctx.strokeStyle='#0a090c';ctx.lineWidth=2;ctx.stroke();ctx.restore();
     ctx.fillStyle='#0a090c';ctx.beginPath();ctx.arc(0,0,13,0,TAU);ctx.fill();ctx.strokeStyle=left<15?'#ff3b4e':'#e8e4ee';ctx.lineWidth=2;ctx.stroke();ctx.fillStyle='#e8e4ee';ctx.font='700 10px "Chakra Petch",sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';
-    ctx.fillText('CH',0,1);ctx.font='700 11px "Chakra Petch",sans-serif';ctx.fillText(Math.ceil(left)+'s',0,24);ctx.textAlign='left';ctx.textBaseline='alphabetic';ctx.restore()}
+    ctx.fillText('CB',0,1);ctx.font='700 11px "Chakra Petch",sans-serif';ctx.fillText(Math.ceil(left)+'s',0,24);ctx.textAlign='left';ctx.textBaseline='alphabetic';ctx.restore()}
   // scavenger RC off screen: a smaller tan arrow with a little RC badge (and its antenna) so you can see where it went
   function scavArrow(m){const sx2=m.x+ox,sy2=m.y+oy;if(sx2>-8&&sx2<VW+8&&sy2>-8&&sy2<VH+8)return;const a=Math.atan2(sy2-VH/2,sx2-VW/2),ex=clamp(sx2,40,VW-40),ey=clamp(sy2,ex>VW-340?240:190,VH-70),col=RC_COL.rc_scav;
     ctx.save();ctx.translate(ex,ey);ctx.scale(1.3,1.3);ctx.save();ctx.rotate(a);ctx.fillStyle=col;ctx.beginPath();ctx.moveTo(21,0);ctx.lineTo(-4,-12);ctx.lineTo(-4,12);ctx.closePath();ctx.fill();ctx.strokeStyle='#0a090c';ctx.lineWidth=2;ctx.stroke();ctx.restore();
@@ -2652,7 +2652,7 @@ const statRows=rows=>`<div class="ts">${rows.map(([k,v])=>`<span>${k}</span><b>$
 const card=(title,kind,desc,rows,col,bar)=>({col,html:`<div class="tt">${esc(title)}</div><div class="tk">${esc(kind)}</div>${bar!=null?`<div class="tb"><i style="width:${(clamp(bar,0,1)*100).toFixed(1)}%"></i></div>`:''}${rows&&rows.length?statRows(rows):''}${desc?`<div class="td">${esc(desc)}</div>`:''}`});
 function enemyCard(e){const fr=G.buffs.freeze>0||e.ice>0,st=[];if(fr)st.push('frozen');if(e.charge>0)st.push('charging');if(e.burn>0)st.push('on fire');
   let name,kind,desc;if(e.type==='lboss'){name=G.L.boss.name;kind='Level boss';desc='Wreck it to clear '+G.L.name+'. It '+Object.keys(e.ab).map(k=>ABIL[k]).join(', ')+'.'}
-  else if(e.elite){name='Chrome Hunter';kind='Elite '+ENEMY_INFO[e.type][1].toLowerCase();desc='Nine times the armour of a normal '+ENEMY_INFO[e.type][0].toLowerCase()+'. Runs and hides from you, and gets away '+(e.born!=null?Math.ceil(huntLeft(e))+'s from now':'after a minute')+'. Drops a supply crate and bolts.';if(e.born!=null)st.push('fleeing')}
+  else if(e.elite){name='Chrome Bandit';kind='Elite '+ENEMY_INFO[e.type][1].toLowerCase();desc='Nine times the armour of a normal '+ENEMY_INFO[e.type][0].toLowerCase()+'. Runs and hides from you, and gets away '+(e.born!=null?Math.ceil(huntLeft(e))+'s from now':'after a minute')+'. Drops a supply crate and bolts.';if(e.born!=null)st.push('fleeing')}
   else [name,kind,desc]=ENEMY_INFO[e.type];
   return card(name,kind+(st.length?' · '+st.join(', '):''),desc,[['HP',`${Math.max(0,Math.ceil(e.hp)).toLocaleString()} / ${Math.ceil(e.maxhp).toLocaleString()}`],['Ram damage',Math.round(e.dmg)],['Top speed',Math.round(e.spd)],['XP',Math.round(e.xp)]],e.big||e.elite?'#ff3b4e':e.col,e.hp/e.maxhp)}
 function rcCard(m){const p=G.p,W=G.weapons[m.k],lv=W?W.lvl:1,d=WDEF[m.k],up=G.passives.uplink||0,mb=1+.15*up,s=G.stats,col=RC_COL[m.k],dealt=Math.round(G.dmgBy[m.k]||0).toLocaleString();
@@ -2871,7 +2871,7 @@ function renderReport(){const od=G.odStart>=0?(G.escaped||G.forfeit?G.t-G.odStar
     G.cleared?'':`Wreck ${G.L.boss.name} to open the exit portal.`;
   $('rNote').hidden=!note;$('rNote').textContent=note;
   const tot=Object.values(G.dmgBy).reduce((a,b)=>a+b,0);
-  const st=[['Juggernauts',G.miniKills],['Chrome hunters',G.eliteKills],['Ram wrecks',G.ramKills],['Barrels popped',G.barrelBooms],['Props smashed',G.propsBroken],['Power-ups',G.powerups],
+  const st=[['Juggernauts',G.miniKills],['Chrome bandits',G.eliteKills],['Ram wrecks',G.ramKills],['Barrels popped',G.barrelBooms],['Props smashed',G.propsBroken],['Power-ups',G.powerups],
     ['Bolts earned',G.boltsGot],['Items',items],['Damage dealt',Math.round(tot).toLocaleString()],['Damage taken',Math.round(G.dmgTaken).toLocaleString()],['Distance',(G.dist/10000).toFixed(1)+' km'],
     G.clearT>=0?[G.L.boss.name,'down at '+fmt(G.clearT)]:['Boss','not reached']];
   if(od>=0)st.push(['Overdrive',`${fmt(od)} · tier ${roman(Math.max(1,G.odTier))}`]);
