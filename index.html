@@ -2202,7 +2202,7 @@ function bossMoves(e,dt,d,dx,dy){const ab=e.ab,p=G.p;let target=e.spd;
 
 const DZ=[];
 function updateEnemies(dt){
-  const p=G.p,s=G.stats,E=G.enemies,tr=G.trader,fr=G.buffs.freeze>0,Z=DZ;DZ.length=0;for(const z of G.zones)if(ZONES[z.k].edps)DZ.push(z);
+  const p=G.p,s=G.stats,E=G.enemies,fr=G.buffs.freeze>0,Z=DZ;DZ.length=0;for(const z of G.zones)if(ZONES[z.k].edps)DZ.push(z);
   for(const e of E){
     if(e.dead)continue;if(e.elite&&e.born!=null&&G.t-e.born>=HUNT_LIFE){hunterEscapes(e);continue}e.flash-=dt;e.ccd-=dt;e.sawCd-=dt;
     for(let i=0;i<Z.length;i++){const z=Z[i],zd=ZONES[z.k].edps;if(Math.abs(e.x-z.x)<z.r+e.r&&Math.abs(e.y-z.y)<z.r+e.r&&zoneHit(z,e.x,e.y,e.r)){DSRC=z.k==='napalm'?'napalm':'hazard';damageEnemy(e,zd*dt*G.L.diff,false)}}
@@ -2229,7 +2229,7 @@ function updateEnemies(dt){
     // regular cars follow the flow field round walls; bosses plough straight through, wrecking what they hit
     if(!e.big)collideObs(e,e.r);else{bossSmash(e);if(G.L.bossWalls)collideObs(e,e.r*.85,'building')}
     if(e.elite&&e.born!=null&&e.v>40)hunterBump(e);
-    if(tr){const R=44+e.r,q=d2(e.x,e.y,tr.x,tr.y);if(q<R*R){const dq=Math.sqrt(q)||1;e.x=tr.x+(e.x-tr.x)/dq*R;e.y=tr.y+(e.y-tr.y)/dq*R}}
+    // enemies drive straight over the trader truck: pushing them off it left them wedged against it
     const rr=e.r+p.r;
     if(d<rr){
       const nx=-dx/d,ny=-dy/d,impact=Math.max(0,p.vx*nx+p.vy*ny),ov=rr-d;
