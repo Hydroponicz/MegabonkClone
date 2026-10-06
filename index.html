@@ -508,7 +508,7 @@ body.nocursor,body.nocursor *{cursor:none!important}
       <div class="key"><i class="nut" style="width:14px;height:14px;margin:0"></i><span><b>Bolts</b> · spend them at traders</span></div>
       <div class="key"><i style="background:#6b4a2a;outline:3px solid #ffc21a;outline-offset:-5px"></i><span><b>Supply crate</b> · free bolt-on</span></div>
       <div class="key"><i style="background:#8a5a32"></i><span><b>Wooden crate</b> · smash it for a random drop</span></div>
-      <div class="key"><i style="background:#1e7a45"></i><span><b>Wrench</b> · repairs 30 HP</span></div>
+      <div class="key"><i style="background:#1e7a45"></i><span><b>Wrench</b> · repairs 12% of max HP</span></div>
       <div class="key"><i style="background:#ff5a1f;border-radius:50%"></i><span><b>Airstrike</b> · wrecks everything nearby</span></div>
       <div class="key"><i style="background:#9fe4ff;border-radius:50%"></i><span><b>Cryo</b> · freezes every car for 5s</span></div>
       <div class="key"><i style="background:#4f8bff;border-radius:50%"></i><span><b>Nitro</b> · speed and double ram damage</span></div>
@@ -938,7 +938,7 @@ const LEVELS=[
     ground:'#34361f',paint:'255,236,200',wall:'#e0a050',boss:{name:'SANDSTORM',col:'#c98a3a',hp:15000,abil:{charge:1,ring:1}}},
   {id:'neon',name:'Neon District',desc:'Downtown after dark. Wide neon boulevards, towering blocks and live tesla pylons.',req:6,diff:1.75,head:80,rate:1.12,minis:3,spd:1.08,theme:'city',bossWalls:1,barrels:['barrel','propane'],
     ground:'#17142a',paint:'255,79,216',wall:'#ff4fd8',boss:{name:'OVERCLOCK',col:'#7a3cff',hp:22000,spd:1.4,abil:{burst:1,ring:1}}},
-  {id:'frost',name:'Frostbite Flats',desc:'Black ice and pine forest. Your tires barely grip. Theirs grip just fine.',req:10,diff:2.5,head:120,rate:1.3,minis:3,grip:2.6,theme:'frost',barrels:['barrel','propane'],
+  {id:'frost',name:'Frostbite Flats',desc:'Black ice and pine forest. Your tires barely grip. Theirs grip just fine.',req:10,diff:2.5,head:120,rate:1.22,minis:3,grip:2.6,theme:'frost',barrels:['barrel','propane'],
     ground:'#26313c',paint:'200,240,255',wall:'#9fe4ff',boss:{name:'GLACIER HAULER',col:'#5aa8d6',hp:32000,abil:{charge:1,ring:1,summon:1}}},
   {id:'inferno',name:'Inferno Raceway',desc:'The last lap. Lava pools, spike strips, and a boss with every trick.',req:15,diff:3.2,head:160,rate:1.45,minis:3,spd:1.12,theme:'inferno',barrels:['barrel','propane','toxic'],
     ground:'#2a1512',paint:'255,90,31',wall:'#ff5a1f',boss:{name:'HELLFIRE TITAN',col:'#ff3b1f',hp:45000,abil:{charge:1,ring:1,burst:1,summon:1}}},
@@ -1221,7 +1221,7 @@ const BUFFS={nitro:{name:'Nitro',col:'#4f8bff',t:8},fury:{name:'Overdrive',col:'
 // 3.3s, faster with luck, up to 4 saved), and the strongest have their own cooldowns. Early on the bank never runs dry; late
 // in a run it stops huge kill rates from chaining bubble shields, freezes and wrenches back to back.
 // wrenches get a cooldown too, so a burst of wrecks during an ambush can't rain healing on you
-const DROP_CD={bubble:75,freeze:50,nuke:30,fury:25,wrench:10};
+const DROP_CD={bubble:75,freeze:50,nuke:30,fury:25,wrench:6};
 function wreckDrop(){const now=G.t;G.dropBank=Math.min(4,(G.dropBank??2)+(now-(G.dropAt??0))*0.3*G.stats.drop);G.dropAt=now;
   if(G.dropBank<1)return null;const k=rollDrop(1);if(!k)return null;G.dropNext=G.dropNext||{};
   if(DROP_CD[k]&&now<(G.dropNext[k]||0))return null;G.dropBank-=1;if(DROP_CD[k])G.dropNext[k]=now+DROP_CD[k];return k}
@@ -1386,7 +1386,7 @@ function updateHazards(dt){const p=G.p;
   updateTumbles(dt)
 }
 function usePickup(k){const p=G.p;G.powerups++;
-  if(k.type==='wrench'){const h=Math.round(30*(1+0.5*(G.tk.toolbox||0)));p.hp=Math.min(p.maxhp,p.hp+h);addText(p.x,p.y-30,'+'+h+' HP','#5cf08a');G.powerups--}
+  if(k.type==='wrench'){const h=Math.round(Math.max(30,p.maxhp*0.12)*(1+0.5*(G.tk.toolbox||0)));p.hp=Math.min(p.maxhp,p.hp+h);addText(p.x,p.y-30,'+'+h+' HP','#5cf08a');G.powerups--}
   else if(k.type==='magnet'){for(const g of G.gems)g.pull=true;showBanner('Scrap magnet','Hoovering every scrap on the map')}
   else if(k.type==='chest'){const n=G.tk.jackpot?2:1;G.pending+=n;showBanner('Supply crate',n>1?'Jackpot · two free bolt-ons':'Free bolt-on');G.powerups--}
   else if(k.type==='nuke'){G.flashT=0.4;G.shake=18;sfx('boom');DSRC='airstrike';for(const e of [...G.enemies]){if(e.dead)continue;damageEnemy(e,e.big?e.maxhp*0.08:e.maxhp*2+50)}showBanner('Airstrike','Every car on the map is scrap')}
@@ -1608,7 +1608,9 @@ function missileTarget(m){let best=null,bd=900*900,any=null,ad=900*900;
 // nearest car the gun can actually hit: in clear line of sight, or close enough not to matter
 function nearestVisible(x,y,maxD){let best=null,bd=maxD*maxD;for(const e of G.enemies){if(e.dead)continue;const d=d2(x,y,e.x,e.y);if(d<bd&&(e.los||d<170*170)){bd=d;best=e}}return best}
 function nearestEnemy(x,y,maxD){let best=null,bd=maxD*maxD;for(const e of G.enemies){if(e.dead)continue;const d=d2(x,y,e.x,e.y);if(d<bd){bd=d;best=e}}return best}
-function addXp(v){G.xp+=v*G.stats.xpMul*(G.odStart>=0?1.5:1);while(G.xp>=G.xpNeed){G.xp-=G.xpNeed;G.level++;if(G.passives.recycle)G.p.hp=Math.min(G.p.maxhp,G.p.hp+4*G.passives.recycle);G.xpNeed=Math.floor(G.xpNeed*1.16+5);G.pending++;
+// fewer cars spawn before 4:00 (see spawnUpdate), so early scrap is worth more to keep levelling on the old pace
+const earlyXp=te=>te>=240?1:Math.min(1.7,(0.8+te/22)/(0.8+te/22*Math.sqrt(Math.max(te,1)/240)));
+function addXp(v){G.xp+=v*G.stats.xpMul*(G.odStart>=0?1.5:1)*earlyXp(G.t+G.L.head);while(G.xp>=G.xpNeed){G.xp-=G.xpNeed;G.level++;if(G.passives.recycle)G.p.hp=Math.min(G.p.maxhp,G.p.hp+4*G.passives.recycle);G.xpNeed=Math.floor(G.xpNeed*1.16+5);G.pending++;
     if(G.tk.dice&&Math.random()<0.15*G.tk.dice){G.pending++;toast('+1','Loaded Dice','Bonus pick')}}}
 
 /* ---------- spawning ---------- */
@@ -1622,7 +1624,7 @@ function spawnEnemy(type,o={}){
   x=clamp(x,40,ARENA-40);y=clamp(y,40,ARENA-40);
   // Overdrive (after the level boss): every new car is tougher, hits harder and drives faster the longer you stay
   // (speed tops out at +30% so the fastest buggies stay a touch slower than your car)
-  const od=odHeat(),oh=od<0?1:1.5+od/45,odd=od<0?1:1.3+od/90,osp=od<0?1:1.1+Math.min(.2,od/300);
+  const od=odHeat(),oh=od<0?1:1.4+od/50,odd=od<0?1:1.15+od/110,osp=od<0?1:1.1+Math.min(.2,od/300);
   const hm=o.hp?1:(type==='mini'||o.elite?1+G.t/75:hpScale(G.t))*L.diff*(o.hpMul||1)*oh,sc=o.scale||1,hp=o.hp||d.hp*hm;
   const e={id:eid++,type,x,y,a:Math.atan2(p.y-y,p.x-x),v:0,kx:0,ky:0,hp,maxhp:hp,r:d.r*sc,len:d.len*sc,wid:d.wid*sc,
     spd:d.spd*(o.spdMul||1)*(L.spd||1)*osp*(G.wx&&G.wx.W.eslow||1)*rand(.92,1.08),turn:d.turn,dmg:d.dmg*(1+G.t/400)*(0.7+0.3*L.diff)*(o.dmgMul||1)*odd,xp:d.xp*(o.xpMul||1),col:o.col||d.col,
@@ -1648,7 +1650,7 @@ function spawnPoint(r,lean){const p=G.p,sp=Math.hypot(p.vx,p.vy),va=Math.atan2(p
 function pickType(t){const w=[['buggy',5],['sedan',t>35?4:1],['truck',t>80?2:0],['gunner',t>110?2:0]];let tot=0;for(const x of w)tot+=x[1];let r=Math.random()*tot;for(const [k,v] of w){if((r-=v)<0)return k}return'buggy'}
 function spawnUpdate(dt){
   // the horde eases in: the growth term is scaled by sqrt(time/4min), so it reaches the full curve at 4:00
-  const t=G.t,L=G.L,te=t+L.head,od=odHeat(),rate=(0.8+te/22*Math.min(1,Math.sqrt(te/240))+(te>240?(te-240)/14:0))*L.rate*(od<0?1:1.6+od/40);
+  const t=G.t,L=G.L,te=t+L.head,od=odHeat(),rate=(0.8+te/22*Math.min(1,Math.sqrt(te/240))+(te>240?(te-240)/14:0))*L.rate*(od<0?1:1.4+od/50);
   G.spawnT+=DBG.noSpawn?0:dt*rate;
   while(G.spawnT>=1){G.spawnT-=1;if(G.enemies.length<260)spawnEnemy(pickType(te))}
   if(t>=G.nextAmbush){G.nextAmbush+=od<0?45:20;const n=12+Math.floor(te/30);for(let i=0;i<n&&G.enemies.length<ECAP;i++){const a=i/n*TAU,x=G.p.x+Math.cos(a)*460,y=G.p.y+Math.sin(a)*460;if(x<40||y<40||x>ARENA-40||y>ARENA-40||solidAt(x,y,14))continue;spawnEnemy('buggy',{x,y})}showBanner('Ambush!','They’re boxing you in')}
@@ -1766,7 +1768,7 @@ function updateRC(dt,wdt){const p=G.p,s=G.stats,W=G.weapons,up=G.passives.uplink
     // left behind or stuck somewhere: hop back to the convoy
     if(d2(m.x,m.y,p.x,p.y)>900*900){m.x=p.x-Math.cos(p.a)*30;m.y=p.y-Math.sin(p.a)*30;m.v=0;m.tg=null;if(m.k==='rc_bomb')m.st=0}
     if(m.k==='rc_medic'){rcDrive(m,hx,hy,follow,dt);m.cd-=wdt;
-      if(m.cd<=0&&p.hp<p.maxhp){const h0=p.hp;p.hp=Math.min(p.maxhp,p.hp+Math.round((3+1.5*lv)*mb*10)/10);const h=p.hp-h0;m.cd=m.cdMax=(9-.6*lv)*mc;if(lv>=5)p.inv=Math.max(p.inv,1.2);
+      if(m.cd<=0&&p.hp<p.maxhp){const h0=p.hp;p.hp=Math.min(p.maxhp,p.hp+Math.round((3+1.5*lv)*mb*10)/10);const h=p.hp-h0;m.cd=m.cdMax=(9-.6*lv)*mc;if(lv>=5)p.inv=Math.max(p.inv,.6);
         rcFx(m.x,m.y,p.x,p.y,'92,240,138');addText(p.x,p.y-30,'+'+Math.round(h)+' HP','#5cf08a');tone(880,.12,'triangle',.04,1320);G.rcHeal=(G.rcHeal||0)+h}}
     else if(m.k==='rc_ram'){DSRC='rc_ram';m.cd-=wdt;
       if(m.cd>0||!m.tg||m.tg.dead||d2(m.tg.x,m.tg.y,p.x,p.y)>520*520||(m.t+=dt)>3){if(m.cd<=0){m.t=0;m.tg=null;let bd=420*420;
@@ -1774,15 +1776,15 @@ function updateRC(dt,wdt){const p=G.p,s=G.stats,W=G.weapons,up=G.passives.uplink
         // after a hit it skids back and brakes, then picks the next car from where it is
         if(m.cd>0){m.v*=Math.exp(-5*dt);m.x+=Math.cos(m.a)*m.v*dt;m.y+=Math.sin(m.a)*m.v*dt;rcKnock(m);collideObs(m,7)}else if(!m.tg)rcDrive(m,hx,hy,follow,dt)}
       if(m.tg&&m.cd<=0){const e=m.tg;rcDrive(m,e.x,e.y,(lv>=4?640:540)*ms,dt,1);
-        if(d2(m.x,m.y,e.x,e.y)<(e.r+12)**2){const dx=e.x-m.x,dy=e.y-m.y,dd=Math.hypot(dx,dy)||1;damageEnemy(e,(24+10*lv+(lv>=4?14:0))*mb*s.dmg);if(!e.big){e.kx+=dx/dd*320;e.ky+=dy/dd*320;e.ice=Math.max(e.ice||0,.5)}
-          for(let i=0;i<5;i++)part(m.x,m.y,rand(-220,220),rand(-220,220),rand(.1,.25),2,'#ffe7a0','spark');sfx('crash');m.a+=Math.PI+rand(-.6,.6);m.v=220;m.cd=(.5-.03*lv)*mc*s.cd;m.tg=null}}}
+        if(d2(m.x,m.y,e.x,e.y)<(e.r+12)**2){const dx=e.x-m.x,dy=e.y-m.y,dd=Math.hypot(dx,dy)||1;damageEnemy(e,(32+12*lv+(lv>=4?16:0))*mb*s.dmg);if(!e.big){e.kx+=dx/dd*320;e.ky+=dy/dd*320;e.ice=Math.max(e.ice||0,.5)}
+          for(let i=0;i<5;i++)part(m.x,m.y,rand(-220,220),rand(-220,220),rand(.1,.25),2,'#ffe7a0','spark');sfx('crash');m.a+=Math.PI+rand(-.6,.6);m.v=220;m.cd=(.4-.03*lv)*mc*s.cd;m.tg=null}}}
     else if(m.k==='rc_bomb'){DSRC='rc_bomb';
       if(m.st===0){m.cd-=wdt;m.x=p.x;m.y=p.y;m.a=p.a;m.v=0;if(m.cd<=0&&near(p.x,p.y,560).some(e=>!e.dead)){m.st=1;m.t=0;m.tg=null}}
       else{m.t+=dt;if(!m.tg||m.tg.dead){const pool=near(p.x,p.y,560).filter(e=>!e.dead);let bn=-1;for(let k=0;k<6&&pool.length;k++){const c=pool[Math.floor(Math.random()*pool.length)],cnt=near(c.x,c.y,90).length;if(cnt>bn){bn=cnt;m.tg=c}}}
         if(m.tg)rcDrive(m,m.tg.x,m.tg.y,500*ms,dt,1);else rcDrive(m,hx,hy,follow,dt);
         if(m.t>4.5&&!m.tg){m.st=0;m.cd=.5}
         let boom=m.st===1&&m.t>4.5;if(m.st===1&&!boom)for(const e of near(m.x,m.y,80))if(!e.dead&&d2(m.x,m.y,e.x,e.y)<(e.r+10)**2){boom=true;break}
-        if(boom){explode(m.x,m.y,(80+12*lv+(lv>=2?15:0))*s.blast,(50+18*lv+(lv>=4?25:0))*mb*s.dmg,0);boomFx(m.x,m.y,70);m.st=0;m.tg=null;m.cd=m.cdMax=Math.max(2,(lv>=3?5:6.5)-.3*lv)*mc*s.cd}}}
+        if(boom){explode(m.x,m.y,(80+12*lv+(lv>=2?15:0))*s.blast,(70+24*lv+(lv>=4?30:0))*mb*s.dmg,0);boomFx(m.x,m.y,70);m.st=0;m.tg=null;m.cd=m.cdMax=Math.max(2,(lv>=3?4:5.5)-.3*lv)*mc*s.cd}}}
     else if(m.k==='rc_scav'){const vac=lv>=3?70:34;m.cd-=dt;
       if(m.cd<=0||!m.tg||m.tg.got||m.tg.pull){m.cd=.3;m.tg=null;let bd=650*650;for(const g of G.gems){if(g.pull||G.rcs.some(o=>o!==m&&o.tg===g))continue;const q=d2(g.x,g.y,p.x,p.y);if(q<bd){bd=q;m.tg=g}}}
       if(m.tg)rcDrive(m,m.tg.x,m.tg.y,(lv>=2?520:430)*ms,dt);else rcDrive(m,hx,hy,follow,dt);
@@ -2020,7 +2022,7 @@ function updateEnemies(dt){
     const fz=fr||e.ice>0;if(e.ice>0)e.ice-=dt;if(e.wet>0)e.wet-=dt;if(e.jam>0)e.jam-=dt;
     if(!fz){
     if(e.shoots&&!(e.jam>0)){e.scd-=dt;
-      if(e.scd<=0&&d<560&&(e.los||d<170)){e.scd=rand(1.8,2.6);const a=Math.atan2(dy+p.vy*.25,dx+p.vx*.25);G.ebullets.push({x:e.x,y:e.y,vx:Math.cos(a)*340,vy:Math.sin(a)*340,life:2.5,dmg:9*(1+G.t/400)*(0.7+0.3*G.L.diff)*(e.odd||1)})}}
+      if(e.scd<=0&&d<560&&(e.los||d<170)){e.scd=rand(1.8,2.6);const a=Math.atan2(dy+p.vy*.25,dx+p.vx*.25);G.ebullets.push({x:e.x,y:e.y,vx:Math.cos(a)*340,vy:Math.sin(a)*340,life:2.5,dmg:9*(1+G.t/400)*(0.7+0.3*G.L.diff)*(1+((e.odd||1)-1)*.5)})}}
     if(e.ab)target=bossMoves(e,dt,d,dx,dy);
     let want;[want,target]=shamble(e,dt,d,dx,dy,target);if(e.orbit)target=e.spd*.65;
     const da=angDiff(e.a,want),turn=e.charge>0?0.3:e.turn;
@@ -2116,8 +2118,8 @@ function updateWeapons(dt){
     if(t&&w.cd<=0){w.cd=Math.max(.45,1.35-.13*lv)*s.cd;const a0=Math.atan2(t.y-p.y,t.x-p.x),n=4+lv+(lv>=5?2:0),spr=lv>=5?.75:.5;w.aim=a0;
       for(let i=0;i<n;i++){const a=a0+(i/(n-1)-.5)*spr+rand(-.04,.04),sp=rand(780,900);G.bullets.push({x:p.x+Math.cos(a)*16,y:p.y+Math.sin(a)*16,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,dmg:(6+2.5*lv+(lv>=3?3:0))*s.dmg,life:.34,pierce:lv>=4?1:0,hit:null,src:'scatter',kb:3})}
       noise(0.1,0.1,1800);tone(110,0.1,'square',0.05,55)}}
-  if(W.disc){const w=W.disc,lv=w.lvl;w.cd-=wdt;if(w.cd<=0){const t=nearestEnemy(p.x,p.y,420);if(t){w.cd=Math.max(.9,2.6-.22*lv)*s.cd;const n=lv>=5?3:lv>=3?2:1,a0=Math.atan2(t.y-p.y,t.x-p.x);
-      for(let i=0;i<n;i++)G.discs.push({x:p.x,y:p.y,a:a0+(i-(n-1)/2)*.45,sp:560+(lv>=2?80:0),out:true,dist:0,range:300+(lv>=2?60:0),r:lv>=4?16:12,dmg:(16+7*lv)*s.dmg,hit:new Set(),spin:0,life:4});tone(520,0.08,'triangle',0.04,900)}}}
+  if(W.disc){const w=W.disc,lv=w.lvl;w.cd-=wdt;if(w.cd<=0){const t=nearestEnemy(p.x,p.y,420);if(t){w.cd=Math.max(.8,2.2-.2*lv)*s.cd;const n=lv>=5?3:lv>=3?2:1,a0=Math.atan2(t.y-p.y,t.x-p.x);
+      for(let i=0;i<n;i++)G.discs.push({x:p.x,y:p.y,a:a0+(i-(n-1)/2)*.45,sp:560+(lv>=2?80:0),out:true,dist:0,range:300+(lv>=2?60:0),r:lv>=4?16:12,dmg:(22+9*lv)*s.dmg,hit:new Set(),spin:0,life:4});tone(520,0.08,'triangle',0.04,900)}}}
   if(W.trail){const w=W.trail,lv=w.lvl,bx=p.x-Math.cos(p.a)*G.car.len*.45,by=p.y-Math.sin(p.a)*G.car.len*.45;
     // a fire patch every 18px of road behind the car, at any speed above a crawl
     if(w.lx==null||Math.hypot(p.vx,p.vy)<40){w.lx=bx;w.ly=by}else if(d2(bx,by,w.lx,w.ly)>18*18){w.lx=bx;w.ly=by;const L=2+.4*lv+(lv>=5?.8:0);
@@ -2484,7 +2486,7 @@ const OBS_INFO={container:'Shipping container',junk:'Junk pile',tires:'Tire stac
 const PROP_INFO={crate:['Wooden crate','Smash it: 60% chance of a random power-up.'],tires:['Tire stack','Knock it over: it tumbles away and is gone in a few seconds. Small chance of a drop.'],hay:['Hay bale','Knock it over: it rolls away and is gone in a few seconds. Small chance of a drop.'],cone:['Traffic cone','Knock it over: it skids away and is gone in a few seconds. Small chance of a drop.'],hydrant:['Fire hydrant','Knock it over: it skids away and is gone in a few seconds. Small chance of a drop.'],snowman:['Snowman','Knock it over: it tumbles away and is gone in a few seconds. Small chance of a drop.']};
 const BARREL_INFO={barrel:['Explosive barrel','Goes off when shot, rammed, burned or caught in a blast. Chains into other barrels.'],propane:['Propane tank','A much bigger blast than a barrel. Chains into other barrels.'],toxic:['Toxic drum','Explodes and leaves a burning acid pool for 8 seconds.']};
 const ZONE_INFO={napalm:['Napalm fire','From your Napalm Tank: burns cars, never you.'],oil:['Oil slick','Your tires lose most of their grip while you\'re on it.'],ice:['Black ice','Almost no grip. Brake early and steer gently.'],lava:['Lava pool','Burns you and every car that drives in.'],acid:['Acid pool','Burns you and every car inside until it dries up.'],spikes:['Spike strip','Shreds tires: damages and slows you, and hurts cars too.']};
-const PICK_INFO={chest:['Supply crate','Pick a free bolt-on.'],wrench:['Wrench','Repairs 30 HP.'],magnet:['Scrap magnet','Pulls every scrap and bolt on the map to you.'],nuke:['Airstrike','Wrecks every regular car on the map, on screen or not, and dents bosses.'],
+const PICK_INFO={chest:['Supply crate','Pick a free bolt-on.'],wrench:['Wrench','Repairs 12% of your max HP (at least 30).'],magnet:['Scrap magnet','Pulls every scrap and bolt on the map to you.'],nuke:['Airstrike','Wrecks every regular car on the map, on screen or not, and dents bosses.'],
   freeze:['Cryo canister','Freezes every car for 5 seconds.'],nitro:['Nitro can','8 seconds of extra speed and double ram damage.'],fury:['Overdrive','10 seconds of double-speed weapon recharge.'],bubble:['Bubble shield','6 seconds of invulnerability.'],sack:['Scrap sack','+15 scrap banked for the Garage.'],bolts:['Bolt bag','+12 bolts to spend at traders.']};
 const mouse={x:0,y:0,overCanvas:false,last:-1e9,inWin:false};
 addEventListener('pointermove',e=>{if(e.pointerType!=='mouse')return;mouse.x=e.clientX;mouse.y=e.clientY;mouse.overCanvas=e.target===cv;mouse.last=performance.now();mouse.inWin=true;document.body.classList.remove('nocursor')});
@@ -2751,7 +2753,9 @@ function buildChoices(){
   const pool=[],nW=Object.keys(G.weapons).length,nP=Object.keys(G.passives).length;
   for(const k in WDEF){if(!unlocked(WDEF[k])&&!G.weapons[k])continue;const l=G.weapons[k]?G.weapons[k].lvl:0;if(l>=5)continue;if(!l&&nW>=slotsW())continue;pool.push({kind:'w',k,next:l+1})}
   for(const k in PDEF){if(!unlocked(PDEF[k])&&!G.passives[k])continue;if(PDEF[k].rcOnly&&!G.passives[k]&&!Object.keys(G.weapons).some(w=>WDEF[w].rc))continue;const l=G.passives[k]||0;if(l>=5)continue;if(!l&&nP>=slotsP())continue;pool.push({kind:'p',k,next:l+1})}
-  shuffle(pool);const out=pool.slice(0,3),canRoll=rollPool().length>0;
+  // things you already own come up 2.5x as often, so a build comes together even with a big pool to draw from
+  const out=[];for(let n=0;n<3&&pool.length;n++){let tot=0;for(const c of pool)tot+=c.w=c.next>1?2.5:1;let r=Math.random()*tot,i=0;while(i<pool.length-1&&(r-=pool[i].w)>=0)i++;out.push(pool.splice(i,1)[0])}
+  const canRoll=rollPool().length>0;
   // nothing left to bolt on and nothing left to roll: no screen at all (see maxedOut)
   if(!out.length&&!canRoll)return out;
   if(!out.length)out.push({kind:'heal'});
