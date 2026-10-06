@@ -225,7 +225,19 @@ kbd{display:inline-block;font-family:var(--body);font-weight:700;font-size:12px;
 .lbt .nm small{color:var(--hazard);font-size:10px;letter-spacing:.12em;text-transform:uppercase;margin-left:4px}
 .lbt tr.you td{background:rgba(255,194,26,.1)}.lbt tr.you td:first-child{box-shadow:inset 4px 0 var(--hazard)}
 .lbt tr.gap td{text-align:center;color:var(--dim);padding:2px}
-.lbt .clr{color:#2fbf74;font-weight:700}
+.lbt .clr{color:#2fbf74;font-weight:700}.lbt .lbesc{color:#c78bff;font-weight:700}
+.aar{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;width:100%}
+.aar div{background:var(--panel);border:1px solid var(--line);padding:8px 10px;display:flex;flex-direction:column;gap:2px;text-align:left}
+.aar span{font-size:10px;letter-spacing:.14em;color:var(--dim);font-weight:700;text-transform:uppercase}
+.aar b{font-size:16px;font-variant-numeric:tabular-nums}
+.aarw{box-sizing:border-box;display:flex;flex-direction:column;gap:6px;width:100%;background:var(--panel);border:1px solid var(--line);padding:10px 12px}
+.wrow{display:grid;grid-template-columns:minmax(110px,170px) 1fr auto;gap:10px;align-items:center;font-size:13px;text-align:left}
+.wrow .wn{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.wrow small{color:var(--dim);font-weight:600}
+.wbar{height:10px;background:var(--panel-2);display:block}.wbar i{display:block;height:100%;background:linear-gradient(90deg,var(--ember),var(--hazard))}
+.wrow .wv{font-variant-numeric:tabular-nums;min-width:6.5em;text-align:right}
+.odtag{display:inline-block;background:#7b3fe0;color:#fff;font-weight:700;letter-spacing:.1em;padding:1px 7px;margin-right:6px;animation:tpulse 1s ease-in-out infinite}
+#rNote{max-width:640px}
+@media (max-width:520px){.wrow{grid-template-columns:96px 1fr auto;gap:6px}}
 .lbt .lbinfo{text-align:center;color:var(--dim);padding:22px 10px}
 .lbrank{text-transform:none;letter-spacing:.06em;font-size:14px}.lbrank b{color:var(--hazard)}
 @media (max-width:520px){.lbt .lbcar{display:none}.lbt td,.lbt th{padding:7px 6px}}
@@ -376,6 +388,7 @@ body.nocursor,body.nocursor *{cursor:none!important}
     </div>
     <div class="keys">
       <div class="key"><b>Juggernauts</b><span>A mini boss rolls in every 3 minutes. Wreck enough of them and the level boss comes for you.</span></div>
+      <div class="key"><b>Exit portal</b><span>Beat the level boss and a portal opens in a far corner. Drive in to end the run and bank it. Stay longer and Overdrive kicks in: tougher, faster cars every 40 seconds. Get wrecked before you escape and the run doesn't count.</span></div>
       <div class="key"><b>Traders</b><span>From about 2:00, a trader truck parks nearby every couple of minutes. Follow the light beam or the HUD arrow, drive into its ring and press F to buy items with bolts.</span></div>
       <div class="key"><b>Trader's Roll</b><span>Every level up can skip the bolt-on and roll a random item instead: Common, Rare or Epic, each with its own effect.</span></div>
       <div class="key"><b>Account level</b><span>Every run earns account XP. Higher levels open harder tracks.</span></div>
@@ -409,31 +422,21 @@ body.nocursor,body.nocursor *{cursor:none!important}
     </div>
   </section>
 
-  <section id="scrWin" class="panel" hidden>
-    <div class="hazard-stripe"></div>
-    <h2 class="big">Track cleared</h2>
-    <p class="tagline" id="winText"></p>
-    <div class="results">
-      <div class="res"><span>Time</span><b id="wTime">0:00</b></div>
-      <div class="res"><span>Wrecks</span><b id="wKills">0</b></div>
-      <div class="res"><span>Level</span><b id="wLvl">1</b></div>
-    </div>
-    <div class="btns">
-      <button class="btn" id="keepBtn">Keep driving</button>
-      <button class="btn alt" id="wMenuBtn">Cash out</button>
-    </div>
-    <div class="hazard-stripe"></div>
-  </section>
-
   <section id="scrOver" class="panel" hidden>
     <div class="hazard-stripe"></div>
+    <p class="sub" id="rWhere"></p>
     <h2 class="big" id="overTitle">Wrecked</h2>
+    <p class="tagline" id="rNote" hidden></p>
     <div class="results">
       <div class="res"><span>Survived</span><b id="rTime">0:00</b></div>
       <div class="res"><span>Wrecks</span><b id="rKills">0</b></div>
       <div class="res"><span>Level</span><b id="rLvl">1</b></div>
       <div class="res"><span>Best on track</span><b id="rBest">0:00</b></div>
     </div>
+    <p class="sub secthead">After-action report</p>
+    <div class="aar" id="rStats"></div>
+    <p class="sub secthead">Damage dealt</p>
+    <div class="aarw" id="rWeap"></div>
     <div class="acct">
       <div class="top2"><span>Account level<b id="oAcct">1</b></span><span class="gain" id="oGain">+0 XP</span></div>
       <div class="achbar"><i id="oAcctFill"></i></div>
@@ -555,7 +558,7 @@ function playStep(n,t,lvl){const step=n%16,bar=(n>>4)%SONG.length,root=SONG[bar]
 // what the music should be doing right now
 function musicMood(){if(state==='over'||!G)return null;
   if(state==='menu')return{lvl:2,muffle:false};
-  const boss=G.lboss||(G.mini&&!G.mini.dead);const lvl=G.t<8?1:boss||G.t>=420?3:2;
+  const boss=G.lboss||(G.mini&&!G.mini.dead)||G.portal;const lvl=G.t<8?1:boss||G.t>=420?3:2;
   return{lvl,muffle:state==='paused'||state==='levelup'||state==='shop'}}
 function musicTick(){if(!AC||AC.state!=='running')return;const m=musicMood(),now=AC.currentTime;
   if(!m||!S.music||S.musVol<=0){if(MUS.on){MUS.on=false;mus.out.gain.setTargetAtTime(0,now,0.25)}return}
@@ -691,8 +694,8 @@ function rollItem(){const pool=Object.keys(TRINKETS).filter(k=>!TRINKETS[k].shop
 function grantItem(id){if(id==='patch')G.p.hp=Math.min(G.p.maxhp,G.p.hp+G.p.maxhp*0.5);else if(id==='voucher')G.pending++;else{G.tk[id]=(G.tk[id]||0)+1;recalc()}updateLoadout()}
 const stockFor=cat=>shuffle(Object.keys(TRINKETS).filter(k=>TRINKETS[k].cat===cat&&itemOpen(k))).slice(0,3).map(id=>({id,sold:false}));
 // unique item effects that trigger on a wreck
-function chainZap(x,y){const hits=near(x,y,260,[]).filter(e=>!e.dead&&d2(x,y,e.x,e.y)<200*200).sort((a,b)=>d2(x,y,a.x,a.y)-d2(x,y,b.x,b.y)).slice(0,2);
-  for(const e of hits){G.arcs.push({pts:[[x,y],[e.x,e.y]],life:.18});damageEnemy(e,30*G.stats.dmg)}if(hits.length)sfx('zap')}
+function chainZap(x,y){const ps=DSRC;DSRC='cables';const hits=near(x,y,260,[]).filter(e=>!e.dead&&d2(x,y,e.x,e.y)<200*200).sort((a,b)=>d2(x,y,a.x,a.y)-d2(x,y,b.x,b.y)).slice(0,2);
+  for(const e of hits){G.arcs.push({pts:[[x,y],[e.x,e.y]],life:.18});damageEnemy(e,30*G.stats.dmg)}if(hits.length)sfx('zap');DSRC=ps}
 function onWreckItems(e){const T=G.tk;
   if(T.leech)G.p.hp=Math.min(G.p.maxhp,G.p.hp+0.3*T.leech);
   if(T.cables&&Math.random()<0.15*T.cables)chainZap(e.x,e.y);
@@ -748,14 +751,16 @@ function toast(ic,small,title){const el=document.createElement('div');el.classNa
   el.innerHTML=`${badge(ic,true)}<div><small>${small}</small><b>${title}</b></div>`;$('toasts').appendChild(el);
   setTimeout(()=>{el.classList.add('out');setTimeout(()=>el.remove(),350)},3800)}
 // fold a finished (or abandoned) run into the lifetime profile; returns account XP earned
-function commitRun(){const r=rec();G.live=false;G.lbRun=lbQueueRun();G.lbPosting=lbFlush();
+function commitRun(){const r=rec();G.live=false;G.forfeit=!!G.portal&&!G.escaped;G.lbRun=lbQueueRun();G.lbPosting=lbFlush();
   P.kills+=G.kills;P.bossKills+=G.miniKills;P.eliteKills+=G.eliteKills;P.time+=G.t;P.bought+=G.bought;
   P.bestProps=r.props;P.powerups+=G.powerups;P.best=r.time;P.bestKills=r.kills;P.bestLevel=r.level;P.bestRam=r.ram;P.bestBarrels=r.barrels;P.bestWeapons=r.weapons;P.bestWlvl=r.wlvl;P.bestBrink=r.brink;
   const T=P.tracks[G.L.id]=Object.assign({best:0,cleared:0},P.tracks[G.L.id]);T.best=Math.max(T.best,G.t);
-  const gain=Math.round((G.kills+G.t/3+G.miniKills*30+(G.cleared?250:0))*G.L.diff);
+  // escaping through the portal pays 25% extra; getting wrecked (or quitting) after it opened halves the payout
+  const pay=G.escaped?1.25:G.forfeit?0.5:1;
+  const gain=Math.round((G.kills+G.t/3+G.miniKills*30+(G.cleared?250:0))*G.L.diff*pay);
   const before=acctInfo(P.acctXp).lv;P.acctXp+=gain;const after=acctInfo(P.acctXp).lv;
   for(let l=before+1;l<=after;l++){toast(l,'Account level up','Level '+l);for(const L of LEVELS)if(L.req===l)toast('▶','Track unlocked',L.name)}
-  G.scrapGain=scrapEst();P.scrap+=G.scrapGain;
+  G.scrapGain=Math.round(scrapEst()*pay);P.scrap+=G.scrapGain;
   G.gain=gain;saveProfile();checkAch();return gain}
 // scrap banked at the end of a run: a quarter of the scrap picked up, plus boss bonuses and sacks
 const scrapEst=()=>Math.round((G.scrapRaw*0.25+G.miniKills*15+(G.cleared?80:0)+G.sack)*(1+0.1*gl('salvage')));
@@ -956,7 +961,7 @@ function updateHazards(dt){const p=G.p;
   for(const z of G.zones)if(z.life!=null)z.life-=dt;prune(G.zones,z=>z.life==null||z.life>0);
   for(const py of G.pylons){py.t+=dt;if(py.t>=4.5){py.t=0;const R=170,pts=[];
     if(d2(p.x,p.y,py.x,py.y)<R*R){hurt(14*(0.7+0.3*G.L.diff));pts.push([p.x,p.y])}
-    for(const e of near(py.x,py.y,R+70)){if(e.dead||d2(e.x,e.y,py.x,py.y)>R*R)continue;damageEnemy(e,(e.big?120:70)*G.L.diff);if(pts.length<10)pts.push([e.x,e.y])}
+    for(const e of near(py.x,py.y,R+70)){if(e.dead||d2(e.x,e.y,py.x,py.y)>R*R)continue;DSRC='hazard';damageEnemy(e,(e.big?120:70)*G.L.diff);if(pts.length<10)pts.push([e.x,e.y])}
     for(const q of pts)G.arcs.push({pts:[[py.x,py.y],q],life:0.2});G.rings.push({x:py.x,y:py.y,r:20,max:R,dmg:0,hit:null,col:'140,230,255'});if(pts.length)sfx('zap')}}
   // props shatter when the player (or a boss) drives through them
   if(propsTouch(p.x,p.y,p.r,p.vx,p.vy)){p.vx*=.93;p.vy*=.93}
@@ -967,9 +972,9 @@ function usePickup(k){const p=G.p;G.powerups++;
   if(k.type==='wrench'){p.hp=Math.min(p.maxhp,p.hp+30);addText(p.x,p.y-30,'+30 HP','#5cf08a');G.powerups--}
   else if(k.type==='magnet'){for(const g of G.gems)g.pull=true;showBanner('Scrap magnet','Hoovering every scrap on the map')}
   else if(k.type==='chest'){G.pending++;showBanner('Supply crate','Free bolt-on');G.powerups--}
-  else if(k.type==='nuke'){G.flashT=0.4;G.shake=18;sfx('boom');for(const e of G.enemies){if(e.dead||d2(e.x,e.y,p.x,p.y)>900*900)continue;damageEnemy(e,e.big?e.maxhp*0.08:e.maxhp*2+50)}showBanner('Airstrike','Everything nearby is scrap')}
+  else if(k.type==='nuke'){G.flashT=0.4;G.shake=18;sfx('boom');DSRC='airstrike';for(const e of G.enemies){if(e.dead||d2(e.x,e.y,p.x,p.y)>900*900)continue;damageEnemy(e,e.big?e.maxhp*0.08:e.maxhp*2+50)}showBanner('Airstrike','Everything nearby is scrap')}
   else if(k.type==='sack'){G.sack+=15;addText(p.x,p.y-30,'+15 scrap','#8fd6cf')}
-  else if(k.type==='bolts'){G.bolts+=12;addText(p.x,p.y-30,'+12 bolts','#ffd65a')}
+  else if(k.type==='bolts'){G.bolts+=12;G.boltsGot+=12;addText(p.x,p.y-30,'+12 bolts','#ffd65a')}
   else{G.buffs[k.type]=BUFFS[k.type].t*G.stats.buffMul;showBanner(BUFFS[k.type].name,{nitro:'Top speed and ramming way up',fury:'Weapons recharge twice as fast',freeze:'Every car is frozen solid',bubble:'Nothing can touch you'}[k.type])}
   tone(660,0.12,'square',0.05,1320)}
 
@@ -1090,7 +1095,7 @@ function newGame(li){const L=LEVELS[li];curLevel=li;groundPat=makeGround(L);cons
   G={L,t:0,kills:0,level:1,xp:0,xpNeed:6,pending:0,shake:0,hurtFlash:0,live:false,
     miniKills:0,minisSpawned:0,eliteKills:0,ramKills:0,barrelBooms:0,lowAt:-1,newAch:[],achT:0,
     bolts:0,tk:{},bought:0,trader:null,lastTrader:-1,near:false,nextTrader:100+rand(0,40),
-    bossDue:-1,lboss:null,mini:null,cleared:false,winT:-1,shieldT:0,gain:0,car:C,scrapRaw:0,sack:0,scrapGain:0,propsBroken:0,powerups:0,flashT:0,
+    bossDue:-1,lboss:null,mini:null,cleared:false,clearT:-1,portalT:-1,portal:null,odStart:-1,odTier:0,exitT:-1,escaped:false,forfeit:false,dmgBy:{},dmgTaken:0,dist:0,boltsGot:0,shieldT:0,gain:0,car:C,scrapRaw:0,sack:0,scrapGain:0,propsBroken:0,powerups:0,flashT:0,
     buffs:{nitro:0,fury:0,freeze:0,bubble:0},tumbles:[],flowT:0,frame:0,leashT:1,recycled:0,revives:gl('revive'),obs:Wd.obs,props:Wd.props,zones:Wd.zones,pylons:Wd.pylons,deco:Wd.deco,
     p:{x:ARENA/2,y:ARENA/2+200,a:-Math.PI/2,vx:0,vy:0,hp:100,maxhp:100,r:Math.max(C.len,C.wid)*.43,inv:0},
     stats:{},weapons:start,passives:Object.assign({},C.start.p),
@@ -1132,7 +1137,9 @@ function explode(x,y,R,dmg,hurtP){
 function showBanner(t,s){const b=$('banner');b.innerHTML=t+(s?`<small>${s}</small>`:'');b.classList.add('show');clearTimeout(showBanner.h);showBanner.h=setTimeout(()=>b.classList.remove('show'),2600)}
 
 /* ---------- combat ---------- */
-function damageEnemy(e,amt,txt=true){if(e.dead)return;e.hp-=amt;e.flash=0.07;if(txt&&S.dmgNums&&amt>=1)addText(e.x,e.y-e.r,Math.round(amt),amt>=45?'#ffc21a':'#f2eef7');if(e.hp<=0)killEnemy(e)}
+// which weapon, item or hazard is dealing damage right now (for the after-action report)
+let DSRC='other';
+function damageEnemy(e,amt,txt=true){if(e.dead)return;G.dmgBy[DSRC]=(G.dmgBy[DSRC]||0)+Math.min(amt,Math.max(0,e.hp));e.hp-=amt;e.flash=0.07;if(txt&&S.dmgNums&&amt>=1)addText(e.x,e.y-e.r,Math.round(amt),amt>=45?'#ffc21a':'#f2eef7');if(e.hp<=0)killEnemy(e)}
 function dropBolts(x,y,n){n=Math.round(n*G.stats.luck);if(n<=0)return;const k=Math.min(n,8);for(let i=0;i<k;i++)G.gems.push({x,y,v:Math.floor(n/k)+(i<n%k?1:0),b:true,vx:rand(-1,1)*(k>1?240:40),vy:rand(-1,1)*(k>1?240:40),pull:false,sp:0})}
 function killEnemy(e){
   e.dead=true;G.kills++;boomFx(e.x,e.y,e.r*2.4);onWreckItems(e);
@@ -1146,24 +1153,24 @@ function killEnemy(e){
     if(G.cleared||G.lboss)showBanner('Juggernaut down','Supply crate dropped');
     else if(left>0)showBanner('Juggernaut down',`${left} more to draw out ${G.L.boss.name}`);
     else if(G.bossDue<0){G.bossDue=G.t+6;showBanner('Juggernaut down',`Something bigger is coming…`)}}
-  if(e.type==='lboss'){G.lboss=null;G.cleared=true;explode(e.x,e.y,240,0);showBanner(G.L.boss.name+' wrecked','Track cleared');G.winT=2.2;
+  if(e.type==='lboss'){G.lboss=null;G.cleared=true;explode(e.x,e.y,240,0);showBanner(G.L.boss.name+' wrecked','Track cleared · an exit portal is opening');G.clearT=G.t;G.portalT=2.5;
     const T=P.tracks[G.L.id]=Object.assign({best:0,cleared:0},P.tracks[G.L.id]);if(!T.cleared)T.cleared=Date.now();saveProfile();checkAch()}
 }
-function hurt(amt){const p=G.p,s=G.stats;if(p.inv>0||state!=='play'||G.buffs.bubble>0)return;
+function hurt(amt){const p=G.p,s=G.stats;if(G.exitT>=0||p.inv>0||state!=='play'||G.buffs.bubble>0)return;
   if(s.shieldCd&&G.shieldT<=0){G.shieldT=s.shieldCd;p.inv=0.4;G.rings.push({x:p.x,y:p.y,r:20,max:90,dmg:0,hit:new Set()});tone(900,0.15,'triangle',0.05,400);return}
-  p.hp-=amt*s.taken;p.inv=0.45;G.shake=Math.min(18,G.shake+6);G.hurtFlash=0.3;sfx('hurt');
+  p.hp-=amt*s.taken;G.dmgTaken+=amt*s.taken;p.inv=0.45;G.shake=Math.min(18,G.shake+6);G.hurtFlash=0.3;sfx('hurt');
   if(p.hp<=0){if(G.tk.tire>0){G.tk.tire--;p.hp=p.maxhp*0.5;p.inv=2;explode(p.x,p.y,180,60*s.dmg,0);showBanner('Spare tire','Back on the road');return}
     if(G.revives>0){G.revives--;p.hp=p.maxhp*0.5;p.inv=2;explode(p.x,p.y,180,60*s.dmg,0);showBanner('Second wind','Back on the road');return}p.hp=0;gameOver()}
   else if(p.hp<p.maxhp*0.1&&G.lowAt<0)G.lowAt=G.t}
 // damage over time from hazards: no i-frames, but bubble and armor still apply
-function chip(amt){const p=G.p;if(G.buffs.bubble>0||state!=='play')return;p.hp-=amt*G.stats.taken;G.hurtFlash=Math.max(G.hurtFlash,0.12);if(p.hp<=0){p.hp=0.01;p.inv=0;hurt(1)}else if(p.hp<p.maxhp*0.1&&G.lowAt<0)G.lowAt=G.t}
+function chip(amt){const p=G.p;if(G.exitT>=0||G.buffs.bubble>0||state!=='play')return;p.hp-=amt*G.stats.taken;G.dmgTaken+=amt*G.stats.taken;G.hurtFlash=Math.max(G.hurtFlash,0.12);if(p.hp<=0){p.hp=0.01;p.inv=0;hurt(1)}else if(p.hp<p.maxhp*0.1&&G.lowAt<0)G.lowAt=G.t}
 // a rocket prefers the nearest car no other rocket is already chasing (bosses can take several)
 function missileTarget(m){let best=null,bd=900*900,any=null,ad=900*900;
   for(const e of G.enemies){if(e.dead)continue;const d=d2(m.x,m.y,e.x,e.y);if(d<ad){ad=d;any=e}if(d<bd&&(e.big||!G.missiles.some(o=>o!==m&&o.t===e))){bd=d;best=e}}return best||any}
 // nearest car the gun can actually hit: in clear line of sight, or close enough not to matter
 function nearestVisible(x,y,maxD){let best=null,bd=maxD*maxD;for(const e of G.enemies){if(e.dead)continue;const d=d2(x,y,e.x,e.y);if(d<bd&&(e.los||d<170*170)){bd=d;best=e}}return best}
 function nearestEnemy(x,y,maxD){let best=null,bd=maxD*maxD;for(const e of G.enemies){if(e.dead)continue;const d=d2(x,y,e.x,e.y);if(d<bd){bd=d;best=e}}return best}
-function addXp(v){G.xp+=v*G.stats.xpMul;while(G.xp>=G.xpNeed){G.xp-=G.xpNeed;G.level++;G.xpNeed=Math.floor(G.xpNeed*1.16+5);G.pending++;
+function addXp(v){G.xp+=v*G.stats.xpMul*(G.odStart>=0?1.5:1);while(G.xp>=G.xpNeed){G.xp-=G.xpNeed;G.level++;G.xpNeed=Math.floor(G.xpNeed*1.16+5);G.pending++;
     if(G.tk.dice&&Math.random()<0.15*G.tk.dice){G.pending++;toast('+1','Loaded Dice','Bonus pick')}}}
 
 /* ---------- spawning ---------- */
@@ -1175,9 +1182,11 @@ function spawnEnemy(type,o={}){
   const d=ETYPES[type],p=G.p,L=G.L;let x,y;
   if(o.x!=null){x=o.x;y=o.y}else[x,y]=spawnPoint(d.r,.6);
   x=clamp(x,40,ARENA-40);y=clamp(y,40,ARENA-40);
-  const hm=o.hp?1:(type==='mini'||o.elite?1+G.t/75:hpScale(G.t))*L.diff*(o.hpMul||1),sc=o.scale||1,hp=o.hp||d.hp*hm;
+  // Overdrive (after the level boss): every new car is tougher, hits harder and drives faster the longer you stay
+  const od=odHeat(),oh=od<0?1:1.5+od/45,odd=od<0?1:1.3+od/90,osp=od<0?1:1.1+Math.min(.35,od/240);
+  const hm=o.hp?1:(type==='mini'||o.elite?1+G.t/75:hpScale(G.t))*L.diff*(o.hpMul||1)*oh,sc=o.scale||1,hp=o.hp||d.hp*hm;
   const e={id:eid++,type,x,y,a:Math.atan2(p.y-y,p.x-x),v:0,kx:0,ky:0,hp,maxhp:hp,r:d.r*sc,len:d.len*sc,wid:d.wid*sc,
-    spd:d.spd*(o.spdMul||1)*(L.spd||1)*rand(.92,1.08),turn:d.turn,dmg:d.dmg*(1+G.t/400)*(0.7+0.3*L.diff)*(o.dmgMul||1),xp:d.xp*(o.xpMul||1),col:o.col||d.col,
+    spd:d.spd*(o.spdMul||1)*(L.spd||1)*osp*rand(.92,1.08),turn:d.turn,dmg:d.dmg*(1+G.t/400)*(0.7+0.3*L.diff)*(o.dmgMul||1)*odd,xp:d.xp*(o.xpMul||1),col:o.col||d.col,
     shoots:!!d.shoots,big:type==='mini'||type==='lboss',elite:!!o.elite,ab:o.ab||null,flash:0,ccd:0,sawCd:0,scd:rand(1,2.5),
     charge:0,chargeCd:4,ringCd:3,burstCd:2,sumCd:6,burn:0,los:false,orbit:false,
     // each car keeps its own approach angle, a little lead, and its own sway/shamble rhythm
@@ -1199,13 +1208,13 @@ function spawnPoint(r,lean){const p=G.p,sp=Math.hypot(p.vx,p.vy),va=Math.atan2(p
   return best||[clamp(ARENA-p.x,60,ARENA-60),clamp(ARENA-p.y,60,ARENA-60)]}
 function pickType(t){const w=[['buggy',5],['sedan',t>20?4:1],['truck',t>60?2:0],['gunner',t>90?2:0]];let tot=0;for(const x of w)tot+=x[1];let r=Math.random()*tot;for(const [k,v] of w){if((r-=v)<0)return k}return'buggy'}
 function spawnUpdate(dt){
-  const t=G.t,L=G.L,te=t+L.head,rate=(0.8+te/22+(te>240?(te-240)/14:0))*L.rate;
+  const t=G.t,L=G.L,te=t+L.head,od=odHeat(),rate=(0.8+te/22+(te>240?(te-240)/14:0))*L.rate*(od<0?1:1.6+od/40);
   G.spawnT+=dt*rate;
   while(G.spawnT>=1){G.spawnT-=1;if(G.enemies.length<260)spawnEnemy(pickType(te))}
-  if(t>=G.nextAmbush){G.nextAmbush+=45;const n=12+Math.floor(te/30);for(let i=0;i<n&&G.enemies.length<ECAP;i++){const a=i/n*TAU,x=G.p.x+Math.cos(a)*460,y=G.p.y+Math.sin(a)*460;if(x<40||y<40||x>ARENA-40||y>ARENA-40||solidAt(x,y,14))continue;spawnEnemy('buggy',{x,y})}showBanner('Ambush!','They’re boxing you in')}
-  if(t>=G.nextElite){G.nextElite+=70;spawnEnemy(Math.random()<.5?'truck':'sedan',{elite:true,hpMul:7,scale:1.3,xpMul:5,col:'#e8e4ee',spdMul:1.1});showBanner('Chrome hunter','Wreck it for a supply crate and bolts')}
+  if(t>=G.nextAmbush){G.nextAmbush+=od<0?45:20;const n=12+Math.floor(te/30);for(let i=0;i<n&&G.enemies.length<ECAP;i++){const a=i/n*TAU,x=G.p.x+Math.cos(a)*460,y=G.p.y+Math.sin(a)*460;if(x<40||y<40||x>ARENA-40||y>ARENA-40||solidAt(x,y,14))continue;spawnEnemy('buggy',{x,y})}showBanner('Ambush!','They’re boxing you in')}
+  if(t>=G.nextElite){G.nextElite+=od<0?70:Math.max(8,20-od/15);spawnEnemy(Math.random()<.5?'truck':'sedan',{elite:true,hpMul:7,scale:1.3,xpMul:5,col:'#e8e4ee',spdMul:1.1});showBanner('Chrome hunter','Wreck it for a supply crate and bolts')}
   // mini boss once every 3 minutes
-  if(t>=G.nextMini){G.nextMini+=180;G.minisSpawned++;G.mini=spawnEnemy('mini',{hpMul:1+(G.minisSpawned-1)*0.5,ab:{charge:1}});G.mini.num=G.minisSpawned;
+  if(t>=G.nextMini){G.nextMini+=od<0?180:60;G.minisSpawned++;G.mini=spawnEnemy('mini',{hpMul:1+(G.minisSpawned-1)*0.5,ab:{charge:1}});G.mini.num=G.minisSpawned;
     showBanner('Juggernaut inbound',G.cleared?'Don’t let it charge you':`Mini boss ${Math.min(G.miniKills+1,L.minis)} of ${L.minis}`);sfx('boss')}
   // level boss after enough mini bosses
   if(G.bossDue>0&&t>=G.bossDue){G.bossDue=-1;const B=L.boss;
@@ -1221,6 +1230,45 @@ function gridPath(x0,y0,x1,y1){const cell=(x,y)=>clamp(x/FC|0,0,FN-1)*FN+clamp(y
     if(fTruck[n]||prev[n]>=0||(ox&&oy&&(fTruck[nx*FN+cy]||fTruck[cx*FN+ny])))continue;prev[n]=c;q.push(n)}}
   if(prev[g]<0)return null;const raw=[];for(let c=g;c!==s0;c=prev[c])raw.push([(c/FN|0)*FC+FC/2,c%FN*FC+FC/2]);raw.reverse();raw[raw.length-1]=[x1,y1];
   const pts=[];let from=[x0,y0],k=0;while(k<raw.length){let far=k;for(let m=raw.length-1;m>k;m--)if(segClear(from[0],from[1],raw[m][0],raw[m][1],26)){far=m;break}pts.push(raw[far]);from=raw[far];k=far+1}return pts}
+
+/* ---------- exit portal + Overdrive ---------- */
+// beating the level boss opens a portal in the far corner. Drive in to end the run and bank it on the leaderboard.
+// Staying starts Overdrive: tougher, faster cars and denser waves every second you hang around. Get wrecked first and the run is lost.
+const ROMAN=['I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII'];
+const odHeat=()=>G&&G.odStart>=0?G.t-G.odStart:-1;
+const odTierOf=h=>1+Math.floor(h/40);
+const roman=n=>ROMAN[Math.min(ROMAN.length-1,n-1)]||String(n);
+function openPortal(){const p=G.p,m=230;
+  // the corner farthest from the player, nudged inward until there is open ground
+  const cs=[[m,m],[ARENA-m,m],[m,ARENA-m],[ARENA-m,ARENA-m]].sort((a,b)=>d2(b[0],b[1],p.x,p.y)-d2(a[0],a[1],p.x,p.y));
+  let spot=null;for(const [cx,cy] of cs){const ix=cx<ARENA/2?1:-1,iy=cy<ARENA/2?1:-1;
+    for(let k=0;k<40&&!spot;k++){const x=cx+ix*rand(0,k*22),y=cy+iy*rand(0,k*22);if(!solidAt(x,y,80)&&!G.zones.some(z=>zoneHit(z,x,y,80)))spot=[x,y]}if(spot)break}
+  if(!spot)spot=[clamp(ARENA-p.x,m,ARENA-m),clamp(ARENA-p.y,m,ARENA-m)];
+  const [x,y]=spot;
+  // clear loose props off the pad
+  for(const o of G.props)if(!o.dead&&d2(o.x,o.y,x,y)<110*110)o.dead=true;
+  G.portal={x,y,r:58,t:0};G.odStart=G.t;G.odTier=0;
+  G.nextAmbush=Math.min(G.nextAmbush,G.t+20);G.nextElite=Math.min(G.nextElite,G.t+12);G.nextMini=Math.min(G.nextMini,G.t+50);
+  sfx('boss');G.shake=12}
+function updatePortal(dt){const o=G.portal,h=odHeat();o.t+=dt;
+  const tier=odTierOf(h);if(tier>G.odTier){G.odTier=tier;
+    if(tier===1)showBanner('Exit portal open','Drive in to bank your run · stay for Overdrive');
+    else{showBanner('Overdrive '+roman(tier),'They hit harder and drive faster · the portal is still open');sfx('boss')}}
+  if(!S.lowFx||Math.random()<.4){const a=rand(0,TAU),R=o.r*rand(1.3,2.2);part(o.x+Math.cos(a)*R,o.y+Math.sin(a)*R,-Math.cos(a)*R*2.2,-Math.sin(a)*R*2.2,.45,rand(2,4),Math.random()<.5?'#c78bff':'#3fe0d0','spark')}
+  const p=G.p;if(G.exitT<0&&state==='play'&&d2(p.x,p.y,o.x,o.y)<(o.r-12)**2){G.exitT=0.9;p.inv=2;sfx('level');showBanner('Escaped','Banking your run…')}}
+function pullIntoPortal(dt){const p=G.p,o=G.portal,k=Math.min(1,7*dt);p.x+=(o.x-p.x)*k;p.y+=(o.y-p.y)*k;p.vx=p.vy=0;p.a+=9*dt;p.inv=Math.max(p.inv,.5)}
+function escapeRun(){G.escaped=true;G.exitT=-1;state='over';commitRun();results('Escaped');showReport()}
+function showReport(){show('scrOver');$('overlay').scrollTop=0;$('againBtn').focus({preventScroll:true})}
+function drawPortal(o){const t=G.t,r=o.r*Math.min(1,o.t/0.8);if(r<=1)return;
+  ctx.save();ctx.globalCompositeOperation='lighter';
+  const g=ctx.createRadialGradient(o.x,o.y,r*.2,o.x,o.y,r*2.6);g.addColorStop(0,'rgba(170,90,255,.6)');g.addColorStop(1,'rgba(170,90,255,0)');ctx.fillStyle=g;ctx.beginPath();ctx.arc(o.x,o.y,r*2.6,0,TAU);ctx.fill();
+  for(let i=0;i<3;i++){ctx.strokeStyle=i===1?'rgba(63,224,208,.85)':'rgba(205,130,255,.9)';ctx.lineWidth=4;ctx.beginPath();
+    for(let k=0;k<=26;k++){const f=k/26,a=t*(2.6+i*.7)+i*TAU/3+f*4.2,rr=r*(1-f*.86),x=o.x+Math.cos(a)*rr,y=o.y+Math.sin(a)*rr;k?ctx.lineTo(x,y):ctx.moveTo(x,y)}ctx.stroke()}
+  ctx.restore();
+  ctx.fillStyle='#0b0612';ctx.beginPath();ctx.arc(o.x,o.y,r*.4,0,TAU);ctx.fill();
+  ctx.strokeStyle='#c78bff';ctx.lineWidth=5;ctx.setLineDash([14,10]);ctx.lineDashOffset=-t*40;ctx.beginPath();ctx.arc(o.x,o.y,r,0,TAU);ctx.stroke();ctx.setLineDash([]);ctx.lineDashOffset=0;
+  ctx.font='700 13px "Chakra Petch",sans-serif';ctx.textAlign='center';ctx.fillStyle='#ecdcff';ctx.fillText('EXIT',o.x,o.y-r-12);ctx.textAlign='left'}
+
 function spawnTrader(){const p=G.p;let k;do k=Math.floor(Math.random()*3);while(k===G.lastTrader);G.lastTrader=k;const T=TRADERS[k];
   // park somewhere open near the player, then find a drive in from ~900px away along the streets
   // keep the shortest route found; stop early once one is under 2000px
@@ -1311,7 +1359,7 @@ function updateEnemies(dt){
   const p=G.p,s=G.stats,E=G.enemies,tr=G.trader,fr=G.buffs.freeze>0,Z=DZ;DZ.length=0;for(const z of G.zones)if(ZONES[z.k].edps)DZ.push(z);
   for(const e of E){
     if(e.dead)continue;e.flash-=dt;e.ccd-=dt;e.sawCd-=dt;
-    for(let i=0;i<Z.length;i++){const z=Z[i],zd=ZONES[z.k].edps;if(Math.abs(e.x-z.x)<z.r+e.r&&Math.abs(e.y-z.y)<z.r+e.r&&zoneHit(z,e.x,e.y,e.r))damageEnemy(e,zd*dt*G.L.diff,false)}
+    for(let i=0;i<Z.length;i++){const z=Z[i],zd=ZONES[z.k].edps;if(Math.abs(e.x-z.x)<z.r+e.r&&Math.abs(e.y-z.y)<z.r+e.r&&zoneHit(z,e.x,e.y,e.r)){DSRC=z.k==='napalm'?'napalm':'hazard';damageEnemy(e,zd*dt*G.L.diff,false)}}
     if(e.dead)continue;
     const dx=p.x-e.x,dy=p.y-e.y,d=Math.hypot(dx,dy)||1;let target=e.spd;
     // line of sight is refreshed for a sixth of the cars each frame
@@ -1337,8 +1385,8 @@ function updateEnemies(dt){
       const nx=-dx/d,ny=-dy/d,impact=Math.max(0,p.vx*nx+p.vy*ny),ov=rr-d;
       const wE=e.big?0.15:0.7;e.x+=nx*ov*wE;e.y+=ny*ov*wE;p.x-=nx*ov*(1-wE);p.y-=ny*ov*(1-wE);
       if(e.ccd<=0){e.ccd=0.4;
-        damageEnemy(e,(8+impact*0.13)*s.ram*(G.buffs.nitro>0?2:1));if(e.dead){G.ramKills++;if(G.tk.bumpers)explode(e.x,e.y,70+15*G.tk.bumpers,25*G.tk.bumpers*s.dmg,0)}
-        else if(s.thorns)damageEnemy(e,s.thorns*s.dmg);
+        DSRC='ram';damageEnemy(e,(8+impact*0.13)*s.ram*(G.buffs.nitro>0?2:1));if(e.dead){G.ramKills++;DSRC='bumpers';if(G.tk.bumpers)explode(e.x,e.y,70+15*G.tk.bumpers,25*G.tk.bumpers*s.dmg,0)}
+        else if(s.thorns){DSRC='ram';damageEnemy(e,s.thorns*s.dmg)}
         const kb=(e.big?0.12:1)*(140+impact*0.9);e.kx+=nx*kb;e.ky+=ny*kb;
         p.vx-=nx*impact*(e.big?0.9:0.35);p.vy-=ny*impact*(e.big?0.9:0.35);
         if(e.charge>0){p.vx-=nx*420;p.vy-=ny*420}
@@ -1366,7 +1414,7 @@ function updateWeapons(dt){
       part(p.x+Math.cos(want)*20,p.y+Math.sin(want)*20,0,0,.06,9,null,'fire');sfx('shoot')}}
   if(W.missile){const w=W.missile,lv=w.lvl;w.cd-=wdt;if(w.cd<=0&&nearestEnemy(p.x,p.y,800)){w.cd=Math.max(.6,(lv>=3?2.0:2.5)-0.12*lv)*s.cd;const n=lv>=4?3:lv>=2?2:1;
       for(let i=0;i<n;i++){const a=p.a+Math.PI+(i-(n-1)/2)*0.9;G.missiles.push({x:p.x,y:p.y,a,v:220,life:3.2,dmg:(26+12*lv+(lv>=5?20:0))*s.dmg,R:(55+(lv>=3?20:0)+6*lv)*s.blast,t:null})}sfx('rocket')}}
-  if(W.flame){const w=W.flame,lv=w.lvl,L=150+25*lv,half=lv>=4?0.58:0.4,dps=(34+16*lv)*s.dmg;const dirs=lv>=5?[p.a,p.a+Math.PI]:[p.a];
+  if(W.flame){DSRC='flame';const w=W.flame,lv=w.lvl,L=150+25*lv,half=lv>=4?0.58:0.4,dps=(34+16*lv)*s.dmg;const dirs=lv>=5?[p.a,p.a+Math.PI]:[p.a];
     w.on=false;for(const dir of dirs){const ox=p.x+Math.cos(dir)*22,oy=p.y+Math.sin(dir)*22;let any=false;
       const list=near(ox+Math.cos(dir)*L/2,oy+Math.sin(dir)*L/2,L/2+80);
       for(const e of list){if(e.dead)continue;if(inCone(e,ox,oy,dir,L,half)){any=true;const amt=dps*dt;e.burn+=amt;damageEnemy(e,amt,false);if(e.burn>=18&&!e.dead){if(S.dmgNums)addText(e.x,e.y-e.r,Math.round(e.burn),'#ff9a3a');e.burn=0}}}
@@ -1377,16 +1425,16 @@ function updateWeapons(dt){
     if(w.cd<=0&&sp>60){w.cd=Math.max(.35,1.5-0.2*lv)*s.cd;const n=lv>=5?2:1,fx=Math.cos(p.a),fy=Math.sin(p.a);
       for(let i=0;i<n;i++){const side=n>1?(i?14:-14):0;G.mines.push({x:p.x-fx*28-fy*side,y:p.y-fy*28+fx*side,arm:.45,life:22,R:(75+(lv>=3?25:0)+6*lv)*s.blast,dmg:(38+14*lv+(lv>=4?20:0))*s.dmg})}
       if(G.mines.length>40)G.mines.splice(0,G.mines.length-40)}}
-  if(W.saws){const w=W.saws,lv=w.lvl;w.ang=(w.ang||0)+3.4*dt;const n=[0,2,2,3,4,5][lv],R=78+4*lv+(lv>=5?24:0),dmg=(14+6*lv+(lv>=2?6:0))*s.dmg;w.pos=w.pos||[];w.pos.length=n;
+  if(W.saws){DSRC='saws';const w=W.saws,lv=w.lvl;w.ang=(w.ang||0)+3.4*dt;const n=[0,2,2,3,4,5][lv],R=78+4*lv+(lv>=5?24:0),dmg=(14+6*lv+(lv>=2?6:0))*s.dmg;w.pos=w.pos||[];w.pos.length=n;
     for(let i=0;i<n;i++){const a=w.ang+i/n*TAU,x=p.x+Math.cos(a)*R,y=p.y+Math.sin(a)*R;w.pos[i]=[x,y];
       for(const e of near(x,y,13+70)){if(e.dead||e.sawCd>0)continue;if(d2(x,y,e.x,e.y)<(e.r+13)**2){e.sawCd=0.35;damageEnemy(e,dmg);const nx=(e.x-p.x),ny=(e.y-p.y),dd=Math.hypot(nx,ny)||1;if(!e.big){e.kx+=nx/dd*120;e.ky+=ny/dd*120}
         for(let k=0;k<4;k++)part(x,y,rand(-260,260),rand(-260,260),rand(.1,.25),2,'#ffe7a0','spark');sfx('saw')}}
       for(const b of G.barrels)if(b.alive&&b.fuse<0&&d2(x,y,b.x,b.y)<(b.r+13)**2)b.fuse=0.05;}}
   if(W.emp){const w=W.emp,lv=w.lvl;w.cd-=wdt;
-    const fire=()=>G.rings.push({x:p.x,y:p.y,r:20,max:170+30*lv,dmg:(18+10*lv+(lv>=4?15:0))*s.dmg,hit:new Set()});
+    const fire=()=>G.rings.push({src:'emp',x:p.x,y:p.y,r:20,max:170+30*lv,dmg:(18+10*lv+(lv>=4?15:0))*s.dmg,hit:new Set()});
     if(w.cd<=0&&nearestEnemy(p.x,p.y,200+20*lv)){w.cd=Math.max(1.2,4.4-(lv>=3?0.9:0)-0.25*lv)*s.cd;fire();if(lv>=5)w.second=0.28;tone(180,0.35,'triangle',0.06,900)}
     if(w.second>0){w.second-=wdt;if(w.second<=0)fire()}}
-  if(W.tesla){const w=W.tesla,lv=w.lvl;w.cd-=wdt;
+  if(W.tesla){DSRC='tesla';const w=W.tesla,lv=w.lvl;w.cd-=wdt;
     if(w.cd<=0){const first=nearestEnemy(p.x,p.y,280);if(first){w.cd=Math.max(0.5,(lv>=3?1.25:1.6)-0.08*lv)*s.cd;const jumps=lv>=2?4:2,dmg=(20+8*lv+(lv>=4?14:0))*s.dmg;
       for(let pass=0;pass<(lv>=5?2:1);pass++){const hit=new Set();let cur=first,px=p.x,py=p.y;const pts=[[px,py]];
         for(let j=0;j<=jumps&&cur;j++){hit.add(cur);pts.push([cur.x,cur.y]);damageEnemy(cur,dmg);px=cur.x;py=cur.y;
@@ -1399,7 +1447,7 @@ function updateWeapons(dt){
       for(let i=0;i<n&&far.length;i++){let e=null,bestN=-1;for(let k=0;k<6;k++){const c=far[Math.floor(Math.random()*far.length)],cnt=near(c.x,c.y,90).length;if(cnt>bestN){bestN=cnt;e=c}}
         G.shells.push({x0:p.x,y0:p.y,tx:e.x+e.v*Math.cos(e.a)*0.8,ty:e.y+e.v*Math.sin(e.a)*0.8,t:0,dur:0.85,R:(70+(lv>=2?25:0)+6*lv)*s.blast,dmg:(44+16*lv)*s.dmg})}
       if(far.length)tone(140,0.15,'square',0.05,60)}}
-  if(W.laser){const w=W.laser,lv=w.lvl;w.cd-=wdt;
+  if(W.laser){DSRC='laser';const w=W.laser,lv=w.lvl;w.cd-=wdt;
     if(w.cd<=0){const wid=14+(lv>=2?8:0)+3*lv,len=600,dmg=(34+14*lv+(lv>=5?30:0))*s.dmg,dirs=lv>=4?[p.a,p.a+Math.PI]:[p.a],hits=[];
       const lens=dirs.map(dir=>{const fx=Math.cos(dir),fy=Math.sin(dir);for(let t=20;t<len;t+=14)if(solidAt(p.x+fx*(20+t),p.y+fy*(20+t),3))return t;return len});
       // the beam stops at the first solid obstacle
@@ -1418,7 +1466,7 @@ function updateProjectiles(dt){
     if(shotBlocked(b,dt)){b.life=0;for(let k=0;k<(S.lowFx?1:3);k++)part(b.x,b.y,-b.vx*rand(.05,.2)+rand(-90,90),-b.vy*rand(.05,.2)+rand(-90,90),rand(.08,.16),2,'#ffe7a0','spark');continue}
     for(const br of G.barrels)if(br.alive&&br.fuse<0&&Math.abs(br.x-b.x)<20&&Math.abs(br.y-b.y)<20&&d2(b.x,b.y,br.x,br.y)<(br.r+3)**2){br.fuse=0.05;b.life=0}
     if(b.life<=0)continue;
-    for(const e of near(b.x,b.y,74)){if(e.dead||b.life<=0||(b.hit&&b.hit.includes(e)))continue;if(d2(b.x,b.y,e.x,e.y)<(e.r+4)**2){damageEnemy(e,b.dmg);(b.hit||(b.hit=[])).push(e);e.kx+=b.vx*.04;e.ky+=b.vy*.04;
+    for(const e of near(b.x,b.y,74)){if(e.dead||b.life<=0||(b.hit&&b.hit.includes(e)))continue;if(d2(b.x,b.y,e.x,e.y)<(e.r+4)**2){DSRC='mg';damageEnemy(e,b.dmg);(b.hit||(b.hit=[])).push(e);e.kx+=b.vx*.04;e.ky+=b.vy*.04;
       for(let k=0;k<(S.lowFx?1:3);k++)part(b.x,b.y,-b.vx*rand(.1,.3)+rand(-80,80),-b.vy*rand(.1,.3)+rand(-80,80),rand(.08,.18),2,'#ffe7a0','spark');
       if(b.pierce>0)b.pierce--;else b.life=0}}}
   prune(G.bullets,b=>b.life>0);
@@ -1428,18 +1476,18 @@ function updateProjectiles(dt){
     if(Math.random()<(S.lowFx?.3:.9))part(m.x-Math.cos(m.a)*8,m.y-Math.sin(m.a)*8,rand(-15,15),rand(-15,15),rand(.3,.6),rand(4,7),null,'smoke');
     let boom=m.life<=0||m.x<0||m.y<0||m.x>ARENA||m.y>ARENA||solidAt(m.x,m.y,4);
     if(!boom)for(const e of near(m.x,m.y,76)){if(!e.dead&&d2(m.x,m.y,e.x,e.y)<(e.r+6)**2){boom=true;break}}
-    if(boom){m.life=-1;explode(m.x,m.y,m.R,m.dmg,0)}}
+    if(boom){m.life=-1;DSRC='missile';explode(m.x,m.y,m.R,m.dmg,0)}}
   prune(G.missiles,m=>m.life>0);
-  for(const sh of G.shells){sh.t+=dt;if(sh.t>=sh.dur){sh.done=true;explode(sh.tx,sh.ty,sh.R,sh.dmg,0)}}
+  for(const sh of G.shells){sh.t+=dt;if(sh.t>=sh.dur){sh.done=true;DSRC='mortar';explode(sh.tx,sh.ty,sh.R,sh.dmg,0)}}
   prune(G.shells,sh=>!sh.done);
   for(const b of G.ebullets){b.x+=b.vx*dt;b.y+=b.vy*dt;b.life-=dt;if(shotBlocked(b,dt)){b.life=0;part(b.x,b.y,rand(-80,80),rand(-80,80),.15,2,'#e48bff','spark');continue}if(d2(b.x,b.y,p.x,p.y)<(p.r+5)**2){b.life=0;if(G.tk.plating&&Math.random()<Math.min(.75,.25*G.tk.plating)){for(let k=0;k<6;k++)part(b.x,b.y,rand(-150,150),rand(-150,150),.2,2,'#8ce6ff','spark');continue}hurt(b.dmg);for(let k=0;k<6;k++)part(b.x,b.y,rand(-150,150),rand(-150,150),.2,2,'#e48bff','spark')}}
   prune(G.ebullets,b=>b.life>0);
-  for(const m of G.mines){m.life-=dt;m.arm-=dt;if(m.arm<=0&&m.life>0){for(const e of near(m.x,m.y,100)){if(!e.dead&&d2(m.x,m.y,e.x,e.y)<(e.r+30)**2){m.life=0;explode(m.x,m.y,m.R,m.dmg,0);break}}}}
+  for(const m of G.mines){m.life-=dt;m.arm-=dt;if(m.arm<=0&&m.life>0){for(const e of near(m.x,m.y,100)){if(!e.dead&&d2(m.x,m.y,e.x,e.y)<(e.r+30)**2){m.life=0;DSRC='mines';explode(m.x,m.y,m.R,m.dmg,0);break}}}}
   prune(G.mines,m=>m.life>0);
-  for(const r of G.rings){r.r+=640*dt;if(!r.dmg||!r.hit)continue;for(const e of G.enemies){if(e.dead||r.hit.has(e))continue;const d=Math.hypot(e.x-r.x,e.y-r.y);if(d<r.r+e.r){r.hit.add(e);damageEnemy(e,r.dmg);const k=e.big?40:380;e.kx+=(e.x-r.x)/(d||1)*k;e.ky+=(e.y-r.y)/(d||1)*k}}}
+  for(const r of G.rings){r.r+=640*dt;if(!r.dmg||!r.hit)continue;for(const e of G.enemies){if(e.dead||r.hit.has(e))continue;const d=Math.hypot(e.x-r.x,e.y-r.y);if(d<r.r+e.r){r.hit.add(e);DSRC=r.src||'other';damageEnemy(e,r.dmg);const k=e.big?40:380;e.kx+=(e.x-r.x)/(d||1)*k;e.ky+=(e.y-r.y)/(d||1)*k}}}
   prune(G.rings,r=>r.r<r.max);
   for(const b of G.barrels){if(!b.alive){b.respawn-=dt;if(b.respawn<=0&&d2(b.x,b.y,p.x,p.y)>500*500){b.alive=true;b.fuse=-1}continue}
-    if(b.fuse>=0){b.fuse-=dt;if(b.fuse<0){const B=BTYPES[b.t];b.alive=false;b.respawn=20;G.barrelBooms++;explode(b.x,b.y,B.R,B.dmg*G.stats.dmg,B.hurt);if(B.acid)G.zones.push({k:'acid',x:b.x,y:b.y,r:B.R*.9,life:8,pts:blob(B.R*.9,10,.3)})}}}
+    if(b.fuse>=0){b.fuse-=dt;if(b.fuse<0){const B=BTYPES[b.t];b.alive=false;b.respawn=20;G.barrelBooms++;DSRC='barrels';explode(b.x,b.y,B.R,B.dmg*G.stats.dmg,B.hurt);if(B.acid)G.zones.push({k:'acid',x:b.x,y:b.y,r:B.R*.9,life:8,pts:blob(B.R*.9,10,.3)})}}}
 }
 
 function updatePickups(dt){
@@ -1447,7 +1495,7 @@ function updatePickups(dt){
   for(const g of G.gems){g.x+=g.vx*dt;g.y+=g.vy*dt;g.vx*=Math.exp(-5*dt);g.vy*=Math.exp(-5*dt);
     const dx=p.x-g.x,dy=p.y-g.y,dd=dx*dx+dy*dy;if(!g.pull&&dd<mag*mag)g.pull=true;
     if(g.pull){const d=Math.sqrt(dd)||1;g.sp+=dt*1400;const sp=Math.min(1100,260+g.sp);g.x+=dx/d*sp*dt;g.y+=dy/d*sp*dt}
-    if(dd<(p.r+8)**2){g.got=true;if(g.b){G.bolts+=g.v;sfx('bolt')}else{addXp(g.v);G.scrapRaw+=g.v;sfx('pick')}}}
+    if(dd<(p.r+8)**2){g.got=true;if(g.b){G.bolts+=g.v;G.boltsGot+=g.v;sfx('bolt')}else{addXp(g.v);G.scrapRaw+=g.v;sfx('pick')}}}
   prune(G.gems,g=>!g.got);
   // too much scrap on the floor: fold the oldest 60 XP gems into one
   while(G.gems.length>350){let v=0,x=0,y=0,n=0;prune(G.gems,g=>{if(g.b||n>=60)return true;if(!n){x=g.x;y=g.y}n++;v+=g.v;return false});if(!n)break;G.gems.push({x,y,v,vx:0,vy:0,pull:false,sp:0})}
@@ -1469,7 +1517,8 @@ function update(dt){
   for(const k in G.buffs)if(G.buffs[k]>0)G.buffs[k]-=dt;G.flashT-=dt;
   G.frame++;if((G.flowT-=dt)<=0){G.flowT=0.25;updateFlow()}
   if((G.leashT-=dt)<=0){G.leashT=0.5;recycleStragglers()}
-  updatePlayer(dt);spawnUpdate(dt);updateTrader(dt);updateEnemies(dt);
+  G.dist+=Math.hypot(G.p.vx,G.p.vy)*dt;DSRC='other';
+  if(G.exitT>=0)pullIntoPortal(dt);else updatePlayer(dt);spawnUpdate(dt);updateTrader(dt);updateEnemies(dt);
   // cars, bosses and the trader can shove the player after it moved: settle it against walls again
   keepInArena(G.p);collideObs(G.p,G.p.r);keepInArena(G.p);
   updateHazards(dt);updateWeapons(dt);updateProjectiles(dt);
@@ -1477,8 +1526,10 @@ function update(dt){
   updatePickups(dt);updateFx(dt);
   G.shake*=Math.exp(-7*dt);G.hurtFlash-=dt;
   if((G.achT-=dt)<=0){G.achT=0.5;checkAch()}
-  if(G.winT>0&&(G.winT-=dt)<=0&&state==='play'){openWin();return}
-  if(G.pending>0&&state==='play')openLevelup();
+  if(G.portalT>0&&(G.portalT-=dt)<=0)openPortal();
+  if(G.portal)updatePortal(dt);
+  if(state==='play'&&G.exitT>=0&&(G.exitT-=dt)<0){escapeRun();return}
+  if(G.pending>0&&state==='play'&&G.exitT<0)openLevelup();
 }
 
 /* ---------- render ---------- */
@@ -1498,7 +1549,8 @@ function drawCar(x,y,a,len,wid,col,flash,extra,ws=1){
   if(extra)extra();
   ctx.restore();
 }
-function drawPlayer(){
+function drawPlayer(){if(G.exitT>=0){const p=G.p,k=Math.max(.05,G.exitT/0.9);ctx.save();ctx.translate(p.x,p.y);ctx.scale(k,k);ctx.translate(-p.x,-p.y);drawPlayerBody();ctx.restore()}else drawPlayerBody()}
+function drawPlayerBody(){
   const p=G.p,blink=p.inv>0&&Math.floor(G.t*20)%2===0;
   // wrecked: only a charred shell is left
   if(G.wreck){const C=G.car;drawCar(p.x,p.y,p.a,C.len,C.wid,'#262329',false,null,C.style==='monster'?1.6:C.style==='dozer'?1.2:1);return}
@@ -1525,7 +1577,7 @@ function drawTrader(tr){const T=tr.T,parked=tr.phase==='parked';
   ctx.restore();
   ctx.font='700 13px "Chakra Petch",sans-serif';ctx.textAlign='center';ctx.lineWidth=3;ctx.strokeStyle='#0a090c';
   const label=T.name.toUpperCase()+(parked?` · ${Math.ceil(tr.stay)}s`:'');ctx.strokeText(label,tr.x,tr.y-62);ctx.fillStyle=T.col;ctx.fillText(label,tr.x,tr.y-62)}
-let vignette=null,vigKey='';
+let vignette=null,vigKey='',odVig=null,odKey='';
 // enemy cars come in a handful of looks: render each look once and stamp it with one drawImage
 const spriteCache=new Map(),textCache=new Map();
 const CAR_EXTRA={
@@ -1584,6 +1636,7 @@ function draw(){
   // mortar targets
   ctx.strokeStyle='rgba(255,90,31,.6)';ctx.lineWidth=2;ctx.setLineDash([8,6]);ctx.beginPath();for(const s of G.shells){if(!vis(s.tx,s.ty,s.R))continue;const r=s.R*(0.4+0.6*s.t/s.dur);ctx.moveTo(s.tx+r,s.ty);ctx.arc(s.tx,s.ty,r,0,TAU)}ctx.stroke();ctx.setLineDash([]);
   for(const b of G.barrels){if(!b.alive||!vis(b.x,b.y,24))continue;ctx.fillStyle='rgba(0,0,0,.4)';ctx.beginPath();ctx.arc(b.x+3,b.y+4,b.r,0,TAU);ctx.fill();drawBarrel(b)}
+  if(G.portal&&vis(G.portal.x,G.portal.y,160))drawPortal(G.portal);
   if(G.trader&&vis(G.trader.x,G.trader.y,150))drawTrader(G.trader);
   // enemies
   const frz=G.buffs.freeze>0;
@@ -1626,7 +1679,11 @@ function draw(){
   ctx.setTransform(DPR,0,0,DPR,0,0);
   const arrow=(wx,wy,col)=>{const sx2=wx+ox,sy2=wy+oy;if(sx2>0&&sx2<VW&&sy2>0&&sy2<VH)return;
     const a=Math.atan2(sy2-VH/2,sx2-VW/2),ex=clamp(sx2,28,VW-28),ey=clamp(sy2,110,VH-50);ctx.save();ctx.translate(ex,ey);ctx.rotate(a);ctx.fillStyle=col;ctx.beginPath();ctx.moveTo(14,0);ctx.lineTo(-8,-10);ctx.lineTo(-8,10);ctx.closePath();ctx.fill();ctx.restore()};
-  if(state!=='menu'){for(const k of G.pickups)if(k.type==='chest')arrow(k.x,k.y,'#ffc21a');else if(k.type!=='wrench'&&k.type!=='magnet')arrow(k.x,k.y,DROPS[k.type].col);if(G.trader&&G.trader.phase!=='leave')traderArrow()}
+  if(state!=='menu'){for(const k of G.pickups)if(k.type==='chest')arrow(k.x,k.y,'#ffc21a');else if(k.type!=='wrench'&&k.type!=='magnet')arrow(k.x,k.y,DROPS[k.type].col);if(G.trader&&G.trader.phase!=='leave')traderArrow();if(G.portal)portalArrow()}
+  // exit portal off screen: a pulsing purple arrow with a ring
+  function portalArrow(){const o=G.portal,sx2=o.x+ox,sy2=o.y+oy;if(sx2>0&&sx2<VW&&sy2>0&&sy2<VH)return;const a=Math.atan2(sy2-VH/2,sx2-VW/2),ex=clamp(sx2,44,VW-44),ey=clamp(sy2,190,VH-70),pl=1+.15*Math.sin(G.t*7);
+    ctx.save();ctx.translate(ex,ey);ctx.save();ctx.rotate(a);ctx.scale(pl,pl);ctx.fillStyle='#c78bff';ctx.beginPath();ctx.moveTo(30,0);ctx.lineTo(-6,-19);ctx.lineTo(-6,19);ctx.closePath();ctx.fill();ctx.restore();
+    ctx.fillStyle='#0b0612';ctx.beginPath();ctx.arc(0,0,14,0,TAU);ctx.fill();ctx.strokeStyle='#c78bff';ctx.lineWidth=4;ctx.beginPath();ctx.arc(0,0,9,0,TAU);ctx.stroke();ctx.restore()}
   // trader off screen: a big arrow with a coin sign pinned to the edge
   function traderArrow(){const tr=G.trader,sx2=tr.x+ox,sy2=tr.y+oy;if(sx2>0&&sx2<VW&&sy2>0&&sy2<VH)return;const a=Math.atan2(sy2-VH/2,sx2-VW/2),ex=clamp(sx2,40,VW-40),ey=clamp(sy2,130,VH-60),pl=1+.12*Math.sin(G.t*6);
     ctx.save();ctx.translate(ex,ey);ctx.save();ctx.rotate(a);ctx.scale(pl,pl);ctx.fillStyle=tr.T.col;ctx.beginPath();ctx.moveTo(26,0);ctx.lineTo(-6,-17);ctx.lineTo(-6,17);ctx.closePath();ctx.fill();ctx.restore();
@@ -1637,6 +1694,9 @@ function draw(){
     // the red edge gradient is built once per screen size and faded with globalAlpha
     const key=VW+'x'+VH;if(!vignette||vigKey!==key){vigKey=key;vignette=ctx.createRadialGradient(VW/2,VH/2,Math.min(VW,VH)*.3,VW/2,VH/2,Math.max(VW,VH)*.75);vignette.addColorStop(0,'rgba(255,40,60,0)');vignette.addColorStop(1,'rgba(255,40,60,1)')}
     ctx.globalAlpha=clamp(al,0,1);ctx.fillStyle=vignette;ctx.fillRect(0,0,VW,VH);ctx.globalAlpha=1}
+  // Overdrive: a purple edge that pulses harder each tier
+  if(G.odStart>=0&&state!=='menu'){const al=Math.min(.5,.1+.05*G.odTier)*(.75+.25*Math.sin(G.t*(3+G.odTier)));if(!odVig||odKey!==VW+'x'+VH){odKey=VW+'x'+VH;odVig=ctx.createRadialGradient(VW/2,VH/2,Math.min(VW,VH)*.35,VW/2,VH/2,Math.max(VW,VH)*.75);odVig.addColorStop(0,'rgba(150,60,255,0)');odVig.addColorStop(1,'rgba(150,60,255,1)')}
+    ctx.globalAlpha=al;ctx.fillStyle=odVig;ctx.fillRect(0,0,VW,VH);ctx.globalAlpha=1}
   if(G.flashT>0){ctx.fillStyle=`rgba(255,250,235,${G.flashT*1.8})`;ctx.fillRect(0,0,VW,VH)}
   if(G.buffs.freeze>0){ctx.fillStyle='rgba(160,220,255,.07)';ctx.fillRect(0,0,VW,VH)}
 }
@@ -1653,7 +1713,8 @@ function updateHud(){
   const b=G.lboss&&!G.lboss.dead?G.lboss:G.mini&&!G.mini.dead?G.mini:null;$('bossWrap').hidden=!b;
   if(b){setT('bossName',b.type==='lboss'?L.boss.name:'JUGGERNAUT '+['I','II','III','IV','V','VI','VII','VIII'][Math.min(7,(b.num||1)-1)]);setW('bossfill',b.hp/b.maxhp)}
   let obj;
-  if(G.cleared)obj=`Track cleared · Juggernaut in <b>${fmt(G.nextMini-G.t)}</b>`;
+  if(G.portal){const po=G.portal,dm=Math.round(Math.hypot(po.x-p.x,po.y-p.y)/10),a=Math.atan2(po.y-p.y,po.x-p.x);obj=`<span class="odtag">Overdrive ${roman(Math.max(1,G.odTier))}</span> Exit portal <b>${dm}m</b> <span class="tarr" style="transform:rotate(${a.toFixed(1)}rad)">▶</span> · drive in to bank your run`}
+  else if(G.cleared)obj=`Track cleared · <b>exit portal opening…</b>`;
   else if(G.lboss||G.bossDue>0)obj=`Level boss · <b>${L.boss.name}</b>`;
   else obj=`Juggernauts <b>${G.miniKills} / ${L.minis}</b> · next in <b>${fmt(Math.max(0,G.nextMini-G.t))}</b>`;
   if(hudCache.obj!==obj){hudCache.obj=obj;$('objective').innerHTML=obj}
@@ -1704,6 +1765,7 @@ function enemyCard(e){const fr=G.buffs.freeze>0,st=[];if(fr)st.push('frozen');if
 function pickHover(wx,wy){const p=G.p,in2=(x,y,r)=>d2(wx,wy,x,y)<r*r;
   let best=null,bd=1e9;for(const e of near(wx,wy,80)){if(e.dead)continue;const q=d2(wx,wy,e.x,e.y);if(q<(e.r+8)**2&&q<bd){bd=q;best=e}}if(best)return enemyCard(best);
   for(const e of G.enemies)if(e.big&&!e.dead&&in2(e.x,e.y,e.r+8))return enemyCard(e);
+  const po=G.portal;if(po&&in2(po.x,po.y,po.r))return card('Exit portal','Way out','Drive in to end the run and bank it on the leaderboard. Get wrecked before you reach it and the run is lost.',[['Overdrive',`${roman(Math.max(1,G.odTier))} · ${fmt(odHeat())}`],['Next tier in',Math.ceil(40-odHeat()%40)+'s']],'#c78bff');
   const tr=G.trader;if(tr&&in2(tr.x,tr.y,52))return card(tr.T.name,'Trader · '+tr.T.title,tr.phase==='parked'?`Parked for ${Math.ceil(tr.stay)}s more. Pull up and press F (or tap the prompt) to trade.`:tr.phase==='arrive'?'Pulling in. Wait for it to park.':'Leaving town.',[['Sells',tr.offers.map(o=>TRINKETS[o.id].name).join(', ')]],tr.T.col);
   if(in2(p.x,p.y,p.r+6)){const W=Object.keys(G.weapons).map(k=>WDEF[k].name+' '+G.weapons[k].lvl),Pa=Object.keys(G.passives).map(k=>PDEF[k].name+' '+G.passives[k]);
     return card(G.car.name,'Your car · level '+G.level,'Everything bolted on is drawn on the car.',[['HP',`${Math.ceil(p.hp)} / ${p.maxhp}`],['Weapons',W.join(', ')||'none'],['Upgrades',Pa.join(', ')||'none'],['Speed',Math.round(Math.hypot(p.vx,p.vy))]],G.car.col,p.hp/p.maxhp)}
@@ -1730,7 +1792,7 @@ function updateHover(){const tip=$('hoverTip');const idle=performance.now()-mous
   const w=tip.offsetWidth,h=tip.offsetHeight;let x=mouse.x+18,y=mouse.y+18;if(x+w>VW-8)x=mouse.x-w-14;if(y+h>VH-8)y=mouse.y-h-14;tip.style.transform=`translate(${Math.max(8,x)}px,${Math.max(8,y)}px)`}
 
 /* ---------- screens ---------- */
-const SCREENS=['scrMenu','scrGarage','scrLevels','scrLevel','scrShop','scrPause','scrWin','scrOver','scrAch','scrSet','scrHow','scrBoard'],SUBS=['scrLevels','scrGarage','scrAch','scrSet','scrHow','scrBoard'];
+const SCREENS=['scrMenu','scrGarage','scrLevels','scrLevel','scrShop','scrPause','scrOver','scrAch','scrSet','scrHow','scrBoard'],SUBS=['scrLevels','scrGarage','scrAch','scrSet','scrHow','scrBoard'];
 let cur='scrMenu';const navStack=[];
 function show(id){cur=id;for(const s of SCREENS)$(s).hidden=s!==id;$('overlay').hidden=!id;$('overlay').classList.toggle('attract',state==='menu');if(id){$('tip').hidden=true;$('banner').classList.remove('show')}}
 function openSub(id,opener){navStack.push({id:cur||'scrMenu',focus:opener});if(id==='scrAch')renderAch();if(id==='scrBoard')renderBoard();if(id==='scrSet')renderSettings();if(id==='scrLevels')renderLevels();if(id==='scrGarage')renderGarage();show(id);
@@ -1768,8 +1830,6 @@ function startGame(li=curLevel){if(G&&G.live)commitRun();navStack.length=0;initA
 const startBanner=()=>showBanner(G.L.name,`Wreck ${G.L.minis} Juggernauts to draw out ${G.L.boss.name}`);
 function toMenu(){if(G&&G.live)commitRun();navStack.length=0;state='menu';newGame(curLevel);$('hud').hidden=true;$('tip').hidden=true;show('scrMenu');refreshMenu();$('startBtn').focus()}
 function togglePause(){if(state==='play'){state='paused';$('pauseLevel').textContent=G.L.name+' · '+G.car.name+' · '+fmt(G.t);show('scrPause');$('resumeBtn').focus()}else if(state==='paused'){state='play';show(null);last=performance.now()}}
-function openWin(){state='won';$('winText').textContent=`${G.L.boss.name} is scrap. Keep driving for more XP and loot, or cash out now.`;
-  $('wTime').textContent=fmt(G.t);$('wKills').textContent=G.kills;$('wLvl').textContent=G.level;show('scrWin');$('keepBtn').focus()}
 /* ---------- online leaderboard (api/scores.js on Vercel, scores kept in Upstash Redis) ---------- */
 // each browser gets a random secret player id; your best run per track is queued locally and posted when the server is reachable
 const LB_API='/api/scores',lbOnline=/^https?:$/.test(location.protocol);
@@ -1781,7 +1841,7 @@ const carIdOf=c=>Object.keys(CARS).find(k=>CARS[k]===c)||'interceptor';
 async function lbFetch(q,opts={}){const r=await fetch(LB_API+q,Object.assign({cache:'no-store'},opts));const j=await r.json().catch(()=>({}));
   if(!r.ok)throw Object.assign(new Error('lb'),{code:j.error||r.status,env:j.environment});return j}
 const lbPost=body=>lbFetch('',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(Object.assign({pid:P.pid,name:P.lbName},body))});
-function lbQueueRun(){if(G.t<10)return null;const id=G.L.id,run={track:id,t:Math.floor(G.t),kills:G.kills,level:G.level,car:carIdOf(G.car),cleared:!!G.cleared};
+function lbQueueRun(){if(G.t<10||G.forfeit)return null;const id=G.L.id,run={track:id,t:Math.floor(G.t),kills:G.kills,level:G.level,car:carIdOf(G.car),cleared:!!G.cleared,escaped:!!G.escaped};
   const q=P.lbQueue[id];if(!q||run.t>q.t||(run.t===q.t&&run.kills>q.kills))P.lbQueue[id]=run;saveProfile();return run}
 let lbBusy=null;
 function lbFlush(){if(!lbOnline)return Promise.resolve({});if(lbBusy)return lbBusy.then(lbFlush);
@@ -1795,7 +1855,7 @@ const lbErrText=(c,env)=>!lbOnline?'Online leaderboards work on the deployed sit
   c===429?'Too many requests. Try again in a minute.':'Can\'t reach the leaderboard right now. Your runs are saved and will post later.';
 // results screen line
 function lbAfterRun(){const el=$('rRank'),g=G,L=G.L;
-  if(!g.lbRun){el.textContent=G.t<10?'Runs under 10 seconds don\'t go on the leaderboard':'';return}
+  if(!g.lbRun){el.textContent=G.forfeit?'Not posted · you didn\'t make it to the exit portal':G.t<10?'Runs under 10 seconds don\'t go on the leaderboard':'';return}
   if(!lbOnline){el.textContent='Leaderboard offline · run saved to post later';return}
   el.textContent='Posting to the leaderboard…';
   g.lbPosting.then(out=>{if(G!==g)return;const j=out[L.id];
@@ -1812,7 +1872,7 @@ function renderBoard(){if(lbTrack===null)lbTrack=G&&G.L?G.L.id:LEVELS[0].id;
   if(!lbOnline){body.innerHTML='';msg.textContent=lbErrText();return}
   body.innerHTML='<tr><td colspan="6" class="lbinfo">Loading…</td></tr>';
   lbFlush().then(()=>lbFetch(`?track=${lbTrack}&limit=50`,{headers:{'x-player':P.pid}})).then(j=>{if(n!==lbReq)return;
-    const row=r=>`<tr class="${r.you?'you':''}"><td>${r.rank}</td><td class="nm">${esc(r.name)}${r.you?' <small>you</small>':''}</td><td>${fmt(r.t||0)}${r.cleared?' <span class="clr" title="Track cleared">✓</span>':''}</td><td>${r.kills||0}</td><td>${r.level||1}</td><td class="lbcar">${esc((CARS[r.car]||CARS.interceptor).name)}</td></tr>`;
+    const row=r=>`<tr class="${r.you?'you':''}"><td>${r.rank}</td><td class="nm">${esc(r.name)}${r.you?' <small>you</small>':''}</td><td>${fmt(r.t||0)}${r.escaped?' <span class="lbesc" title="Escaped through the exit portal">◎</span>':r.cleared?' <span class="clr" title="Track cleared">✓</span>':''}</td><td>${r.kills||0}</td><td>${r.level||1}</td><td class="lbcar">${esc((CARS[r.car]||CARS.interceptor).name)}</td></tr>`;
     let h=j.top.map(row).join('');if(j.me&&j.me.rank>j.top.length)h+='<tr class="gap"><td colspan="6">⋯</td></tr>'+row(j.me);
     body.innerHTML=h||'<tr><td colspan="6" class="lbinfo">No runs yet. Survive 10 seconds to claim first place.</td></tr>';
     msg.textContent=`${j.total} driver${j.total===1?'':'s'} on this track`+(best?` · your best here: ${fmt(best)}`:'')})
@@ -1823,20 +1883,35 @@ function lbSaveName(){const nm=lbClean($('lbName').value);if(nm.length<2){$('lbM
   lbPost({action:'name'}).then(()=>{$('lbMsg').textContent='Name saved.';renderBoard()}).catch(e=>{$('lbMsg').textContent='Name saved on this device. '+lbErrText(e.code)})}
 $('lbSave').onclick=lbSaveName;$('lbName').addEventListener('keydown',e=>{if(e.code==='Enter'||e.code==='NumpadEnter'){e.preventDefault();lbSaveName()}});
 lbFlush();
-function results(title){const T=P.tracks[G.L.id]||{best:G.t};$('overTitle').textContent=title;
+const SRCNAME={ram:'Ramming',bumpers:'Blast Bumpers',cables:'Jumper Cables',napalm:'Napalm Tank',hazard:'Hazards',barrels:'Barrels',airstrike:'Airstrikes',other:'Other'};
+function renderReport(){const od=G.odStart>=0?(G.escaped||G.forfeit?G.t-G.odStart:0):-1,items=Object.values(G.tk).reduce((a,b)=>a+b,0);
+  $('rWhere').textContent=`${G.L.name} · ${G.car.name}`;
+  const note=G.escaped?`You made it through the exit portal after ${fmt(od)} of Overdrive (tier ${roman(Math.max(1,G.odTier))}). Run banked · +25% XP and scrap.`:
+    G.forfeit?`Wrecked in Overdrive ${roman(Math.max(1,G.odTier))}, ${fmt(od)} after the portal opened. Runs only count once you escape, so this one is off the leaderboard and rewards are halved.`:
+    G.cleared?'':`Wreck ${G.L.boss.name} to open the exit portal.`;
+  $('rNote').hidden=!note;$('rNote').textContent=note;
+  const tot=Object.values(G.dmgBy).reduce((a,b)=>a+b,0);
+  const st=[['Juggernauts',G.miniKills],['Chrome hunters',G.eliteKills],['Ram wrecks',G.ramKills],['Barrels popped',G.barrelBooms],['Props smashed',G.propsBroken],['Power-ups',G.powerups],
+    ['Bolts earned',G.boltsGot],['Items',items],['Damage dealt',Math.round(tot).toLocaleString()],['Damage taken',Math.round(G.dmgTaken).toLocaleString()],['Distance',(G.dist/10000).toFixed(1)+' km'],
+    G.clearT>=0?[G.L.boss.name,'down at '+fmt(G.clearT)]:['Boss','not reached']];
+  if(od>=0)st.push(['Overdrive',`${fmt(od)} · tier ${roman(Math.max(1,G.odTier))}`]);
+  $('rStats').innerHTML=st.map(([k,v])=>`<div><span>${esc(k)}</span><b>${esc(v)}</b></div>`).join('');
+  const rows=Object.entries(G.dmgBy).filter(([,v])=>v>=1).sort((a,b)=>b[1]-a[1]),mx=rows.length?rows[0][1]:1;
+  $('rWeap').innerHTML=rows.length?rows.map(([k,v])=>{const w=WDEF[k],lv=G.weapons[k];
+    return`<div class="wrow"><span class="wn">${esc(w?w.name:SRCNAME[k]||k)}${lv?` <small>Lv ${lv.lvl}</small>`:''}</span><span class="wbar"><i style="width:${(v/mx*100).toFixed(1)}%"></i></span><span class="wv">${Math.round(v).toLocaleString()} <small>${Math.round(v/tot*100)}%</small></span></div>`}).join(''):'<p class="sub">No damage dealt</p>'}
+function results(title){const T=P.tracks[G.L.id]||{best:G.t};$('overTitle').textContent=title;renderReport();
   $('rTime').textContent=fmt(G.t);$('rKills').textContent=G.kills;$('rLvl').textContent=G.level;$('rBest').textContent=fmt(T.best);
   fillAcct('oAcct',null,'oAcctFill');$('oGain').innerHTML=`+${G.gain} XP · +${G.scrapGain} <span class="scrapi"></span>scrap`;
   lbAfterRun();$('rAchWrap').hidden=!G.newAch.length;$('rAch').innerHTML=G.newAch.map(a=>`<div class="toast">${badge(a.ic,true)}<div><b>${a.name}</b></div></div>`).join('')}
-function gameOver(){state='over';commitRun();results('Wrecked');$('tip').hidden=true;const p=G.p;
+function gameOver(){state='over';commitRun();results(G.forfeit?'Run lost':'Wrecked');$('tip').hidden=true;const p=G.p;
   // the car blows apart: a big blast, pieces of bodywork in the car's colour, then a burning shell
   explode(p.x,p.y,170,0);G.shake=24;G.wreck={t:0,booms:[.18,.4,.65]};sfx('boom');
   for(let i=0;i<(S.lowFx?10:24);i++){const a=rand(0,TAU),sp=rand(160,560);part(p.x,p.y,Math.cos(a)*sp,Math.sin(a)*sp,rand(.9,1.7),rand(5,12),i%3?G.car.col:'#2b2930','debris')}
-  setTimeout(()=>{if(state!=='over')return;show('scrOver');$('againBtn').focus()},1400)}
+  setTimeout(()=>{if(state!=='over')return;showReport()},1400)}
 // follow-up blasts and flames while the results screen waits
 function updateWreck(dt){const w=G.wreck,p=G.p;if(!w)return;w.t+=dt;
   while(w.booms.length&&w.t>=w.booms[0]){w.booms.shift();boomFx(p.x+rand(-28,28),p.y+rand(-22,22),rand(70,125))}
   if(Math.random()<.6){part(p.x+rand(-14,14),p.y+rand(-10,10),rand(-25,25),rand(-70,-20),rand(.35,.7),rand(6,13),null,'fire');part(p.x+rand(-8,8),p.y,rand(-15,15),rand(-55,-20),rand(1,1.9),rand(10,18),null,'smoke')}}
-function cashOut(){state='over';commitRun();results('Cashed out');show('scrOver');$('againBtn').focus()}
 function renderAch(){const r=rec(),n=Object.keys(P.ach).length;
   $('achCount').textContent=`${n} of ${ACH.length} unlocked`;$('achFill').style.width=(n/ACH.length*100)+'%';
   const val=(a,v)=>a.time?fmt(v):Math.floor(v).toLocaleString();
@@ -1882,8 +1957,7 @@ $('carPick').addEventListener('click',e=>{const c=e.target.closest('.car');if(!c
 $('garBtn').onclick=e=>openSub('scrGarage',e.currentTarget);
 $('startBtn').onclick=e=>openSub('scrLevels',e.currentTarget);
 $('againBtn').onclick=()=>startGame();$('quitBtn').onclick=()=>startGame();
-$('pMenuBtn').onclick=toMenu;$('oMenuBtn').onclick=toMenu;$('wMenuBtn').onclick=cashOut;
-$('keepBtn').onclick=()=>{state='play';show(null);last=performance.now()};
+$('pMenuBtn').onclick=toMenu;$('oMenuBtn').onclick=toMenu;
 $('shopLeave').onclick=closeShop;$('shopReroll').onclick=restock;$('tip').onclick=()=>{if(state==='play'&&G.near)openShop()};
 $('pauseBtn').onclick=()=>{$('pauseBtn').blur();togglePause()};$('resumeBtn').onclick=togglePause;
 $('achBtn').onclick=e=>openSub('scrAch',e.currentTarget);$('lbBtn').onclick=e=>openSub('scrBoard',e.currentTarget);$('setBtn').onclick=e=>openSub('scrSet',e.currentTarget);
@@ -1910,7 +1984,7 @@ resize();newGame(curLevel);show('scrMenu');refreshMenu();
 let last=performance.now();
 function frame(now){
   const dt=clamp((now-last)/1000,0,0.05);last=now;
-  if(state==='play'){update(dt);if(state==='play'||state==='levelup'||state==='won')updateHud()}
+  if(state==='play'){update(dt);if(state==='play'||state==='levelup')updateHud()}
   else if(state==='menu')attract(dt);
   else if(state==='over'){updateWreck(dt);updateFx(dt);G.shake*=Math.exp(-7*dt)}
   const c=G.cam,p=G.p,am=state==='menu',tx=am?ARENA/2:p.x+p.vx*.3,ty=am?ARENA/2:p.y+p.vy*.3,k=1-Math.exp(-6*dt);c.x+=(tx-c.x)*k;c.y+=(ty-c.y)*k;
