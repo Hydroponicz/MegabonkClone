@@ -459,7 +459,8 @@ const TAU=Math.PI*2, ARENA=3000;
 const rand=(a,b)=>a+Math.random()*(b-a);
 const clamp=(v,a,b)=>v<a?a:v>b?b:v;
 const d2=(ax,ay,bx,by)=>{const dx=ax-bx,dy=ay-by;return dx*dx+dy*dy};
-function angDiff(a,b){let d=b-a;while(d>Math.PI)d-=TAU;while(d<-Math.PI)d+=TAU;return d}
+// wrap to [-PI, PI] without loops (a non-finite angle used to spin the old while loops forever)
+function angDiff(a,b){const d=b-a;if(!isFinite(d))return 0;if(d>=-Math.PI&&d<=Math.PI)return d;return d-TAU*Math.floor((d+Math.PI)/TAU)}
 function fmt(t){t=Math.floor(t);return String(Math.floor(t/60)).padStart(2,'0')+':'+String(t%60).padStart(2,'0')}
 function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
 // drop items from an array in place (no new array each frame)
@@ -670,7 +671,7 @@ const TRINKETS={
   cage:{name:'Roll Cage',desc:'+20 max HP.',cost:16,cat:'doc',rar:'common'},
   heat:{name:'Heat Shield',desc:'Take 6% less damage.',cost:18,cat:'doc',rar:'common'},
   drip:{name:'Coolant Drip',desc:'Repair 0.5 HP every second.',cost:16,cat:'doc',rar:'common'},
-  leech:{name:'Leech Tires',desc:'Each wreck repairs 0.3 HP.',cost:18,cat:'doc',rar:'common'},
+  leech:{name:'Leech Tires',desc:'Each wreck repairs 0.3 HP (up to 2 HP a second per stack).',cost:18,cat:'doc',rar:'common'},
   plating:{name:'Magnetic Plating',desc:'25% chance to deflect an enemy bullet (up to 75%).',cost:22,cat:'doc',rar:'rare',max:3},
   adrenaline:{name:'Adrenaline Valve',desc:'Below 30% HP, weapons recharge 30% faster.',cost:20,cat:'doc',rar:'rare',max:3},
   tire:{name:'Spare Tire',desc:'Survive one wreck and roll on with half HP.',cost:40,cat:'doc',rar:'epic',max:3},
@@ -681,12 +682,13 @@ const TRINKETS={
   lens:{name:'Scrap Lens',desc:'+10% XP from scrap.',cost:16,cat:'luck',rar:'common'},
   voucher:{name:'Crate Voucher',desc:'Pick a free bolt-on as soon as you leave.',cost:30,cat:'luck',rar:'common',shop:1},
   battery:{name:'Overcharged Battery',desc:'Power-ups last 50% longer.',cost:20,cat:'luck',rar:'rare',max:3},
-  bounty:{name:'Bounty Board',desc:'Every 60 wrecks drops a supply crate (10 fewer per extra stack).',cost:28,cat:'luck',rar:'rare',max:3},
+  bounty:{name:'Bounty Board',desc:'Every 60 wrecks drops a supply crate (10 fewer per extra stack), at most one every 20s.',cost:28,cat:'luck',rar:'rare',max:3},
   dice:{name:'Loaded Dice',desc:'15% chance that a level up gives a bonus pick.',cost:30,cat:'luck',rar:'epic',max:3},
 };
 const itemOpen=k=>(G.tk[k]||0)<(TRINKETS[k].max||5);
 // a Trader's Roll: any non-consumable item you can still stack
-function rollItem(){const pool=Object.keys(TRINKETS).filter(k=>!TRINKETS[k].shop&&itemOpen(k));if(!pool.length)return'patch';
+const rollPool=()=>Object.keys(TRINKETS).filter(k=>!TRINKETS[k].shop&&itemOpen(k));
+function rollItem(){const pool=rollPool();if(!pool.length)return'patch';
   // pick the rarity first (so the odds on the card are the real odds), then any open item of that rarity
   const tiers=Object.keys(RAR).filter(r=>pool.some(k=>TRINKETS[k].rar===r));let tot=0;for(const r of tiers)tot+=RAR[r].w;
   let x=Math.random()*tot,tier=tiers[0];for(const r of tiers)if((x-=RAR[r].w)<0){tier=r;break}
@@ -697,10 +699,11 @@ const stockFor=cat=>shuffle(Object.keys(TRINKETS).filter(k=>TRINKETS[k].cat===ca
 function chainZap(x,y){const ps=DSRC;DSRC='cables';const hits=near(x,y,260,[]).filter(e=>!e.dead&&d2(x,y,e.x,e.y)<200*200).sort((a,b)=>d2(x,y,a.x,a.y)-d2(x,y,b.x,b.y)).slice(0,2);
   for(const e of hits){G.arcs.push({pts:[[x,y],[e.x,e.y]],life:.18});damageEnemy(e,30*G.stats.dmg)}if(hits.length)sfx('zap');DSRC=ps}
 function onWreckItems(e){const T=G.tk;
-  if(T.leech)G.p.hp=Math.min(G.p.maxhp,G.p.hp+0.3*T.leech);
+  // leech heals per wreck but at most 2 HP a second per stack, so huge kill rates can't make you unkillable
+  if(T.leech){const cap=2*T.leech;G.leechBank=Math.min(cap,(G.leechBank||0)+(G.t-(G.leechAt||0))*cap);G.leechAt=G.t;const h=Math.min(0.3*T.leech,G.leechBank);G.leechBank-=h;G.p.hp=Math.min(G.p.maxhp,G.p.hp+h)}
   if(T.cables&&Math.random()<0.15*T.cables)chainZap(e.x,e.y);
   if(T.napalm&&Math.random()<0.12*T.napalm)G.zones.push({k:'napalm',x:e.x,y:e.y,r:55,life:3,pts:blob(55,10,.3)});
-  if(T.bounty&&G.kills%Math.max(20,60-10*(T.bounty-1))===0){dropPickup(e.x,e.y,'chest');addText(e.x,e.y-20,'BOUNTY','#ffc21a')}}
+  if(T.bounty&&G.kills%Math.max(20,60-10*(T.bounty-1))===0&&G.t-(G.bountyAt??-99)>=20){G.bountyAt=G.t;dropPickup(e.x,e.y,'chest');addText(e.x,e.y-20,'BOUNTY','#ffc21a')}}
 const price=id=>Math.round(TRINKETS[id].cost*(1+0.4*(G.tk[id]||0)));
 
 /* ---------- achievements: each one is a record key that must reach n ---------- */
@@ -1491,6 +1494,8 @@ function updateProjectiles(dt){
     if(b.fuse>=0){b.fuse-=dt;if(b.fuse<0){const B=BTYPES[b.t];b.alive=false;b.respawn=20;G.barrelBooms++;DSRC='barrels';explode(b.x,b.y,B.R,B.dmg*G.stats.dmg,B.hurt);if(B.acid)G.zones.push({k:'acid',x:b.x,y:b.y,r:B.R*.9,life:8,pts:blob(B.R*.9,10,.3)})}}}
 }
 
+function foldGems(bolts){let v=0,x=0,y=0,n=0;prune(G.gems,g=>{if(!!g.b!==bolts||n>=60)return true;if(!n){x=g.x;y=g.y}n++;v+=g.v;return false});
+  if(n)G.gems.push(bolts?{x,y,v,b:true,vx:0,vy:0,pull:false,sp:0}:{x,y,v,vx:0,vy:0,pull:false,sp:0})}
 function updatePickups(dt){
   const p=G.p,mag=G.stats.magnet;
   for(const g of G.gems){g.x+=g.vx*dt;g.y+=g.vy*dt;g.vx*=Math.exp(-5*dt);g.vy*=Math.exp(-5*dt);
@@ -1498,8 +1503,9 @@ function updatePickups(dt){
     if(g.pull){const d=Math.sqrt(dd)||1;g.sp+=dt*1400;const sp=Math.min(1100,260+g.sp);g.x+=dx/d*sp*dt;g.y+=dy/d*sp*dt}
     if(dd<(p.r+8)**2){g.got=true;if(g.b){G.bolts+=g.v;G.boltsGot+=g.v;sfx('bolt')}else{addXp(g.v);G.scrapRaw+=g.v;sfx('pick')}}}
   prune(G.gems,g=>!g.got);
-  // too much scrap on the floor: fold the oldest 60 XP gems into one
-  while(G.gems.length>350){let v=0,x=0,y=0,n=0;prune(G.gems,g=>{if(g.b||n>=60)return true;if(!n){x=g.x;y=g.y}n++;v+=g.v;return false});if(!n)break;G.gems.push({x,y,v,vx:0,vy:0,pull:false,sp:0})}
+  // too much on the floor: fold the oldest 60 scrap gems into one, then the oldest 60 bolt gems if it's still crowded.
+  // one pass per frame, never an open-ended loop (it used to spin forever once 350+ uncollected bolts piled up)
+  if(G.gems.length>350)foldGems(false);if(G.gems.length>350)foldGems(true);
   for(const k of G.pickups){k.t+=dt;if(d2(k.x,k.y,p.x,p.y)<(p.r+16)**2){k.got=true;usePickup(k)}
     else if(k.type!=='chest'&&k.t>35)k.got=true}
   prune(G.pickups,k=>!k.got);
@@ -1928,11 +1934,16 @@ function buildChoices(){
   const pool=[],nW=Object.keys(G.weapons).length,nP=Object.keys(G.passives).length;
   for(const k in WDEF){if(!unlocked(WDEF[k])&&!G.weapons[k])continue;const l=G.weapons[k]?G.weapons[k].lvl:0;if(l>=5)continue;if(!l&&nW>=slotsW())continue;pool.push({kind:'w',k,next:l+1})}
   for(const k in PDEF){if(!unlocked(PDEF[k])&&!G.passives[k])continue;const l=G.passives[k]||0;if(l>=5)continue;if(!l&&nP>=slotsP())continue;pool.push({kind:'p',k,next:l+1})}
-  shuffle(pool);const out=pool.slice(0,3);if(!out.length)out.push({kind:'heal'});
+  shuffle(pool);const out=pool.slice(0,3),canRoll=rollPool().length>0;
+  // nothing left to bolt on and nothing left to roll: no screen at all (see maxedOut)
+  if(!out.length&&!canRoll)return out;
+  if(!out.length)out.push({kind:'heal'});
   // Megabonk-style: skip the bolt-on and roll a random item from the trader stock instead
-  out.push({kind:'roll'});return out;
+  if(canRoll)out.push({kind:'roll'});return out;
 }
-function openLevelup(){state='levelup';choices=buildChoices();sfx('level');
+// a fully maxed rig: level ups and supply crates turn into banked scrap instead of pausing the game (and instead of free heals)
+function maxedOut(){const n=G.pending;G.pending=0;if(state==='levelup'){state='play';show(null);last=performance.now()}G.sack+=10*n;toast('MAX','Fully loaded',`+${10*n} scrap banked`);sfx('pick')}
+function openLevelup(){const ch=buildChoices();if(!ch.length){maxedOut();return}state='levelup';choices=ch;sfx('level');
   $('lvlSub').textContent=`Pick a bolt-on or roll an item · keys 1 to ${choices.length} · Weapons ${Object.keys(G.weapons).length}/${slotsW()} · Upgrades ${Object.keys(G.passives).length}/${slotsP()}`;
   $('cards').innerHTML=choices.map((c,i)=>{
     if(c.kind==='heal')return`<button class="card" id="choice${i}" data-i="${i}"><span class="num">${i+1}</span><span class="kind">Pit stop</span><h3>Full patch-up</h3><p>Repair 50 HP. Your rig is maxed out.</p></button>`;
