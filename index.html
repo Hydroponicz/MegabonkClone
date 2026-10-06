@@ -2093,7 +2093,7 @@ function updateEnemies(dt){
     e.a+=clamp(da,-turn*dt,turn*dt);
     if(!e.orbit)target*=0.45+0.55*Math.max(0,Math.cos(da));
     if(e.jam>0)target*=e.big?.85:.5;
-    if(e.wet>0){target*=e.big?.85:.7;if(Math.random()<dt*5)part(e.x+rand(-e.r,e.r)*.7,e.y+rand(-e.r,e.r)*.7,0,0,.35,2.5,'#8fd4ff','spark')}
+    if(e.wet>0){target*=e.big?.85:.7;if(Math.random()<dt*5)part(e.x+rand(-e.r,e.r)*.7,e.y+rand(-e.r,e.r)*.7,0,0,.35,2.5,'#8dff5a','spark')}
     e.v+=(target-e.v)*Math.min(1,2.2*dt);
     }else e.v*=Math.exp(-6*dt);
     e.x+=Math.cos(e.a)*e.v*dt+e.kx*dt;e.y+=Math.sin(e.a)*e.v*dt+e.ky*dt;
@@ -2196,12 +2196,12 @@ function updateWeapons(dt){
     const cand=near(p.x,p.y,R+70).filter(e=>!e.dead&&d2(p.x,p.y,e.x,e.y)<R*R&&(e.los||d2(p.x,p.y,e.x,e.y)<170*170)).sort((A,B)=>d2(p.x,p.y,A.x,A.y)-d2(p.x,p.y,B.x,B.y)).slice(0,n);
     if(cand.length){const t0=cand[0];w.aim=(w.aim??p.a)+angDiff(w.aim??p.a,Math.atan2(t0.y-p.y,t0.x-p.x))*Math.min(1,12*dt)}
     for(const e of cand){const dx=e.x-p.x,dy=e.y-p.y,dd=Math.hypot(dx,dy)||1;w.jets.push([e.x,e.y]);e.wet=Math.max(e.wet||0,2.2);
-      const amt=dps*dt;e.soak=(e.soak||0)+amt;damageEnemy(e,amt,false);if(e.soak>=20&&!e.dead){if(S.dmgNums)addText(e.x,e.y-e.r,Math.round(e.soak),'#8fd4ff');e.soak=0}
+      const amt=dps*dt;e.soak=(e.soak||0)+amt;damageEnemy(e,amt,false);if(e.soak>=20&&!e.dead){if(S.dmgNums)addText(e.x,e.y-e.r,Math.round(e.soak),'#8dff5a');e.soak=0}
       const k=(e.big?60:560+60*lv)*dt;e.kx+=dx/dd*k;e.ky+=dy/dd*k;
-      if(Math.random()<(S.lowFx?.4:1))for(let i=0;i<2;i++){const a=Math.atan2(-dy,-dx)+rand(-1.1,1.1),sp=rand(80,260);part(e.x-dx/dd*e.r,e.y-dy/dd*e.r,Math.cos(a)*sp,Math.sin(a)*sp,rand(.2,.4),rand(2,4),'#8fd4ff','spark')}}
+      if(Math.random()<(S.lowFx?.4:1))for(let i=0;i<2;i++){const a=Math.atan2(-dy,-dx)+rand(-1.1,1.1),sp=rand(80,260);part(e.x-dx/dd*e.r,e.y-dy/dd*e.r,Math.cos(a)*sp,Math.sin(a)*sp,rand(.2,.4),rand(2,4),'#8dff5a','spark')}}
     for(const b of G.barrels)if(b.alive&&b.fuse<0&&cand.length&&d2(b.x,b.y,cand[0].x,cand[0].y)<(b.r+20)**2)b.fuse=0.3;
     if(cand.length&&(w.snd=(w.snd||0)-dt)<=0){w.snd=.13;noise(.16,.03,2800)}
-    if(lv>=5){w.wave=(w.wave??5)-wdt;if(w.wave<=0&&nearestEnemy(p.x,p.y,300)){w.wave=5*s.cd;G.rings.push({src:'hydro',x:p.x,y:p.y,r:20,max:320,dmg:50*s.dmg,hit:new Set(),col:'90,180,255',soak:1});noise(.6,.12,900);tone(160,.5,'sine',.08,60)}}}
+    if(lv>=5){w.wave=(w.wave??5)-wdt;if(w.wave<=0&&nearestEnemy(p.x,p.y,300)){w.wave=5*s.cd;G.rings.push({src:'hydro',x:p.x,y:p.y,r:20,max:320,dmg:50*s.dmg,hit:new Set(),col:'83,252,24',soak:1});noise(.6,.12,900);tone(160,.5,'sine',.08,60)}}}
   updateRC(dt,wdt);
   if(W.drone){DSRC='drone';const w=W.drone,lv=w.lvl,n=lv>=5?3:lv>=3?2:1;G.drones.length=Math.min(G.drones.length,n);
     for(let i=0;i<n;i++){const d=G.drones[i]||(G.drones[i]={x:p.x,y:p.y,cd:rand(0,.5),aim:0});const a=G.t*1.4+i*TAU/n,tx=p.x+Math.cos(a)*64,ty=p.y+Math.sin(a)*64;d.x+=(tx-d.x)*Math.min(1,6*dt);d.y+=(ty-d.y)*Math.min(1,6*dt);
@@ -2460,7 +2460,7 @@ function draw(){
   // hydro jets: a wobbling stream from the roof nozzle to each soaked target
   {const w=G.weapons.hydro;if(w&&w.jets&&w.jets.length){const p=G.p,a=w.aim??p.a,nx=p.x+Math.cos(a)*(G.car.len*.16+18),ny=p.y+Math.sin(a)*(G.car.len*.16+18);ctx.lineCap='round';
     for(const [tx,ty] of w.jets){const dx=tx-nx,dy=ty-ny,L=Math.hypot(dx,dy)||1,ux=-dy/L,uy=dx/L;
-      for(const [lw,col] of [[9,'rgba(60,150,255,.35)'],[5,'rgba(120,200,255,.75)'],[2,'rgba(235,250,255,.95)']]){ctx.strokeStyle=col;ctx.lineWidth=lw;ctx.beginPath();
+      for(const [lw,col] of [[9,'rgba(83,252,24,.32)'],[5,'rgba(140,255,90,.75)'],[2,'rgba(235,255,225,.95)']]){ctx.strokeStyle=col;ctx.lineWidth=lw;ctx.beginPath();
         for(let i=0;i<=10;i++){const f=i/10,wob=Math.sin(f*9-G.t*30)*3*Math.sin(f*Math.PI);ctx.lineTo(nx+dx*f+ux*wob,ny+dy*f+uy*wob)}ctx.stroke()}}
     ctx.lineCap='butt'}}
   for(const b of G.beams){const t=b.life/b.max;ctx.save();ctx.translate(b.x,b.y);ctx.rotate(b.a);ctx.fillStyle=`rgba(255,79,216,${t*.55})`;ctx.fillRect(0,-b.w/2,b.len,b.w);ctx.fillStyle=`rgba(255,240,250,${t})`;ctx.fillRect(0,-b.w/6,b.len,b.w/3);ctx.restore()}
