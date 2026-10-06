@@ -1851,6 +1851,13 @@ function spawnHunter(){const e=spawnEnemy(Math.random()<.5?'truck':'sedan',{elit
   showBanner('Chrome hunter spotted','It runs and hides · wreck it within a minute for a supply crate and bolts');return e}
 // pick an escape heading: away from you, clear of walls and the arena edge, preferring spots you can't see.
 // It only drifts once it's well clear of you (over ~1,000px), so it stays on the radar
+// chrome hunters crash through the scenery as they flee: knockable props go flying, crates burst open and barrels get lit
+// (each hit costs the hunter some speed), so a chase through the junk has some consequences for it
+function hunterBump(e){const r=e.r,x0=clamp((e.x-r)/OG|0,0,ON-1),x1=clamp((e.x+r)/OG|0,0,ON-1),y0=clamp((e.y-r)/OG|0,0,ON-1),y1=clamp((e.y+r)/OG|0,0,ON-1);
+  for(let cx=x0;cx<=x1;cx++)for(let cy=y0;cy<=y1;cy++)for(const o of ocells[cx*ON+cy])if(o.prop&&!o.dead&&d2(o.x,o.y,e.x,e.y)<(o.r+r)**2){
+    if(KNOCK[o.k])tipProp(o,e.x-Math.cos(e.a)*6,e.y-Math.sin(e.a)*6,e.v);else breakProp(o);e.v*=.6;e.boost=0}
+  for(const b of G.barrels)if(b.alive&&b.fuse<0&&Math.abs(b.x-e.x)<b.r+r&&Math.abs(b.y-e.y)<b.r+r&&d2(b.x,b.y,e.x,e.y)<(b.r+r)**2){
+    b.fuse=0.35;e.v*=.5;e.boost=0;const dx=e.x-b.x,dy=e.y-b.y,dd=Math.hypot(dx,dy)||1;e.kx+=dx/dd*160;e.ky+=dy/dd*160;sfx('crash')}}
 function hunterSteer(e,dt,d){const p=G.p;
   if((e.react-=dt)<=0){e.react=rand(.25,.4);let best=e.want||0,bs=-1e9;const toP=Math.atan2(p.y-e.y,p.x-e.x);
     for(let i=0;i<12;i++){const a=i/12*TAU+rand(-.12,.12),cx=Math.cos(a),cy=Math.sin(a);let sc=0;
@@ -2055,6 +2062,7 @@ function updateEnemies(dt){
     e.x=clamp(e.x,e.r,ARENA-e.r);e.y=clamp(e.y,e.r,ARENA-e.r);
     // regular cars follow the flow field round walls; bosses plough straight through
     if(!e.big)collideObs(e,e.r);else if(G.L.bossWalls)collideObs(e,e.r*.85,'building');
+    if(e.elite&&e.born!=null&&e.v>40)hunterBump(e);
     if(tr){const R=44+e.r,q=d2(e.x,e.y,tr.x,tr.y);if(q<R*R){const dq=Math.sqrt(q)||1;e.x=tr.x+(e.x-tr.x)/dq*R;e.y=tr.y+(e.y-tr.y)/dq*R}}
     const rr=e.r+p.r;
     if(d<rr){
