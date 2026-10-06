@@ -955,7 +955,7 @@ const TRADERS=[
 ];
 // rarity sets how often a level-up Trader's Roll lands on an item
 const RAR={common:{w:60,col:'#c9c6d0',name:'Common'},rare:{w:30,col:'#3fe0d0',name:'Rare'},epic:{w:10,col:'#ff4fd8',name:'Epic'}};
-// items: cat = which trader stocks it, max = stack limit (default 5), shop = shop-only consumable (never rolled)
+// items: cat = which trader stocks it, max = stack limit (default TK_STACK), shop = shop-only consumable (never rolled)
 const TRINKETS={
   hollow:{name:'Hollow Points',desc:'+10% damage on every weapon.',cost:14,cat:'gun',rar:'common'},
   trigger:{name:'Hair Trigger',desc:'Weapons recharge 7% faster.',cost:14,cat:'gun',rar:'common'},
@@ -1179,6 +1179,7 @@ function wreckDrop(){const now=G.t;G.dropBank=Math.min(4,(G.dropBank??2)+(now-(G
   if(DROP_CD[k]&&now<(G.dropNext[k]||0))return null;G.dropBank-=1;if(DROP_CD[k])G.dropNext[k]=now+DROP_CD[k];return k}
 function rollDrop(mul){let r=Math.random()/(mul*G.stats.drop);for(const k in DROPS){if((r-=DROPS[k].w)<0)return k}return null}
 // a guaranteed drop, picked in proportion to the weights above
+function propDrop(){const k=pickDrop(),now=G.t;G.dropNext=G.dropNext||{};if(DROP_CD[k]&&now<(G.dropNext[k]||0))return'magnet';if(DROP_CD[k])G.dropNext[k]=now+DROP_CD[k];return k}
 function pickDrop(){let tot=0;for(const k in DROPS)tot+=DROPS[k].w;let r=Math.random()*tot;for(const k in DROPS)if((r-=DROPS[k].w)<0)return k;return'wrench'}
 function dropPickup(x,y,type){if(type!=='chest'&&G.pickups.length>=60){const i=G.pickups.findIndex(q=>q.type!=='chest');if(i>=0)G.pickups.splice(i,1)}const k={x,y,type,t:0};collideObs(k,16);G.pickups.push(k)}
 
@@ -1316,7 +1317,7 @@ function zoneHit(z,x,y,r){if(z.rect)return Math.abs(x-z.x)<z.w/2+r*.5&&Math.abs(
 function tipProp(o,fx,fy,speed){if(o.dead)return;o.dead=true;G.propsBroken++;let dx=o.x-fx,dy=o.y-fy,d=Math.hypot(dx,dy);if(d<1){dx=rand(-1,1);dy=rand(-1,1);d=Math.hypot(dx,dy)||1}
   const sp=clamp(speed*.7+140,160,560);G.tumbles.push({k:o.k,x:o.x,y:o.y,r:o.r,vx:dx/d*sp,vy:dy/d*sp,rot:o.rot||0,spin:rand(-8,8),t:0,life:3.2,seed:o.seed||Math.random()});
   for(let i=0;i<(S.lowFx?2:5);i++)part(o.x,o.y,rand(-90,90),rand(-90,90),rand(.3,.6),rand(6,10),null,'smoke');
-  sfx('crash');if(Math.random()<0.05*G.stats.drop)dropPickup(o.x,o.y,pickDrop())}
+  sfx('crash');if(Math.random()<0.05*G.stats.drop)dropPickup(o.x,o.y,propDrop())}
 function updateTumbles(dt){const fr=Math.exp(-2.4*dt),sf=Math.exp(-1.6*dt);
   for(const u of G.tumbles){u.t+=dt;u.x+=u.vx*dt;u.y+=u.vy*dt;u.vx*=fr;u.vy*=fr;u.rot+=u.spin*dt;u.spin*=sf;
     const h=collideObs(u,u.r*.7);if(h){const vn=u.vx*h.nx+u.vy*h.ny;if(vn<0){u.vx-=h.nx*vn*1.6;u.vy-=h.ny*vn*1.6}}}
@@ -1324,7 +1325,7 @@ function updateTumbles(dt){const fr=Math.exp(-2.4*dt),sf=Math.exp(-1.6*dt);
 function breakProp(o){if(o.dead)return;o.dead=true;G.propsBroken++;
   const col={crate:'#8a5a32',hay:'#d9b45a',cone:'#ff7a1f',hydrant:'#d63434',snowman:'#eef4ff'}[o.k]||'#888';
   for(let i=0;i<(S.lowFx?4:9);i++){const a=rand(0,TAU),s=rand(80,300);part(o.x,o.y,Math.cos(a)*s,Math.sin(a)*s,rand(.4,.8),rand(3,6),col,'debris')}
-  sfx('crash');if(Math.random()<(o.k==='crate'?0.6:0.05)*G.stats.drop)dropPickup(o.x,o.y,pickDrop())}
+  sfx('crash');if(Math.random()<(o.k==='crate'?0.6:0.05)*G.stats.drop)dropPickup(o.x,o.y,propDrop())}
 function updateHazards(dt){const p=G.p;
   for(const z of G.zones)if(z.life!=null)z.life-=dt;prune(G.zones,z=>z.life==null||z.life>0);
   for(const py of G.pylons){py.t+=dt;if(py.t>=4.5){py.t=0;const R=170,pts=[];
@@ -1519,7 +1520,7 @@ function showBanner(t,s){const b=$('banner');b.innerHTML=t+(s?`<small>${s}</smal
 /* ---------- combat ---------- */
 // which weapon, item or hazard is dealing damage right now (for the after-action report)
 let DSRC='other';
-function damageEnemy(e,amt,txt=true){if(e.dead)return;const T=G.tk;let crit=false;if(e.wet>0&&G.weapons.hydro&&G.weapons.hydro.lvl>=4)amt*=1.25;if(DBG.ohk)amt=Math.max(amt,e.hp+1);
+function damageEnemy(e,amt,txt=true){if(e.dead||!(amt>0))return;const T=G.tk;let crit=false;if(e.wet>0&&G.weapons.hydro&&G.weapons.hydro.lvl>=4)amt*=1.25;if(DBG.ohk)amt=Math.max(amt,e.hp+1);
   if(G.stats.crit&&Math.random()<G.stats.crit){amt*=3;crit=true}
   G.dmgBy[DSRC]=(G.dmgBy[DSRC]||0)+Math.min(amt,Math.max(0,e.hp));e.hp-=amt;e.flash=0.07;
   // Finishing Move: a regular car left under 15% is wrecked outright (direct hits only, not burns)
@@ -1548,8 +1549,8 @@ function crumple(){const lv=G.passives.crumple;if(!lv||G.t<(G.crumpleAt||0))retu
 function hurt(amt){const p=G.p,s=G.stats;if(DBG.god||G.exitT>=0||p.inv>0||state!=='play'||G.buffs.bubble>0)return;
   if(s.shieldCd&&G.shieldT<=0){G.shieldT=s.shieldCd;p.inv=0.4;G.rings.push({x:p.x,y:p.y,r:20,max:90,dmg:0,hit:new Set()});tone(900,0.15,'triangle',0.05,400);return}
   p.hp-=amt*s.taken;G.dmgTaken+=amt*s.taken;p.inv=0.45;crumple();G.shake=Math.min(18,G.shake+6);G.hurtFlash=0.3;sfx('hurt');
-  if(p.hp<=0){if(G.tk.tire>0){G.tk.tire--;p.hp=p.maxhp*0.5;p.inv=2;explode(p.x,p.y,180,60*s.dmg,0);showBanner('Spare tire','Back on the road');return}
-    if(G.revives>0){G.revives--;p.hp=p.maxhp*0.5;p.inv=2;explode(p.x,p.y,180,60*s.dmg,0);showBanner('Second wind','Back on the road');return}p.hp=0;gameOver()}
+  if(p.hp<=0){if(G.tk.tire>0){G.tk.tire--;updateLoadout();p.hp=p.maxhp*0.5;p.inv=2;const ds=DSRC;DSRC='revive';explode(p.x,p.y,180,60*s.dmg,0);DSRC=ds;showBanner('Spare tire','Back on the road');return}
+    if(G.revives>0){G.revives--;p.hp=p.maxhp*0.5;p.inv=2;const ds=DSRC;DSRC='revive';explode(p.x,p.y,180,60*s.dmg,0);DSRC=ds;showBanner('Second wind','Back on the road');return}p.hp=0;gameOver()}
   else if(p.hp<p.maxhp*0.1&&G.lowAt<0)G.lowAt=G.t}
 // damage over time from hazards: no i-frames, but bubble and armor still apply
 function chip(amt){const p=G.p;if(DBG.god)return;if(G.tk.runflat)amt*=0.5;if(G.exitT>=0||G.buffs.bubble>0||state!=='play')return;p.hp-=amt*G.stats.taken;G.dmgTaken+=amt*G.stats.taken;G.hurtFlash=Math.max(G.hurtFlash,0.12);if(p.hp<=0){p.hp=0.01;p.inv=0;hurt(1)}else if(p.hp<p.maxhp*0.1&&G.lowAt<0)G.lowAt=G.t}
@@ -1577,7 +1578,7 @@ function spawnEnemy(type,o={}){
   const hm=o.hp?1:(type==='mini'||o.elite?1+G.t/75:hpScale(G.t))*L.diff*(o.hpMul||1)*oh,sc=o.scale||1,hp=o.hp||d.hp*hm;
   const e={id:eid++,type,x,y,a:Math.atan2(p.y-y,p.x-x),v:0,kx:0,ky:0,hp,maxhp:hp,r:d.r*sc,len:d.len*sc,wid:d.wid*sc,
     spd:d.spd*(o.spdMul||1)*(L.spd||1)*osp*(G.wx&&G.wx.W.eslow||1)*rand(.92,1.08),turn:d.turn,dmg:d.dmg*(1+G.t/400)*(0.7+0.3*L.diff)*(o.dmgMul||1)*odd,xp:d.xp*(o.xpMul||1),col:o.col||d.col,
-    shoots:!!d.shoots,big:type==='mini'||type==='lboss',elite:!!o.elite,ab:o.ab||null,flash:0,ccd:0,sawCd:0,scd:rand(1,2.5),
+    shoots:!!d.shoots,odd,big:type==='mini'||type==='lboss',elite:!!o.elite,ab:o.ab||null,flash:0,ccd:0,sawCd:0,scd:rand(1,2.5),
     charge:0,chargeCd:4,ringCd:3,burstCd:2,sumCd:6,burn:0,los:false,orbit:false,
     // each car keeps its own approach angle, a little lead, and its own sway/shamble rhythm
     flank:rand(-0.3,0.3),lead:{buggy:.35,sedan:.2}[type]||0,react:0,want:0,wf:rand(1.5,3),wp:rand(0,TAU),sf:rand(2,4),lungeCd:rand(0,2),windup:0,lunge:0};
@@ -1654,7 +1655,7 @@ function updateWeather(dt){const X=G.wx,W=X.W,p=G.p;X.int=0.8+0.45*Math.sin(G.t*
   prune(X.twisters,tw=>tw.life>0)}
 function lightning(st){const X=G.wx,p=G.p;X.flash=1;sfx('thunder');G.shake=Math.max(G.shake,9);
   const pts=[[st.x+rand(-60,60),st.y-700]];for(let i=1;i<9;i++)pts.push([st.x+rand(-40,40)*(1-i/9),st.y-700+700*i/9]);pts.push([st.x,st.y]);X.bolts.push({pts,life:.28});
-  OUT=wxBus;boomFx(st.x,st.y,60);OUT=null;G.decals.push({x:st.x,y:st.y,r:st.R*.6,rot:rand(0,TAU),k:'scorch'});DSRC='weather';
+  OUT=wxBus;boomFx(st.x,st.y,60);OUT=null;DSRC='weather';
   for(const e of near(st.x,st.y,st.R+70,[]))if(!e.dead&&d2(e.x,e.y,st.x,st.y)<(st.R+e.r)**2)damageEnemy(e,e.big?e.maxhp*0.05:e.maxhp*0.8+40);
   for(const b of G.barrels)if(b.alive&&b.fuse<0&&d2(b.x,b.y,st.x,st.y)<(st.R+b.r)**2)b.fuse=0.05;
   if(d2(p.x,p.y,st.x,st.y)<(st.R+p.r)**2)hurt(22*(0.7+0.3*G.L.diff)*(G.tk.runflat?0.5:1))}
@@ -1968,17 +1969,17 @@ function updateEnemies(dt){
     const dx=p.x-e.x,dy=p.y-e.y,d=Math.hypot(dx,dy)||1;let target=e.spd;
     // line of sight is refreshed for a sixth of the cars each frame
     if((G.frame+e.id)%6===0)e.los=d<1100&&losClear(e.x,e.y,p.x,p.y);
-    const fz=fr||e.ice>0;if(e.ice>0)e.ice-=dt;
+    const fz=fr||e.ice>0;if(e.ice>0)e.ice-=dt;if(e.wet>0)e.wet-=dt;if(e.jam>0)e.jam-=dt;
     if(!fz){
     if(e.shoots&&!(e.jam>0)){e.scd-=dt;
-      if(e.scd<=0&&d<560&&(e.los||d<170)){e.scd=rand(1.8,2.6);const a=Math.atan2(dy+p.vy*.25,dx+p.vx*.25);G.ebullets.push({x:e.x,y:e.y,vx:Math.cos(a)*340,vy:Math.sin(a)*340,life:2.5,dmg:9*(1+G.t/400)*(0.7+0.3*G.L.diff)})}}
+      if(e.scd<=0&&d<560&&(e.los||d<170)){e.scd=rand(1.8,2.6);const a=Math.atan2(dy+p.vy*.25,dx+p.vx*.25);G.ebullets.push({x:e.x,y:e.y,vx:Math.cos(a)*340,vy:Math.sin(a)*340,life:2.5,dmg:9*(1+G.t/400)*(0.7+0.3*G.L.diff)*(e.odd||1)})}}
     if(e.ab)target=bossMoves(e,dt,d,dx,dy);
     let want;[want,target]=shamble(e,dt,d,dx,dy,target);if(e.orbit)target=e.spd*.65;
     const da=angDiff(e.a,want),turn=e.charge>0?0.3:e.turn;
     e.a+=clamp(da,-turn*dt,turn*dt);
     if(!e.orbit)target*=0.45+0.55*Math.max(0,Math.cos(da));
-    if(e.jam>0){e.jam-=dt;target*=e.big?.85:.6}
-    if(e.wet>0){e.wet-=dt;target*=e.big?.85:.7;if(Math.random()<dt*5)part(e.x+rand(-e.r,e.r)*.7,e.y+rand(-e.r,e.r)*.7,0,0,.35,2.5,'#8fd4ff','spark')}
+    if(e.jam>0)target*=e.big?.85:.6;
+    if(e.wet>0){target*=e.big?.85:.7;if(Math.random()<dt*5)part(e.x+rand(-e.r,e.r)*.7,e.y+rand(-e.r,e.r)*.7,0,0,.35,2.5,'#8fd4ff','spark')}
     e.v+=(target-e.v)*Math.min(1,2.2*dt);
     }else e.v*=Math.exp(-6*dt);
     e.x+=Math.cos(e.a)*e.v*dt+e.kx*dt;e.y+=Math.sin(e.a)*e.v*dt+e.ky*dt;
@@ -1993,7 +1994,7 @@ function updateEnemies(dt){
       const wE=e.big?0.15:0.7;e.x+=nx*ov*wE;e.y+=ny*ov*wE;p.x-=nx*ov*(1-wE);p.y-=ny*ov*(1-wE);
       if(e.ccd<=0){e.ccd=0.4;
         DSRC='ram';damageEnemy(e,(8+impact*0.13)*s.ram*(G.buffs.nitro>0?2:1));if(e.dead){G.ramKills++;DSRC='bumpers';if(G.tk.bumpers)explode(e.x,e.y,70+15*G.tk.bumpers,25*G.tk.bumpers*s.dmg,0)}
-        else if(s.thorns){DSRC='ram';damageEnemy(e,s.thorns*s.dmg)}
+        else if(s.thorns){DSRC='thorns';damageEnemy(e,s.thorns*s.dmg)}
         const kb=(e.big?0.12:1)*(140+impact*0.9);e.kx+=nx*kb;e.ky+=ny*kb;
         p.vx-=nx*impact*(e.big?0.9:0.35);p.vy-=ny*impact*(e.big?0.9:0.35);
         if(e.charge>0){p.vx-=nx*420;p.vy-=ny*420}
@@ -2048,8 +2049,8 @@ function updateWeapons(dt){
           let nb=null,bd=190*190;for(const e of near(px,py,190+70)){if(e.dead||hit.has(e))continue;const q=d2(px,py,e.x,e.y);if(q<bd){bd=q;nb=e}}cur=nb}
         G.arcs.push({pts,life:0.16})}sfx('zap')}}}
   if(W.mortar){const w=W.mortar,lv=w.lvl;w.cd-=wdt;
-    if(w.cd<=0&&G.enemies.length){w.cd=Math.max(1.4,(lv>=4?2.6:3.2)-0.12*lv)*s.cd;const n=lv>=5?3:lv>=3?2:1;
-      const far=G.enemies.filter(e=>!e.dead&&d2(e.x,e.y,p.x,p.y)<620*620);
+    const far=w.cd<=0?G.enemies.filter(e=>!e.dead&&d2(e.x,e.y,p.x,p.y)<620*620):[];
+    if(far.length){w.cd=Math.max(1.4,(lv>=4?2.6:3.2)-0.12*lv)*s.cd;const n=lv>=5?3:lv>=3?2:1;
       // each shell goes to the busiest of a few random candidates
       for(let i=0;i<n&&far.length;i++){let e=null,bestN=-1;for(let k=0;k<6;k++){const c=far[Math.floor(Math.random()*far.length)],cnt=near(c.x,c.y,90).length;if(cnt>bestN){bestN=cnt;e=c}}
         G.shells.push({x0:p.x,y0:p.y,tx:e.x+e.v*Math.cos(e.a)*0.8,ty:e.y+e.v*Math.sin(e.a)*0.8,t:0,dur:0.85,R:(70+(lv>=2?25:0)+6*lv)*s.blast,dmg:(44+16*lv)*s.dmg})}
@@ -2589,7 +2590,7 @@ $('lbSave').onclick=lbSaveName;$('lvReroll').onclick=rerollLevelup;// glovebox s
 $('glove').addEventListener('pointerdown',e=>{const b=e.target.closest('.gslot');if(!b||b.dataset.i==null)return;e.preventDefault();e.stopPropagation();useGlove(+b.dataset.i)});
 $('glove').addEventListener('click',e=>{const b=e.target.closest('.gslot');if(b&&b.dataset.i!=null&&e.detail===0)useGlove(+b.dataset.i)});$('rSeek').onclick=e=>{e.currentTarget.blur();initAudio();skipSong()};$('lbName').addEventListener('keydown',e=>{if(e.code==='Enter'||e.code==='NumpadEnter'){e.preventDefault();lbSaveName()}});
 lbFlush();
-const SRCNAME={debug:'Console',glovebox:'Glovebox',shrapnel:'Shrapnel Shells',crumple:'Crumple Zone',weather:'Weather',ram:'Ramming',bumpers:'Blast Bumpers',cables:'Jumper Cables',napalm:'Napalm Tank',hazard:'Hazards',barrels:'Barrels',airstrike:'Airstrikes',other:'Other'};
+const SRCNAME={debug:'Console',revive:'Second Wind / Spare Tire',thorns:'Razor Wire',glovebox:'Glovebox',shrapnel:'Shrapnel Shells',crumple:'Crumple Zone',weather:'Weather',ram:'Ramming',bumpers:'Blast Bumpers',cables:'Jumper Cables',napalm:'Napalm Tank',hazard:'Hazards',barrels:'Barrels',airstrike:'Airstrikes',other:'Other'};
 function renderReport(){const od=G.odStart>=0?(G.escaped||G.forfeit?G.t-G.odStart:0):-1,items=Object.values(G.tk).reduce((a,b)=>a+b,0);
   $('rWhere').textContent=`${G.L.name} · ${G.car.name} · ${G.wx.W.name}`;
   const note=G.escaped?`You made it through the exit portal after ${fmt(od)} of Overdrive (tier ${roman(Math.max(1,G.odTier))}). Run banked · +25% XP and scrap.`:
@@ -2654,7 +2655,7 @@ function openLevelup(){const ch=buildChoices();if(!ch.length){maxedOut();return}
 function renderLevelup(){
   $('lvlSub').textContent=`Pick a bolt-on or roll an item · keys 1 to ${choices.length} · Weapons ${Object.keys(G.weapons).length}/${slotsW()} · Upgrades ${Object.keys(G.passives).length}/${slotsP()} · Trinkets ${tkCount()}/${slotsT()}`;
   $('cards').innerHTML=choices.map((c,i)=>{
-    if(c.kind==='heal')return`<button class="card" id="choice${i}" data-i="${i}"><span class="num">${i+1}</span><span class="kind">Pit stop</span><h3>Full patch-up</h3><p>Repair 50 HP. Your rig is maxed out.</p></button>`;
+    if(c.kind==='heal')return`<button class="card" id="choice${i}" data-i="${i}"><span class="num">${i+1}</span><span class="kind">Pit stop</span><h3>Patch-up</h3><p>Repair 50 HP. Your rig is maxed out.</p></button>`;
     if(c.kind==='roll')return`<button class="card roll" id="choice${i}" data-i="${i}"><span class="num">${i+1}</span><span class="kind">Skip · Trader's Roll</span><h3>Roll an item</h3><p>Skip the bolt-on and take a random item from the traders' stock instead.</p><span class="odds"><b style="color:${RAR.common.col}">Common 60%</b> · <b style="color:${RAR.rare.col}">Rare 30%</b> · <b style="color:${RAR.epic.col}">Epic 10%</b></span></button>`;
     const d=c.kind==='w'?WDEF[c.k]:PDEF[c.k];const kind=c.kind==='w'?(WDEF[c.k].rc?(c.next===1?'New minion':'Minion · Lv '+c.next):c.next===1?'New weapon':'Weapon · Lv '+c.next):(c.next===1?'New upgrade':'Upgrade · Lv '+c.next);
     const desc=c.kind==='w'?d.desc[c.next-1]:d.desc;
