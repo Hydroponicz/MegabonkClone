@@ -374,6 +374,49 @@ body.nocursor,body.nocursor *{cursor:none!important}
 .card .odds{font-size:11px;font-weight:700;letter-spacing:.04em;color:var(--dim);margin-top:auto}
 @media (max-width:520px){#timer{font-size:22px}.stat b{font-size:16px}.mstats div{padding:6px 12px}.mstats b{font-size:16px}}
 @media (hover:none){.hint{display:none}}
+/* drivers */
+#scrDrivers{width:min(1040px,100%)}
+.drvlist{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px;width:100%}
+.drvpick{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:10px;width:100%}
+.drv{display:flex;flex-direction:column;gap:2px;text-align:left;background:var(--panel);border:2px solid var(--line);color:var(--fg);font-family:var(--body);padding:6px 6px 8px;cursor:pointer;min-width:0;transition:border-color .12s}
+.drv .pt{display:block;width:100%;aspect-ratio:6/7;overflow:hidden;background:var(--ink)}.drv .pt svg{display:block;width:100%;height:100%}
+.drv .dn{font-family:var(--display);font-size:14px;color:var(--c);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.drv .dk{font-size:11px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.drv .dt{font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--c);margin-top:3px;display:flex;align-items:center;gap:6px}
+.drv:hover,.drv:focus-visible{border-color:var(--c);outline:none}
+.drv.sel{border-color:var(--c);box-shadow:inset 0 0 0 1px var(--c),0 0 18px -6px var(--c)}
+.drv.locked .pt svg{filter:grayscale(.85) brightness(.55)}.drv.locked .dn{color:var(--dim)}.drv.locked .dt{color:var(--fg)}
+.drv.more{--c:var(--hazard);justify-content:center;border-style:dashed}
+.ptsdot{font-style:normal;background:var(--hazard);color:var(--ink);min-width:16px;height:16px;border-radius:8px;display:inline-grid;place-items:center;font-size:10px;letter-spacing:0;padding:0 4px;animation:tpulse 1s ease-in-out infinite alternate}
+#drvBody{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:16px;width:100%;text-align:left}
+.dhero{grid-column:1/-1;display:grid;grid-template-columns:220px minmax(0,1fr);gap:18px;background:var(--panel);border:2px solid var(--c);padding:14px;box-shadow:0 0 30px -14px var(--c)}
+.dbig svg{display:block;width:100%;height:auto;border:2px solid var(--ink)}
+.did h3{font-family:var(--display);font-weight:400;font-size:clamp(26px,4vw,38px);margin:2px 0 0;color:var(--c);line-height:1}
+.did .nick{font-family:var(--display);font-size:18px;color:var(--fg)}
+.did dl{display:grid;grid-template-columns:auto 1fr;gap:2px 12px;margin:10px 0 0;font-size:13px}.did dt{color:var(--dim);font-weight:700;letter-spacing:.1em;text-transform:uppercase;font-size:11px;align-self:center}.did dd{margin:0}
+.did blockquote{margin:12px 0 0;padding:6px 0 6px 12px;border-left:3px solid var(--c);font-style:italic;color:var(--fg);font-size:15px;line-height:1.4}
+.traits{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}.traits span{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:3px 8px;border:1px solid}
+.traits .pos{color:#5cf08a;border-color:rgba(92,240,138,.4);background:rgba(92,240,138,.07)}.traits .neg{color:#ff6b78;border-color:rgba(255,59,78,.4);background:rgba(255,59,78,.07)}
+.dact{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:14px}
+.dstory,.dtree{background:var(--panel);border:1px solid var(--line);padding:14px}
+.dstory p:not(.secthead){margin:8px 0 0;color:var(--dim);font-size:14px;line-height:1.6}
+.dlv{display:flex;justify-content:space-between;font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);margin-bottom:6px}.dlv b{color:var(--c);font-size:16px}
+.dtree .achbar i{background:var(--c)}
+.dpts{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:10px 0 2px;font-size:13px}.dpts b{color:var(--hazard);font-size:18px}
+.dpts .btn{padding:6px 12px;font-size:12px}
+.dnote{margin:4px 0 10px;font-size:12px;color:var(--dim);line-height:1.4}
+.dcareer{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:14px}.dcareer div{background:var(--ink);padding:8px 10px}.dcareer span{display:block;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--dim)}.dcareer b{font-family:var(--display);font-weight:400;font-size:20px;color:var(--c)}
+.tree{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.br{display:flex;flex-direction:column;align-items:stretch}
+.br .bh{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--b);border-bottom:2px solid var(--b);padding-bottom:4px;margin-bottom:8px}
+.node{display:flex;flex-direction:column;gap:3px;text-align:left;background:var(--ink);border:1px solid var(--line);color:var(--dim);font-family:var(--body);padding:8px;cursor:default;min-height:94px}
+.node b{font-family:var(--display);font-weight:400;font-size:14px;color:var(--fg)}.node span{font-size:12px;line-height:1.35}.node em{font-style:normal;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-top:auto;color:var(--dim)}
+.node.can{border-color:var(--b);cursor:pointer;box-shadow:0 0 14px -6px var(--b)}.node.can em{color:var(--hazard)}.node.can:hover,.node.can:focus-visible{background:var(--panel-2);outline:none}
+.node.on{border-color:var(--b);background:linear-gradient(180deg,color-mix(in srgb,var(--b) 22%,var(--ink)),var(--ink));color:var(--fg)}.node.on em{color:var(--b)}
+.node[aria-disabled]:not(.on){opacity:.6}
+.link{display:block;width:2px;height:10px;margin:0 auto;background:var(--line)}.link.on{background:var(--b)}
+@media (max-width:820px){.drvlist{grid-template-columns:repeat(3,minmax(0,1fr))}#drvBody{grid-template-columns:1fr}.dhero{grid-template-columns:120px minmax(0,1fr);gap:12px;padding:10px}}
+@media (max-width:520px){.tree{grid-template-columns:1fr}.node{min-height:0}.dhero{grid-template-columns:96px minmax(0,1fr)}.did blockquote{font-size:13px}}
 @media (prefers-reduced-motion:reduce){.card,#banner,.mbtn,.toast{transition:none;animation:none}}
 /* level-up flair: the cards never move, only their borders, glow and the backdrop do */
 @property --lva{syntax:'<angle>';inherits:false;initial-value:0deg}
@@ -466,6 +509,7 @@ body.nocursor,body.nocursor *{cursor:none!important}
     <nav class="menu-list" aria-label="Main menu">
       <button class="btn" id="startBtn">Start engine</button>
       <button class="mbtn" id="garBtn"><span>Garage</span><span><small id="mScrap">0 scrap</small><span class="arr">›</span></span></button>
+      <button class="mbtn" id="drvBtn"><span>Drivers</span><span><small id="mDrv">Rook Reyes</small><span class="arr">›</span></span></button>
       <button class="mbtn" id="lbBtn"><span>Leaderboards</span><span><small>Online</small><span class="arr">›</span></span></button>
       <button class="mbtn" id="achBtn"><span>Achievements</span><span><small id="mAch">0 / 0</small><span class="arr">›</span></span></button>
       <button class="mbtn" id="setBtn"><span>Settings</span><span class="arr">›</span></button>
@@ -485,8 +529,17 @@ body.nocursor,body.nocursor *{cursor:none!important}
     <div class="upgrid" id="upGrid"></div>
   </section>
 
+  <section id="scrDrivers" class="panel" hidden>
+    <div class="subhead"><button class="back">‹ Back</button><h2 class="big">Drivers</h2><span class="wallet"><span class="scrapi"></span><span id="drvScrap">0</span> scrap</span></div>
+    <p class="tagline">Who's behind the wheel matters. Every driver brings their own strengths, levels up from the runs they drive, and spends skill points on a skill tree of their own.</p>
+    <div class="drvlist" id="drvList"></div>
+    <div id="drvBody"></div>
+  </section>
+
   <section id="scrLevels" class="panel" hidden>
     <div class="subhead"><button class="back">‹ Back</button><h2 class="big">Pick a track</h2><p class="sub" id="lvAcct">Account level 1</p></div>
+    <p class="sub secthead">Your driver</p>
+    <div class="drvpick" id="drvPick"></div>
     <p class="sub secthead">Your ride</p>
     <div class="carpick" id="carPick"></div>
     <p class="sub secthead">Track</p>
@@ -689,7 +742,7 @@ let P=(()=>{const main=readKey(PKEY),bak=readKey(PBAK);if(!main&&bak&&bak.p&&typ
 let bakXp=(readKey(PBAK)||{p:{}}).p.acctXp??-1,cloudDirty=false;
 // permanent recovery code: the cloud backup is filed under it, and typing it into Transfer save on any device brings the progress back.
 // every profile gets one (fresh, loaded, reset or imported)
-function normProfile(){if(!new RegExp('^['+KEY_ABC+']{12}$').test(P.cloudKey||'')){const a=new Uint8Array(12);crypto.getRandomValues(a);P.cloudKey=[...a].map(x=>KEY_ABC[x%KEY_ABC.length]).join('')}P.ach=Object.assign({},P.ach);/* Vandal was retired (30 achievements): drop it, but keep the Burnout Trail it unlocked */if(P.ach.vandal){delete P.ach.vandal;P.trailKept=1}P.tracks=Object.assign({},P.tracks);P.garage=Object.assign({},P.garage);P.cars=Object.assign({interceptor:1},P.cars);if(!P.cars[P.car])P.car='interceptor';P.lbQueue=Object.assign({},P.lbQueue)}
+function normProfile(){if(!new RegExp('^['+KEY_ABC+']{12}$').test(P.cloudKey||'')){const a=new Uint8Array(12);crypto.getRandomValues(a);P.cloudKey=[...a].map(x=>KEY_ABC[x%KEY_ABC.length]).join('')}P.ach=Object.assign({},P.ach);/* Vandal was retired (30 achievements): drop it, but keep the Burnout Trail it unlocked */if(P.ach.vandal){delete P.ach.vandal;P.trailKept=1}P.tracks=Object.assign({},P.tracks);P.garage=Object.assign({},P.garage);P.cars=Object.assign({interceptor:1},P.cars);if(!P.cars[P.car])P.car='interceptor';P.lbQueue=Object.assign({},P.lbQueue);P.drivers=Object.assign({},P.drivers);if(!P.driver)P.driver='rook'}
 if(!P.best){try{P.best=+localStorage.getItem('carnageBest')||0}catch(e){}}
 const saveSettings=()=>save('carnageSettings',S);
 function saveProfile(){save(PKEY,P);if((P.acctXp||0)>=bakXp&&save(PBAK,{at:Date.now(),p:P}))bakXp=P.acctXp||0;cloudDirty=true}
@@ -1241,9 +1294,11 @@ function commitRun(){const r=rec();G.live=false;if(G.escaped)P.escapes=(P.escape
   const before=acctInfo(P.acctXp).lv;P.acctXp+=gain;const after=acctInfo(P.acctXp).lv;
   for(let l=before+1;l<=after;l++){toast(l,'Account level up','Level '+l);for(const L of LEVELS)if(L.req===l)toast('▶','Track unlocked',L.name)}
   G.scrapGain=Math.round(scrapEst()*pay);P.scrap+=G.scrapGain;
+  // the driver earns the run's XP too, and a skill point per level
+  {const id=G.driver||'rook',st=drvState(id),l0=drvLevel(st.xp).lv;st.xp+=gain;st.runs=(st.runs||0)+1;st.kills=(st.kills||0)+G.kills;st.best=Math.max(st.best||0,G.t);if(G.cleared)st.clears=(st.clears||0)+1;const l1=drvLevel(st.xp).lv;G.drvGain=gain;if(l1>l0)toast('★',DRIVERS[id].nick+' leveled up',`Driver level ${l1} · ${l1-l0} skill point${l1-l0>1?'s':''} to spend`)}
   G.gain=gain;saveProfile();checkAch();return gain}
 // scrap banked at the end of a run: a quarter of the scrap picked up, plus boss bonuses and sacks
-const scrapEst=()=>Math.round((G.scrapRaw*0.25+G.miniKills*15+(G.cleared?80:0)+G.sack)*(1+0.1*gl('salvage')));
+const scrapEst=()=>Math.round((G.scrapRaw*0.25+G.miniKills*15+(G.cleared?80:0)+G.sack)*(1+0.1*gl('salvage')+((G.drv&&G.drv.salvage)||0)));
 
 /* ---------- ground art (rebuilt per track) ---------- */
 let groundPat=null;
@@ -1292,6 +1347,185 @@ const gl=k=>P.garage[k]||0;
 // how many different weapons / upgrades a run can carry
 const slotsW=()=>2+gl('wslots'),slotsP=()=>2+gl('pslots'),slotsT=()=>4+gl('tslots');
 const gcost=k=>Math.round(GARAGE[k].cost*Math.pow(1.6,gl(k)));
+
+/* ---------- drivers: who's behind the wheel. Each has their own traits, levels up from the XP of runs they drive,
+   and spends a skill point per level on their own three-branch skill tree ---------- */
+// bonus keys (summed, then folded into recalc): dmg, cdr (recharge speed), speed, hp (flat), regen (HP/s), armor (less damage taken),
+// ram, crit, magnet, xp, drop, luck (bolts per drop), blast, buff (power-up duration), thorns, dodge, bolts (start), salvage (scrap banked), revive, kit
+const DRV_MAX=18;
+const drvNeed=n=>60+40*(n-1); // XP to go from level n to n+1
+function drvLevel(xp){let lv=1;while(lv<DRV_MAX&&xp>=drvNeed(lv)){xp-=drvNeed(lv);lv++}return{lv,into:xp,need:lv<DRV_MAX?drvNeed(lv):0}}
+const DRIVERS={
+  rook:{name:'Rook Reyes',nick:'Rookie',role:'Street racer',age:19,from:'Southside, under the overpass',cost:0,col:'#ffc21a',
+    quote:'I lost my car in a pink-slip race. I\'m winning it back one wreck at a time.',
+    story:'Rook learned to drive on stolen go-karts and graduated to stolen sedans. A pink-slip race against the wrong crew cost Rook a hand-built coupe, and the only place left with prize money big enough to buy it back was the Loop. Rook has no sponsors, no pit crew and no plan, just fast hands and a habit of walking away from crashes that should have ended a career.',
+    traits:{xp:.1,speed:.04},traitText:['+10% XP','+4% top speed'],
+    face:{skin:'#c68a5e',hair:'#2a1a12',style:'cap',jacket:'#ffc21a',accent:'#141318',eyes:'#3a2416',extra:['earbud','stripes']},
+    tree:[{name:'Hot Laps',col:'#ff5a1f',nodes:[
+        {id:'r1',name:'Lead Foot',desc:'+5% top speed.',fx:{speed:.05}},
+        {id:'r2',name:'Late Braker',desc:'+8% top speed and +10% ram damage.',fx:{speed:.08,ram:.1}},
+        {id:'r3',name:'Slipstream',desc:'+10% top speed and power-ups last 25% longer.',fx:{speed:.1,buff:.25}}]},
+      {name:'Fast Learner',col:'#3fe0d0',nodes:[
+        {id:'r4',name:'Street Smarts',desc:'+8% XP.',fx:{xp:.08}},
+        {id:'r5',name:'Quick Study',desc:'+12% XP and +10% pickup radius.',fx:{xp:.12,magnet:.1}},
+        {id:'r6',name:'Prodigy',desc:'Start every run with one extra free bolt-on.',fx:{kit:1}}]},
+      {name:'Beginner\'s Luck',col:'#ffc21a',nodes:[
+        {id:'r7',name:'Pocket Change',desc:'Start with 6 more bolts.',fx:{bolts:6}},
+        {id:'r8',name:'Charmed',desc:'+15% chance of random drops.',fx:{drop:.15}},
+        {id:'r9',name:'Walk It Off',desc:'Survive one more wreck every run.',fx:{revive:1}}]}]},
+  torque:{name:'Ma Okafor',nick:'Torque',role:'Retired pit chief',age:58,from:'Pit lane 7, Loop Speedway',cost:250,col:'#ff8a1f',
+    quote:'Thirty years I changed tires for champions. Turns out I drive better than all of them.',
+    story:'Ma ran the pit crew for three Loop champions and buried two of them. When the last one retired she bought his wrecked chassis for scrap, rebuilt it in a weekend and entered herself. She talks to engines like old friends and patches bodywork mid-race with a welding torch she keeps under the seat. Nobody has ever seen her lose her temper, and nobody wants to.',
+    traits:{hp:25,regen:.6,speed:-.06},traitText:['+25 max HP','Repairs 0.6 HP/s','-6% top speed'],
+    face:{skin:'#6b4430',hair:'#e8e4ee',style:'wrap',jacket:'#ff8a1f',accent:'#3a3644',eyes:'#24140c',extra:['goggles','overalls','hoops']},
+    tree:[{name:'Pit Crew',col:'#2fbf74',nodes:[
+        {id:'t1',name:'Spot Weld',desc:'Repairs 0.4 HP/s more.',fx:{regen:.4}},
+        {id:'t2',name:'Field Fix',desc:'Repairs 0.7 HP/s more.',fx:{regen:.7}},
+        {id:'t3',name:'Second Wind',desc:'Survive one more wreck every run.',fx:{revive:1}}]},
+      {name:'Plating',col:'#c9c6d0',nodes:[
+        {id:'t4',name:'Sheet Steel',desc:'+15 max HP.',fx:{hp:15}},
+        {id:'t5',name:'Roll Cage',desc:'+20 max HP and 5% less damage taken.',fx:{hp:20,armor:.05}},
+        {id:'t6',name:'Iron Hull',desc:'+30 max HP and 8% less damage taken.',fx:{hp:30,armor:.08}}]},
+      {name:'Scrap Sense',col:'#c9a46a',nodes:[
+        {id:'t7',name:'Eye for Parts',desc:'+10% scrap banked after each run.',fx:{salvage:.1}},
+        {id:'t8',name:'Magnet Hands',desc:'+20% pickup radius.',fx:{magnet:.2}},
+        {id:'t9',name:'Junk Dealer',desc:'+20% scrap banked and start with 15 more bolts.',fx:{salvage:.2,bolts:15}}]}]},
+  hex:{name:'Vex Calloway',nick:'Hex',role:'Ex-military weapons tech',age:34,from:'Fort Kessler (discharged)',cost:400,col:'#3fe0d0',
+    quote:'The car drives. I make sure nothing else does.',
+    story:'Vex built targeting rigs for an army that no longer officially exists, then took a cybernetic eye and a dishonourable discharge as severance. Every gun on Vex\'s car is hand-tuned and named after an ex. Vex doesn\'t like crowds, small talk or being touched, and treats the Loop as a very loud firing range with prize money.',
+    traits:{dmg:.12,crit:.05,hp:-15},traitText:['+12% weapon damage','+5% critical hits','-15 max HP'],
+    face:{skin:'#e2b48f',hair:'#1c1a22',style:'buzz',jacket:'#22303a',accent:'#3fe0d0',eyes:'#2a3a48',extra:['visor','scar','collar']},
+    tree:[{name:'Trigger Discipline',col:'#3fe0d0',nodes:[
+        {id:'h1',name:'Oiled Actions',desc:'Weapons recharge 5% faster.',fx:{cdr:.05}},
+        {id:'h2',name:'Rapid Cycling',desc:'Weapons recharge 7% faster.',fx:{cdr:.07}},
+        {id:'h3',name:'Overclocked Rig',desc:'Weapons recharge 10% faster.',fx:{cdr:.1}}]},
+      {name:'Hollow Points',col:'#ff4fd8',nodes:[
+        {id:'h4',name:'Steady Aim',desc:'+4% critical hits.',fx:{crit:.04}},
+        {id:'h5',name:'Soft Targets',desc:'+8% weapon damage.',fx:{dmg:.08}},
+        {id:'h6',name:'Headhunter',desc:'+6% critical hits and +8% weapon damage.',fx:{crit:.06,dmg:.08}}]},
+      {name:'Payload',col:'#ff5a1f',nodes:[
+        {id:'h7',name:'Hot Mix',desc:'Explosions are 10% bigger.',fx:{blast:.1}},
+        {id:'h8',name:'Shaped Charge',desc:'Explosions 12% bigger and +5% weapon damage.',fx:{blast:.12,dmg:.05}},
+        {id:'h9',name:'Big Bang',desc:'Explosions 20% bigger and +8% weapon damage.',fx:{blast:.2,dmg:.08}}]}]},
+  brick:{name:'Dusty Brannigan',nick:'Brick',role:'Demolition derby champion',age:41,from:'County Fairgrounds, every summer',cost:400,col:'#ff3b4e',
+    quote:'Brakes are for people who want to stop.',
+    story:'Brick won the county demolition derby eleven years running, until the county banned him. He has broken his nose nine times and both collarbones twice, and swears the headaches help him concentrate. On the Loop he aims for whatever is biggest, and drives home in whatever is left. His mother still sends a fruit basket to every driver he hospitalises.',
+    traits:{ram:.4,armor:.1,speed:-.08},traitText:['+40% ram damage','10% less damage taken','-8% top speed'],
+    face:{skin:'#d99b77',hair:'#7a3a1c',style:'bald',jacket:'#3a2a22',accent:'#ff3b4e',eyes:'#2a1a10',extra:['beard','plaster','tattoo','vest']},
+    tree:[{name:'Battering Ram',col:'#ff3b4e',nodes:[
+        {id:'b1',name:'Bull Bar',desc:'+15% ram damage.',fx:{ram:.15}},
+        {id:'b2',name:'Head Down',desc:'+25% ram damage.',fx:{ram:.25}},
+        {id:'b3',name:'Wrecking Ball',desc:'+40% ram damage and +5% top speed.',fx:{ram:.4,speed:.05}}]},
+      {name:'Thick Skull',col:'#c9c6d0',nodes:[
+        {id:'b4',name:'Hard Head',desc:'+15 max HP.',fx:{hp:15}},
+        {id:'b5',name:'Bruiser',desc:'5% less damage taken.',fx:{armor:.05}},
+        {id:'b6',name:'Unbreakable',desc:'+25 max HP and 6% less damage taken.',fx:{hp:25,armor:.06}}]},
+      {name:'Spite',col:'#ffc21a',nodes:[
+        {id:'b7',name:'Barbed Wire',desc:'Cars that hit you take 8 damage.',fx:{thorns:8}},
+        {id:'b8',name:'Grudge',desc:'Cars that hit you take 12 more damage.',fx:{thorns:12}},
+        {id:'b9',name:'Razor Grille',desc:'Cars that hit you take 20 more damage, +15% ram damage.',fx:{thorns:20,ram:.15}}]}]},
+  ghost:{name:'Juno Sato',nick:'Ghost',role:'Getaway driver',age:27,from:'Harbour district, no fixed address',cost:600,col:'#b07aff',
+    quote:'If you saw me, I was already gone.',
+    story:'Juno drove getaway for every crew in the harbour district and never once got caught, mostly because nobody could ever describe her. She owes money to people who don\'t send reminders, and the Loop pays in cash. She never looks in the mirror, keeps her mask on even at the pit wall, and has a habit of being somewhere else when the shooting starts.',
+    traits:{speed:.12,magnet:.25,hp:-12},traitText:['+12% top speed','+25% pickup radius','-12 max HP'],
+    face:{skin:'#f0cba3',hair:'#141218',style:'bob',jacket:'#e8e4ee',accent:'#b07aff',eyes:'#1c1420',extra:['shades','mask','streak']},
+    tree:[{name:'Getaway',col:'#4fa8ff',nodes:[
+        {id:'g1',name:'Clean Lines',desc:'+5% top speed.',fx:{speed:.05}},
+        {id:'g2',name:'Nitro Habit',desc:'Power-ups last 30% longer.',fx:{buff:.3}},
+        {id:'g3',name:'Ghost Line',desc:'+8% top speed and power-ups last 30% longer.',fx:{speed:.08,buff:.3}}]},
+      {name:'Light Fingers',col:'#ffd23f',nodes:[
+        {id:'g4',name:'Sticky Hands',desc:'+15% pickup radius.',fx:{magnet:.15}},
+        {id:'g5',name:'Pickpocket',desc:'Start with 10 more bolts and +15% bolts from wrecks.',fx:{bolts:10,luck:.15}},
+        {id:'g6',name:'Five-Finger Discount',desc:'+25% pickup radius and +20% bolts from wrecks.',fx:{magnet:.25,luck:.2}}]},
+      {name:'Untouchable',col:'#b07aff',nodes:[
+        {id:'g7',name:'Jink',desc:'5% chance to dodge a hit completely.',fx:{dodge:.05}},
+        {id:'g8',name:'Smoke and Mirrors',desc:'7% more chance to dodge.',fx:{dodge:.07}},
+        {id:'g9',name:'Phantom',desc:'10% more chance to dodge.',fx:{dodge:.1}}]}]},
+  lucky:{name:'Lou Marchetti',nick:'Lucky',role:'Card sharp',age:52,from:'The Golden Horseshoe casino (banned)',cost:800,col:'#ffd23f',
+    quote:'Luck is just preparation with better tailoring.',
+    story:'Lou has been thrown out of every casino on the strip, and two of them twice. He counts cards, loads dice and once won a tow truck in a hand of poker with a pair of threes. He entered the Loop on a bet and stayed because the odds are terrible and he finds that relaxing. He drives in a three-piece suit and has never been seen to sweat.',
+    traits:{drop:.25,bolts:12,dmg:-.06},traitText:['+25% chance of random drops','Start with 12 bolts','-6% weapon damage'],
+    face:{skin:'#b77a52',hair:'#141218',style:'slick',jacket:'#5a2a7a',accent:'#ffd23f',eyes:'#1c1008',extra:['fedora','mustache','goldtooth','dice']},
+    tree:[{name:'House Edge',col:'#2fbf74',nodes:[
+        {id:'l1',name:'Marked Deck',desc:'+15% chance of random drops.',fx:{drop:.15}},
+        {id:'l2',name:'Loaded Dice',desc:'+20% chance of random drops.',fx:{drop:.2}},
+        {id:'l3',name:'Jackpot',desc:'+25% drops and +30% bolts from wrecks.',fx:{drop:.25,luck:.3}}]},
+      {name:'High Roller',col:'#ffd23f',nodes:[
+        {id:'l4',name:'Bankroll',desc:'Start with 10 more bolts.',fx:{bolts:10}},
+        {id:'l5',name:'Skim',desc:'+15% scrap banked after each run.',fx:{salvage:.15}},
+        {id:'l6',name:'Loaded',desc:'Start with 20 more bolts and +20% scrap banked.',fx:{bolts:20,salvage:.2}}]},
+      {name:'All In',col:'#ff4fd8',nodes:[
+        {id:'l7',name:'Read the Table',desc:'+4% critical hits.',fx:{crit:.04}},
+        {id:'l8',name:'Raise',desc:'+10% weapon damage.',fx:{dmg:.1}},
+        {id:'l9',name:'Double Down',desc:'+8% critical hits and +8% weapon damage.',fx:{crit:.08,dmg:.08}}]}]},
+};
+const DRV_COST=[1,2,3]; // skill points per tier
+const drvState=id=>{P.drivers=P.drivers||{};return P.drivers[id]=P.drivers[id]||{xp:0,sk:{}}};
+const drvOwned=id=>!!(DRIVERS[id]&&(DRIVERS[id].cost===0||(P.drivers&&P.drivers[id]&&P.drivers[id].own)));
+const drvSpent=id=>{const st=drvState(id);let n=0;DRIVERS[id].tree.forEach(b=>b.nodes.forEach((nd,t)=>{if(st.sk[nd.id])n+=DRV_COST[t]}));return n};
+const drvPoints=id=>drvLevel(drvState(id).xp).lv-drvSpent(id);
+// a node can be learned when the one above it in its branch is learned and there are enough points
+const drvCanLearn=(id,bi,t)=>{const st=drvState(id),b=DRIVERS[id].tree[bi],nd=b.nodes[t];return!st.sk[nd.id]&&(t===0||st.sk[b.nodes[t-1].id])&&drvPoints(id)>=DRV_COST[t]};
+// everything a driver brings to a run: their traits plus every learned skill
+function drvBonus(id){const D=DRIVERS[id]||DRIVERS.rook,out=Object.assign({},D.traits),st=drvState(id);
+  for(const b of D.tree)for(const nd of b.nodes)if(st.sk[nd.id])for(const k in nd.fx)out[k]=(out[k]||0)+nd.fx[k];return out}
+const curDriver=()=>drvOwned(P.driver)?P.driver:'rook';
+// portraits: drawn as SVG from each driver's face spec (skin, hair, style, jacket, extras), on a stripe-and-halftone card in their colour
+function drvPortrait(id){const D=DRIVERS[id],F=D.face,x=F.extra,has=k=>x.includes(k),u='p'+id;
+  const sk=F.skin,hr=F.hair,shade='rgba(0,0,0,.18)';let back='',hairB='',hairF='',acc='',over='';
+  // card background: driver colour, diagonal stripes, a halftone glow behind the head
+  const bg=`<defs><linearGradient id="${u}g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${D.col}" stop-opacity=".55"/><stop offset="1" stop-color="#141318"/></linearGradient>
+    <pattern id="${u}s" width="10" height="10" patternUnits="userSpaceOnUse" patternTransform="rotate(35)"><rect width="4" height="10" fill="#000" opacity=".16"/></pattern>
+    <radialGradient id="${u}r" cx=".5" cy=".42" r=".5"><stop offset="0" stop-color="#fff" stop-opacity=".22"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient></defs>
+    <rect width="120" height="140" fill="#141318"/><rect width="120" height="140" fill="url(#${u}g)"/><rect width="120" height="140" fill="url(#${u}s)"/><circle cx="60" cy="58" r="56" fill="url(#${u}r)"/>`;
+  // hair behind the head
+  if(F.style==='bob')hairB=`<path d="M33 60 C30 30 46 22 60 22 C76 22 90 30 87 60 L89 92 C80 96 72 92 70 86 L50 86 C48 92 40 96 31 92 Z" fill="${hr}"/>`;
+  if(F.style==='wrap')hairB=`<ellipse cx="60" cy="34" rx="30" ry="22" fill="${D.col}"/><path d="M84 34 C98 30 100 46 92 52 C96 42 90 38 84 40Z" fill="${D.col}"/>`;
+  // body: jacket/shoulders, collar and neck
+  let body=`<path d="M6 140 C10 110 30 99 60 99 C90 99 110 110 114 140 Z" fill="${F.jacket}"/><rect x="51" y="80" width="18" height="22" rx="6" fill="${sk}"/><path d="M51 92 C55 98 65 98 69 92 L69 98 C65 102 55 102 51 98Z" fill="${shade}"/>`;
+  if(has('stripes'))body+=`<path d="M22 140 L34 104 L41 104 L29 140Z" fill="${F.accent}"/><path d="M98 140 L86 104 L79 104 L91 140Z" fill="${F.accent}"/>`;
+  if(has('overalls'))body+=`<path d="M40 140 L44 104 L52 104 L50 140Z M80 140 L76 104 L68 104 L70 140Z" fill="${F.accent}"/><rect x="45" y="118" width="30" height="22" fill="${F.accent}"/><circle cx="48" cy="108" r="2.4" fill="#c9c6d0"/><circle cx="72" cy="108" r="2.4" fill="#c9c6d0"/>`;
+  if(has('collar'))body+=`<path d="M38 104 L52 96 L60 112 L68 96 L82 104 L74 118 L60 112 L46 118Z" fill="#141a20"/><path d="M60 112 L60 140" stroke="${F.accent}" stroke-width="1.5" opacity=".7"/><rect x="34" y="122" width="12" height="4" fill="${F.accent}" opacity=".8"/>`;
+  if(has('vest'))body+=`<path d="M30 140 L40 104 L54 100 L58 140Z M90 140 L80 104 L66 100 L62 140Z" fill="#1c1410"/><circle cx="46" cy="122" r="3" fill="#c9c6d0"/><circle cx="74" cy="122" r="3" fill="#c9c6d0"/>`;
+  if(id==='lucky')body+=`<path d="M46 100 L60 124 L74 100 L66 99 L60 110 L54 99Z" fill="#f2eef7"/><path d="M57 106 L60 112 L63 106 L60 104Z" fill="${F.accent}"/><path d="M58 112 L60 132 L62 112Z" fill="${F.accent}"/><path d="M36 104 L46 100 L56 126 Z M84 104 L74 100 L64 126Z" fill="#3a1650"/>`;
+  if(id==='ghost')body+=`<path d="M40 102 C50 112 70 112 80 102 L82 110 C70 120 50 120 38 110Z" fill="${F.accent}"/>`;
+  if(has('tattoo'))body+=`<path d="M52 88 C56 92 58 86 62 90 C64 92 66 88 68 90" stroke="#2a5a6a" stroke-width="2" fill="none"/><path d="M54 95 L58 92 L60 96 L64 92 L66 96" stroke="#2a5a6a" stroke-width="1.6" fill="none"/>`;
+  // head, ears, face
+  let head=`<ellipse cx="37.5" cy="64" rx="4.5" ry="7" fill="${sk}"/><ellipse cx="82.5" cy="64" rx="4.5" ry="7" fill="${sk}"/>
+    <path d="M38 58 C38 36 48 31 60 31 C72 31 82 36 82 58 C82 76 74 88 60 89 C46 88 38 76 38 58Z" fill="${sk}"/>
+    <path d="M38 62 C40 80 50 88 60 89 C50 85 43 76 42 62Z" fill="${shade}"/>`;
+  const ey=F.eyes,eye=(cx)=>`<ellipse cx="${cx}" cy="62" rx="4.2" ry="2.8" fill="#f6f1ea"/><circle cx="${cx+.6}" cy="62.2" r="2" fill="${ey}"/><circle cx="${cx+1.2}" cy="61.4" r=".6" fill="#fff"/>`;
+  let face=eye(51)+eye(69)+`<path d="M44.5 55 Q51 51.5 56 55" stroke="${hr==='#e8e4ee'?'#9a9aa8':hr}" stroke-width="2.2" fill="none" stroke-linecap="round"/><path d="M64 55 Q69 51.5 75.5 55" stroke="${hr==='#e8e4ee'?'#9a9aa8':hr}" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+    <path d="M60 63 L57 72 Q60 74 63 72" stroke="${shade}" stroke-width="1.6" fill="none" stroke-linecap="round"/>`;
+  const mouth={rook:'<path d="M53 79 Q60 84 67 78" stroke="#5a2a20" stroke-width="2" fill="none" stroke-linecap="round"/>',
+    torque:'<path d="M53 79 Q60 82 67 79" stroke="#2a120a" stroke-width="2.2" fill="none" stroke-linecap="round"/>',
+    hex:'<path d="M54 80 L66 79" stroke="#7a4a3a" stroke-width="2" stroke-linecap="round"/>',
+    brick:'<path d="M52 79 Q60 85 68 79 Z" fill="#3a1410"/><rect x="57" y="79" width="6" height="2.6" fill="#f6f1ea"/><rect x="60" y="79" width="1.4" height="2.6" fill="#3a1410"/>',
+    ghost:'',lucky:'<path d="M52 79 Q60 85 68 78" stroke="#3a1a10" stroke-width="2" fill="#fff" stroke-linecap="round"/><rect x="62" y="79.4" width="3" height="2.4" fill="#ffd23f"/>'}[id]||'';
+  face+=mouth;
+  // hair in front
+  if(F.style==='cap')hairF=`<path d="M38 56 C36 34 48 27 60 27 C73 27 84 34 82 56 C78 46 70 42 60 42 C50 42 42 46 38 56Z" fill="${F.jacket}"/><path d="M38 56 C40 48 46 44 52 43 L46 52 C43 52 40 54 38 56Z" fill="${hr}"/><rect x="56" y="27.5" width="8" height="5" rx="2" fill="${F.accent}"/><path d="M80 48 C88 46 96 50 98 56 C92 54 86 53 81 54Z" fill="${F.jacket}" stroke="${F.accent}" stroke-width="1"/>
+    <path d="M40 54 L44 48 L46 54 L50 47 L52 53Z" fill="${hr}"/>`;
+  if(F.style==='wrap')hairF=`<path d="M36 52 C34 30 48 18 60 18 C74 18 88 28 84 52 C80 44 72 40 60 40 C48 40 40 44 36 52Z" fill="${D.col}"/><path d="M40 44 C50 36 70 36 80 44" stroke="${F.accent}" stroke-width="2" fill="none" opacity=".6"/><path d="M38 52 C38 47 40 45 42 44 L42 56 C40 56 38 55 38 52Z" fill="${hr}"/><path d="M82 52 C82 47 80 45 78 44 L78 56 C80 56 82 55 82 52Z" fill="${hr}"/>`;
+  if(F.style==='buzz')hairF=`<path d="M38 56 C37 36 47 30 60 30 C73 30 83 36 82 56 C80 46 74 40 60 40 C46 40 40 46 38 56Z" fill="${hr}" opacity=".85"/><path d="M38 56 C38 50 39 46 41 44 L41 58Z M82 56 C82 50 81 46 79 44 L79 58Z" fill="${hr}" opacity=".85"/>`;
+  if(F.style==='bald')hairF=`<path d="M44 38 C50 33 56 32 62 33" stroke="#fff" stroke-width="3" opacity=".25" fill="none" stroke-linecap="round"/><path d="M38 60 L38 54 L42 52 L42 62Z M82 60 L82 54 L78 52 L78 62Z" fill="${hr}"/>`;
+  if(F.style==='bob')hairF=`<path d="M36 62 C34 34 48 26 62 26 C76 26 88 36 84 62 C82 50 78 44 72 42 C64 48 52 50 42 46 C38 50 37 56 36 62Z" fill="${hr}"/><path d="M62 27 C70 30 76 36 78 44 C72 42 68 38 62 27Z" fill="${F.accent}"/>`;
+  if(F.style==='slick')hairF=`<path d="M38 56 C36 36 48 29 60 29 C73 29 84 36 82 56 C80 48 76 44 70 43 C62 41 50 41 44 46 C41 48 39 52 38 56Z" fill="${hr}"/><path d="M48 36 C56 33 66 33 74 37" stroke="#fff" stroke-width="1.6" opacity=".35" fill="none"/>`;
+  // accessories
+  if(has('earbud'))acc+=`<circle cx="36" cy="66" r="2.6" fill="#f2eef7"/><path d="M36 68 C34 78 40 90 46 98" stroke="#f2eef7" stroke-width="1.2" fill="none"/>`;
+  if(has('goggles'))acc+=`<rect x="40" y="40" width="40" height="5" fill="#3a3644"/><circle cx="50" cy="42" r="7" fill="#3a3644"/><circle cx="70" cy="42" r="7" fill="#3a3644"/><circle cx="50" cy="42" r="5" fill="#6fd6ff" opacity=".85"/><circle cx="70" cy="42" r="5" fill="#6fd6ff" opacity=".85"/><circle cx="48" cy="40" r="1.5" fill="#fff"/><circle cx="68" cy="40" r="1.5" fill="#fff"/>`;
+  if(has('hoops'))acc+=`<circle cx="36" cy="74" r="3.5" fill="none" stroke="#ffd23f" stroke-width="1.6"/><circle cx="84" cy="74" r="3.5" fill="none" stroke="#ffd23f" stroke-width="1.6"/>`;
+  if(has('visor'))acc+=`<path d="M62 57 L80 57 L80 66 L64 66 Z" fill="#0c1a20" stroke="${F.accent}" stroke-width="1.4"/><rect x="66" y="60" width="11" height="3" fill="${F.accent}"/><circle cx="71" cy="61.5" r="3" fill="${F.accent}" opacity=".35"/><path d="M80 59 L84 60" stroke="${F.accent}" stroke-width="1.4"/>`;
+  if(has('scar'))acc+=`<path d="M44 66 L50 76" stroke="#b07060" stroke-width="1.6" stroke-linecap="round"/><path d="M45 69 L48 68 M46.5 72 L49.5 71" stroke="#b07060" stroke-width="1"/>`;
+  if(has('beard'))acc+=`<path d="M40 66 C42 84 50 94 60 95 C70 94 78 84 80 66 C78 74 74 80 68 82 C64 77 56 77 52 82 C46 80 42 74 40 66Z" fill="${hr}"/><path d="M52 77 Q60 73 68 77" stroke="${hr}" stroke-width="3" fill="none"/>`;
+  if(has('plaster'))acc+=`<rect x="55" y="64" width="10" height="4" rx="1" fill="#e8d4b0" transform="rotate(-20 60 66)"/>`;
+  if(has('shades'))acc+=`<path d="M42 58 L57 58 L56 66 C52 68 46 68 44 66Z" fill="#141218"/><path d="M63 58 L78 58 L76 66 C74 68 68 68 64 66Z" fill="#141218"/><path d="M57 59 L63 59" stroke="#141218" stroke-width="2"/><path d="M45 60 L50 60" stroke="${F.accent}" stroke-width="1.4" opacity=".8"/><path d="M66 60 L71 60" stroke="${F.accent}" stroke-width="1.4" opacity=".8"/>`;
+  if(has('mask'))over+=`<path d="M40 70 C44 72 52 72 60 72 C68 72 76 72 80 70 C80 82 72 92 60 93 C48 92 40 82 40 70Z" fill="#1c1a22"/><path d="M44 76 L76 76 M46 82 L74 82" stroke="${F.accent}" stroke-width="1" opacity=".5"/>`;
+  if(has('fedora'))over+=`<path d="M28 44 C40 40 80 40 92 44 C88 48 32 48 28 44Z" fill="#2a1a36"/><path d="M40 43 C40 28 46 20 60 20 C74 20 80 28 80 43Z" fill="#3a2048"/><path d="M40 38 L80 38 L80 43 L40 43Z" fill="${F.accent}"/><path d="M52 22 C56 26 64 26 68 22" stroke="#1c1024" stroke-width="2" fill="none"/>`;
+  if(has('mustache'))acc+=`<path d="M50 76 C54 73 58 74 60 75 C62 74 66 73 70 76 C66 76 62 77 60 76 C58 77 54 76 50 76Z" fill="${hr}"/>`;
+  if(has('dice'))acc+=`<path d="M36 70 L36 76" stroke="#ffd23f" stroke-width="1"/><rect x="32.5" y="76" width="7" height="7" rx="1.2" fill="#f2eef7" transform="rotate(12 36 79.5)"/><circle cx="35" cy="78.5" r=".9" fill="#c22"/><circle cx="37" cy="80.5" r=".9" fill="#c22"/>`;
+  return`<svg viewBox="0 0 120 140" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${D.name}">${bg}${hairB}${body}${head}${face}${hairF}${acc}${over}</svg>`}
+
 
 /* ---------- random drops ---------- */
 // weight = chance per wrecked car before the Lucky Charm bonus
@@ -1692,17 +1926,22 @@ function newGame(li){const L=LEVELS[li];curLevel=li;const wk=FORECAST[L.id]||rol
   for(let i=0;i<70;i++)G.decals.push({x:rand(0,ARENA),y:rand(0,ARENA),r:rand(18,60),rot:rand(0,TAU),k:'oil'});
   G.wx=makeWeather(wk);
   G.bolts=8*gl('wallet');G.pending=gl('kit');
+  // the driver: traits and learned skills for the whole run
+  G.driver=curDriver();G.drv=drvBonus(G.driver);G.bolts+=G.drv.bolts||0;G.pending+=G.drv.kit||0;G.revives+=G.drv.revive||0;
   recalc();
 }
 
-function recalc(){const P_=G.passives,T=G.tk,s=G.stats,C=G.car;
+function recalc(){const P_=G.passives,T=G.tk,s=G.stats,C=G.car,D=G.drv||{};
   // bonuses from upgrades, items and the garage add up instead of multiplying, so a maxed rig is strong without being 10x
   s.dmg=1+0.12*(P_.warhead||0)+0.1*(T.hollow||0)+0.05*gl('ammo')+0.35*(T.glass||0);s.cd=1/(1+0.087*(P_.cool||0)+0.075*(T.trigger||0)+0.031*gl('loader'));s.drop=(1+0.15*gl('luck'))*(1+0.15*(T.horseshoe||0));
   s.speed=(1+0.08*(P_.nitro||0))*(1+0.06*(T.turbo||0))*(1+0.03*gl('engine'))*C.speed;s.magnet=90*(1+0.35*(P_.magnet||0))*(1+0.25*(T.coil||0))*(1+0.1*gl('magnet'));
   s.ram=(1+0.4*(P_.spikes||0))*C.ram*(1+0.3*(T.bullbar||0));s.crit=0.06*(P_.crit||0);s.regen=0.6*(P_.repair||0)+0.5*(T.drip||0);s.taken=(1-0.04*(P_.armor||0))*Math.pow(0.94,T.heat||0);
   s.blast=1+0.15*(T.bigboom||0);s.buffMul=1+0.25*(T.battery||0);s.xpMul=(1+0.15*(P_.scrap||0))*(1+0.1*(T.lens||0));s.luck=1+0.3*(T.hubcap||0);
   s.shieldCd=P_.shield?16-2*P_.shield:0;s.thorns=12*(P_.thorns||0);
-  const old=G.p.maxhp;G.p.maxhp=Math.round((C.hp+10*gl('frame')+25*(P_.armor||0)+20*(T.cage||0))*(T.glass?0.8:1));G.p.hp=Math.min(G.p.maxhp,G.p.hp+Math.max(0,G.p.maxhp-old));}
+  // the driver's traits and skills ride on top
+  s.dmg+=D.dmg||0;s.cd/=1+(D.cdr||0);s.speed*=1+(D.speed||0);s.magnet*=1+(D.magnet||0);s.ram*=1+(D.ram||0);s.crit+=D.crit||0;s.regen+=D.regen||0;s.taken*=1-(D.armor||0);
+  s.blast+=D.blast||0;s.buffMul+=D.buff||0;s.xpMul*=1+(D.xp||0);s.drop*=1+(D.drop||0);s.luck+=D.luck||0;s.thorns+=D.thorns||0;s.dodge=D.dodge||0;
+  const old=G.p.maxhp;G.p.maxhp=Math.round((C.hp+10*gl('frame')+25*(P_.armor||0)+20*(T.cage||0)+(D.hp||0))*(T.glass?0.8:1));G.p.hp=Math.min(G.p.maxhp,G.p.hp+Math.max(0,G.p.maxhp-old));}
 
 /* ---------- effects ---------- */
 const partCap=()=>S.lowFx?350:AQ.lowParts?550:1000;
@@ -1758,6 +1997,7 @@ function killEnemy(e){
 function crumple(){const lv=G.passives.crumple;if(!lv||G.t<(G.crumpleAt||0))return;G.crumpleAt=G.t+Math.max(1.5,4-0.4*lv);G.rings.push({src:'crumple',x:G.p.x,y:G.p.y,r:20,max:150+15*lv,dmg:(20+12*lv)*G.stats.dmg,hit:new Set()})}
 function hurt(amt){const p=G.p,s=G.stats;if(DBG.god||G.exitT>=0||p.inv>0||state!=='play'||G.buffs.bubble>0)return;
   if(s.shieldCd&&G.shieldT<=0){G.shieldT=s.shieldCd;p.inv=0.4;G.rings.push({x:p.x,y:p.y,r:20,max:90,dmg:0,hit:new Set()});tone(900,0.15,'triangle',0.05,400);return}
+  if(s.dodge&&Math.random()<s.dodge){p.inv=0.35;addText(p.x,p.y-34,'DODGED','#c9b0ff');tone(1200,.08,'triangle',.03,1800);return}
   p.hp-=amt*s.taken;G.dmgTaken+=amt*s.taken;p.inv=0.45;crumple();G.shake=Math.min(18,G.shake+6);G.hurtFlash=0.3;sfx('hurt');
   if(p.hp<=0){if(G.tk.tire>0){G.tk.tire--;updateLoadout();p.hp=p.maxhp*0.5;p.inv=2;const ds=DSRC;DSRC='revive';explode(p.x,p.y,180,60*s.dmg,0);DSRC=ds;showBanner('Spare tire','Back on the road');return}
     if(G.revives>0){G.revives--;p.hp=p.maxhp*0.5;p.inv=2;const ds=DSRC;DSRC='revive';explode(p.x,p.y,180,60*s.dmg,0);DSRC=ds;showBanner('Second wind','Back on the road');return}p.hp=0;gameOver()}
@@ -2810,17 +3050,17 @@ function updateHover(){const tip=$('hoverTip');if(tapTipT){if(performance.now()<
   const w=tip.offsetWidth,h=tip.offsetHeight;let x=mouse.x+18,y=mouse.y+18;if(x+w>VW-8)x=mouse.x-w-14;if(y+h>VH-8)y=mouse.y-h-14;tip.style.transform=`translate(${Math.max(8,x)}px,${Math.max(8,y)}px)`}
 
 /* ---------- screens ---------- */
-const SCREENS=['scrMenu','scrGarage','scrLevels','scrLevel','scrShop','scrPause','scrOver','scrAch','scrSet','scrHow','scrBoard','scrXfer'],SUBS=['scrLevels','scrGarage','scrAch','scrSet','scrHow','scrBoard','scrXfer'];
+const SCREENS=['scrMenu','scrGarage','scrLevels','scrLevel','scrShop','scrPause','scrOver','scrAch','scrSet','scrHow','scrBoard','scrXfer','scrDrivers'],SUBS=['scrLevels','scrGarage','scrAch','scrSet','scrHow','scrBoard','scrXfer','scrDrivers'];
 let cur='scrMenu';const navStack=[];
 function show(id){if(id&&$('hud').classList.contains('loadOpen'))setLoadOpen(false);if(codeOpen){codeOpen=false;$('codeBox').hidden=true}cur=id;for(const s of SCREENS)$(s).hidden=s!==id;$('overlay').hidden=!id;$('overlay').classList.toggle('attract',state==='menu');if(id){$('tip').hidden=true;$('banner').classList.remove('show')}}
-function openSub(id,opener){navStack.push({id:cur||'scrMenu',focus:opener});if(id==='scrXfer')renderXfer();if(id==='scrLevels')rollForecasts();if(id==='scrAch')renderAch();if(id==='scrBoard')renderBoard();if(id==='scrSet')renderSettings();if(id==='scrLevels')renderLevels();if(id==='scrGarage')renderGarage();show(id);
+function openSub(id,opener){navStack.push({id:cur||'scrMenu',focus:opener});if(id==='scrDrivers'){drvView=curDriver();renderDrivers()}if(id==='scrXfer')renderXfer();if(id==='scrLevels')rollForecasts();if(id==='scrAch')renderAch();if(id==='scrBoard')renderBoard();if(id==='scrSet')renderSettings();if(id==='scrLevels')renderLevels();if(id==='scrGarage')renderGarage();show(id);
   const f=id==='scrLevels'?$('lv'+curLevel):null;(f&&!f.disabled?f:$(id).querySelector('.back')).focus()}
 function goBack(){const top=navStack.pop()||{id:'scrMenu',focus:null},id=top.id;if(id==='scrLevels')renderLevels();if(id==='scrGarage')renderGarage();show(id);if(id==='scrMenu')refreshMenu();
   // re-rendered screens replace their buttons; find the matching one again
   let f=top.focus;if(f&&!f.isConnected)f=f.dataset&&f.dataset.car?$(id).querySelector(`[data-car="${f.dataset.car}"]`):null;(f||$(id).querySelector('button')).focus()}
 function fillAcct(lvId,xpId,fillId){const a=acctInfo(P.acctXp);$(lvId).textContent=a.lv;if(xpId)$(xpId).textContent=`${a.into} / ${a.need} XP`;$(fillId).style.width=(a.into/a.need*100)+'%';return a}
 function refreshMenu(){fillAcct('mAcct','mAcctXp','mAcctFill');$('restoreBtn').hidden=(P.runs||0)>0;
-  $('mBest').textContent=fmt(P.best);$('mKills').textContent=P.kills.toLocaleString();$('mClears').textContent=clearedCount()+' / '+LEVELS.length;$('mAch').textContent=achCount(P)+' / '+ACH.length;$('mScrap').textContent=P.scrap.toLocaleString()+' scrap'}
+  $('mBest').textContent=fmt(P.best);$('mKills').textContent=P.kills.toLocaleString();$('mClears').textContent=clearedCount()+' / '+LEVELS.length;$('mAch').textContent=achCount(P)+' / '+ACH.length;$('mScrap').textContent=P.scrap.toLocaleString()+' scrap';$('mDrv').textContent=DRIVERS[curDriver()].name}
 function carCard(id,mode){const C=CARS[id],own=!!P.cars[id],sel=P.car===id,bar=(v,m)=>`<i style="width:${clamp(v/m,0,1)*100}%"></i>`;
   const gear=[...Object.keys(C.start.w).map(k=>WDEF[k].name),...Object.keys(C.start.p||{}).map(k=>PDEF[k].name)].join(' + ');
   const btn=mode==='pick'?(own?(sel?'Driving':'Drive this'):`Garage · <span class="scrapi"></span>${C.cost}`):own?(sel?'Selected':'Select'):`Buy · <span class="scrapi"></span>${C.cost}`;
@@ -2834,7 +3074,38 @@ function renderGarage(){$('garScrap').textContent=P.scrap.toLocaleString();
 function garageClick(e){const c=e.target.closest('.car'),u=e.target.closest('.upg');
   if(c){const id=c.dataset.car,C=CARS[id];if(P.cars[id])P.car=id;else if(P.scrap>=C.cost){P.scrap-=C.cost;P.cars[id]=1;P.car=id;sfx('buy');toast('▶','Vehicle bought',C.name)}else return;saveProfile();checkAch();renderGarage();$('carGrid').querySelector(`[data-car="${id}"]`).focus()}
   if(u&&!u.disabled){const k=u.dataset.up,c2=gcost(k);if(P.scrap<c2||gl(k)>=GARAGE[k].max)return;P.scrap-=c2;P.garage[k]=gl(k)+1;sfx('buy');saveProfile();checkAch();renderGarage();const n=$('upGrid').querySelector(`[data-up="${k}"]`);(n.disabled?$('upGrid').querySelector('.upg:not(:disabled)')||$('scrGarage').querySelector('.back'):n).focus()}}
-function renderLevels(){const lv=acctInfo(P.acctXp).lv;$('lvAcct').textContent='Account level '+lv;
+/* ---------- Drivers screen ---------- */
+let drvView=null;
+const drvStatLine=D=>D.traitText.map(t=>`<span class="${/^-/.test(t)?'neg':'pos'}">${t}</span>`).join('');
+function drvCard(id,mode){const D=DRIVERS[id],own=drvOwned(id),sel=curDriver()===id,lv=drvLevel(drvState(id).xp).lv,pts=own?drvPoints(id):0;
+  const tag=mode==='pick'?(sel?'Driving':'Drive'):own?(sel?'Driving':`Level ${lv}`):`Hire · <span class="scrapi"></span>${D.cost}`;
+  return`<button class="drv${(mode==='list'?drvView===id:sel)?' sel':''}${own?'':' locked'}" data-drv="${id}" style="--c:${D.col}"><span class="pt">${drvPortrait(id)}</span><span class="dn">${D.name}</span><span class="dk">“${D.nick}” · ${mode==='pick'?'Lv '+lv:D.role}</span><span class="dt">${tag}${own&&pts>0&&mode==='list'?` <i class="ptsdot">${pts}</i>`:''}</span></button>`}
+function renderDrivers(){if(!DRIVERS[drvView])drvView=curDriver();const id=drvView,D=DRIVERS[id],own=drvOwned(id),st=drvState(id),L=drvLevel(st.xp),pts=own?drvPoints(id):0,sel=curDriver()===id;
+  $('drvScrap').textContent=P.scrap.toLocaleString();
+  $('drvList').innerHTML=Object.keys(DRIVERS).map(k=>drvCard(k,'list')).join('');
+  const act=own?(sel?`<button class="btn" disabled>Driving</button>`:`<button class="btn" id="drvUse">Drive as ${D.nick}</button>`)
+    :`<button class="btn" id="drvHire" ${P.scrap<D.cost?'disabled':''}>Hire · <span class="scrapi"></span>${D.cost}</button>${P.scrap<D.cost?`<span class="sub">${(D.cost-P.scrap).toLocaleString()} more scrap needed</span>`:''}`;
+  const tree=D.tree.map((b,bi)=>`<div class="br" style="--b:${b.col}"><div class="bh">${b.name}</div>${b.nodes.map((nd,t)=>{const has=!!st.sk[nd.id],can=own&&drvCanLearn(id,bi,t),open=t===0||st.sk[b.nodes[t-1].id];
+      return`${t?'<i class="link'+(has?' on':'')+'"></i>':''}<button class="node${has?' on':can?' can':''}" data-node="${bi},${t}" ${can?'':'aria-disabled="true"'}><b>${nd.name}</b><span>${nd.desc}</span><em>${has?'Learned':`${DRV_COST[t]} pt${DRV_COST[t]>1?'s':''}${!open?' · learn the one above first':''}`}</em></button>`}).join('')}</div>`).join('');
+  $('drvBody').innerHTML=`<div class="dhero" style="--c:${D.col}"><div class="dbig">${drvPortrait(id)}</div>
+      <div class="did"><span class="sub">${D.role}</span><h3>${D.name}</h3><span class="nick">“${D.nick}”</span>
+      <dl><dt>Age</dt><dd>${D.age}</dd><dt>From</dt><dd>${D.from}</dd></dl>
+      <blockquote>${D.quote}</blockquote><div class="traits">${drvStatLine(D)}</div><div class="dact">${act}</div></div></div>
+    <div class="dstory" style="--c:${D.col}"><p class="sub secthead">Background</p><p>${D.story}</p>
+      <p class="sub secthead" style="margin-top:14px">Career with you</p><div class="dcareer"><div><span>Runs</span><b>${(st.runs||0).toLocaleString()}</b></div><div><span>Best run</span><b>${fmt(st.best||0)}</b></div><div><span>Wrecks</span><b>${(st.kills||0).toLocaleString()}</b></div><div><span>Tracks cleared</span><b>${(st.clears||0).toLocaleString()}</b></div></div></div>
+    <div class="dtree" style="--c:${D.col}"><div class="dlv"><span>Driver level <b>${L.lv}</b>${L.lv>=DRV_MAX?' · max':''}</span><span>${L.lv>=DRV_MAX?'All levels earned':`${L.into} / ${L.need} XP`}</span></div><div class="achbar"><i style="width:${L.lv>=DRV_MAX?100:L.into/L.need*100}%"></i></div>
+      <div class="dpts"><span>${own?`<b>${pts}</b> skill point${pts===1?'':'s'} to spend`:'Hire this driver to start their skill tree'}</span>${own&&drvSpent(id)?'<button class="btn alt" id="drvReset">Reset skills</button>':''}</div>
+      <p class="dnote">Drivers earn the same XP as your account from every run they drive, and get a skill point each level.</p>
+      <div class="tree">${tree}</div></div>`}
+function drvClick(e){const c=e.target.closest('.drv'),n=e.target.closest('.node'),id=drvView;
+  if(c){drvView=c.dataset.drv;renderDrivers();const f=$('drvList').querySelector(`[data-drv="${drvView}"]`);if(f)f.focus();return}
+  if(e.target.closest('#drvUse')){P.driver=id;saveProfile();sfx('pick');toast('▶','Driver',DRIVERS[id].name);renderDrivers();refreshMenu();return}
+  if(e.target.closest('#drvHire')){const D=DRIVERS[id];if(drvOwned(id)||P.scrap<D.cost)return;P.scrap-=D.cost;drvState(id).own=1;P.driver=id;sfx('buy');toast('▶','Driver hired',D.name);saveProfile();renderDrivers();refreshMenu();return}
+  if(e.target.closest('#drvReset')){drvState(id).sk={};sfx('pick');saveProfile();renderDrivers();return}
+  if(n&&drvOwned(id)){const [bi,t]=n.dataset.node.split(',').map(Number);if(!drvCanLearn(id,bi,t))return;drvState(id).sk[DRIVERS[id].tree[bi].nodes[t].id]=1;sfx('buy');saveProfile();renderDrivers();
+    const f=$('drvBody').querySelector(`[data-node="${bi},${t}"]`);if(f)f.focus()}}
+function renderDrvPick(){$('drvPick').innerHTML=Object.keys(DRIVERS).filter(drvOwned).map(id=>drvCard(id,'pick')).join('')+(Object.keys(DRIVERS).some(k=>!drvOwned(k))?`<button class="drv more" id="drvMore"><span class="dn">More drivers</span><span class="dk">Hire them in Drivers</span><span class="dt">Drivers ›</span></button>`:'')}
+function renderLevels(){const lv=acctInfo(P.acctXp).lv;$('lvAcct').textContent='Account level '+lv;renderDrvPick();
   $('carPick').innerHTML=Object.keys(CARS).filter(id=>!CARS[id].secret||P.cars[id]).map(id=>carCard(id,'pick')).join('');
   $('lvGrid').innerHTML=LEVELS.map((L,i)=>{const T=P.tracks[L.id]||{},open=lv>=L.req;
     return`<button class="lv" id="lv${i}" data-i="${i}" ${open?'':'disabled'} style="--c:${L.wall};--g:${L.ground};--p:rgb(${L.paint})">
@@ -2994,7 +3265,7 @@ function renderReport(){const od=G.odStart>=0?(G.escaped||G.forfeit?G.t-G.odStar
     return`<div class="wrow"><span class="wn">${esc(w?w.name:k==='__rest'?'Everything else':SRCNAME[k]||k)}${lv?` <small>Lv ${lv.lvl}</small>`:''}</span><span class="wbar"><i style="width:${(v/mx*100).toFixed(1)}%"></i></span><span class="wv">${Math.round(v).toLocaleString()} <small>${Math.round(v/tot*100)}%</small></span></div>`}).join(''):'<p class="sub">No damage dealt</p>'}
 function results(title){const T=P.tracks[G.L.id]||{best:G.t};$('overTitle').textContent=title;renderReport();
   $('rTime').textContent=fmt(G.t);$('rKills').textContent=G.kills;$('rLvl').textContent=G.level;$('rBest').textContent=fmt(T.best);
-  fillAcct('oAcct',null,'oAcctFill');$('oGain').innerHTML=`+${G.gain} XP · +${G.scrapGain} <span class="scrapi"></span>scrap`;
+  fillAcct('oAcct',null,'oAcctFill');$('oGain').innerHTML=`+${G.gain} XP · +${G.scrapGain} <span class="scrapi"></span>scrap${G.drvGain!=null?` · ${DRIVERS[G.driver||'rook'].nick} +${G.drvGain} XP`:''}`;
   lbAfterRun();setTimeout(cloudBackup,1500);$('rAchWrap').hidden=!G.newAch.length;{const seen=new Set(),list=G.newAch.filter(a=>!seen.has(a.id)&&seen.add(a.id));$('rAch').innerHTML=list.slice(0,8).map(a=>`<span class="achip" title="${esc(a.desc)}"><i>${a.ic}</i>${esc(a.name)}</span>`).join('')+(list.length>8?`<span class="achip more">+${list.length-8} more</span>`:'')}}
 function gameOver(title){state='over';commitRun();results(title||(G.forfeit?'Run lost':'Wrecked'));$('tip').hidden=true;const p=G.p;
   // the car blows apart: a big blast, pieces of bodywork in the car's colour, then a burning shell
@@ -3063,6 +3334,9 @@ $('lvGrid').addEventListener('click',e=>{const b=e.target.closest('.lv');if(b&&!
 $('carGrid').addEventListener('click',garageClick);$('upGrid').addEventListener('click',garageClick);
 $('carPick').addEventListener('click',e=>{const c=e.target.closest('.car');if(!c)return;const id=c.dataset.car;if(P.cars[id]){P.car=id;saveProfile();renderLevels();$('carPick').querySelector(`[data-car="${id}"]`).focus();newGame(curLevel)}else openSub('scrGarage',c)});
 $('garBtn').onclick=e=>openSub('scrGarage',e.currentTarget);
+$('drvBtn').onclick=e=>openSub('scrDrivers',e.currentTarget);
+$('scrDrivers').addEventListener('click',drvClick);
+$('drvPick').addEventListener('click',e=>{const c=e.target.closest('.drv');if(!c)return;if(c.id==='drvMore'){openSub('scrDrivers',c);return}P.driver=c.dataset.drv;saveProfile();sfx('pick');renderDrvPick();const f=$('drvPick').querySelector(`[data-drv="${P.driver}"]`);if(f)f.focus()});
 $('startBtn').onclick=e=>openSub('scrLevels',e.currentTarget);
 $('againBtn').onclick=()=>startGame();$('quitBtn').onclick=()=>startGame();
 // quitting mid-run ends it like a wreck: the car blows up and the after-action report follows
