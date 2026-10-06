@@ -130,6 +130,8 @@ kbd{display:inline-block;font-family:var(--body);font-weight:700;font-size:12px;
 .range output{font-weight:700;font-variant-numeric:tabular-nums;min-width:4ch;text-align:right}
 .set-row.danger{border-color:rgba(255,59,78,.4)}
 .xcode{font:400 clamp(34px,9vw,52px) var(--display);letter-spacing:.12em;color:var(--hazard);text-align:center;background:var(--panel);border:2px dashed var(--hazard);padding:14px 10px 10px}
+#xKey{font-size:clamp(22px,6.4vw,40px);letter-spacing:.08em;white-space:nowrap;overflow:hidden}
+.xbtns .d{align-self:center;color:var(--dim);font-size:13px}
 .xcode small{display:block;font:600 13px var(--body);letter-spacing:.04em;color:var(--dim);margin-top:4px}
 .xrow{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
 .xrow input{flex:1 1 200px;min-width:0;background:var(--panel-2);border:2px solid var(--line);color:var(--fg);font:600 16px var(--body);padding:10px 12px;text-transform:none}
@@ -414,6 +416,7 @@ body.nocursor,body.nocursor *{cursor:none!important}
       <button class="mbtn" id="achBtn"><span>Achievements</span><span><small id="mAch">0 / 0</small><span class="arr">›</span></span></button>
       <button class="mbtn" id="setBtn"><span>Settings</span><span class="arr">›</span></button>
       <button class="mbtn" id="howBtn"><span>How to play</span><span class="arr">›</span></button>
+      <button class="mbtn" id="restoreBtn" hidden><span>Played before? Restore your progress</span><span class="arr">›</span></button>
     </nav>
     <p class="hint"><kbd>↑</kbd><kbd>↓</kbd> to choose · <kbd>Enter</kbd> to select</p>
     <div class="hazard-stripe"></div>
@@ -466,17 +469,20 @@ body.nocursor,body.nocursor *{cursor:none!important}
       <div class="set-row"><div><b>Auto-pause</b><span class="d">Pause when the window loses focus</span></div><button class="switch" role="switch" data-set="autoPause" aria-label="Auto-pause"></button></div>
       <div class="set-row"><div><b>Transfer save</b><span class="d">Move your unlocks and progress to another phone or computer</span></div><button class="btn alt" id="xferBtn">Transfer</button></div>
       <div class="set-row"><div><b>Input code</b><span class="d">Heard about a secret code? Punch it in here</span></div><button class="btn alt" id="codeBtn">Input code</button></div>
-      <div class="set-row danger"><div><b>Reset progress</b><span class="d">Wipes account level, scrap, garage, stats and achievements</span></div><button class="btn warn" id="resetBtn">Reset</button></div>
+      <div class="set-row danger"><div><b>Reset progress</b><span class="d">Wipes account level, scrap, garage, stats and achievements. A backup is kept in Transfer save in case you change your mind.</span></div><button class="btn warn" id="resetBtn">Reset</button></div>
     </div>
     </section>
 
   <section id="scrXfer" class="panel" hidden>
     <div class="subhead"><button class="back">‹ Back</button><h2 class="big">Transfer save</h2><p class="sub">Unlocks, garage, scrap, stats and leaderboard name. Settings stay per device.</p></div>
     <div class="settings">
+      <div class="set-row stack" id="xKeyRow"><div><b>Your recovery code</b><span class="d">Your progress is backed up online automatically after each run. Write this code down: entering it below on any device or browser brings your progress back.</span></div>
+        <div class="xcode" id="xKey"></div><div class="xbtns"><button class="btn alt" id="xKeyCopy">Copy code</button><span class="d" id="xCloud"></span></div></div>
+      <div class="set-row" id="xBakRow" hidden><div><b>Local backup found</b><span class="d" id="xBakInfo"></span></div><button class="btn alt" id="xBak">Restore it</button></div>
       <div class="set-row"><div><b>Send from this device</b><span class="d">Get a code, then enter it on your other device within 15 minutes. Each code works once.</span></div><button class="btn alt" id="xGet">Get transfer code</button></div>
       <div id="xCodeOut" class="xcode" hidden></div>
-      <div class="set-row stack"><div><b>Receive on this device</b><span class="d">Enter the transfer code from your other device, or paste a save text.</span></div>
-        <div class="xrow"><input id="xIn" placeholder="Code like K7Q-4PZ, or save text" autocomplete="off" autocapitalize="characters" spellcheck="false"><button class="btn alt" id="xLoad">Load</button></div></div>
+      <div class="set-row stack"><div><b>Receive on this device</b><span class="d">Enter a recovery code, a transfer code from your other device, or paste a save text.</span></div>
+        <div class="xrow"><input id="xIn" placeholder="Recovery code, transfer code or save text" autocomplete="off" autocapitalize="characters" spellcheck="false"><button class="btn alt" id="xLoad">Load</button></div></div>
       <div id="xConfirm" class="set-row stack danger" hidden><div><b>Replace the progress on this device?</b><span class="xsum" id="xSum"></span></div>
         <div class="xbtns"><button class="btn warn" id="xApply">Replace</button><button class="btn alt" id="xCancel">Cancel</button></div></div>
       <div class="set-row stack"><div><b>Save text or file</b><span class="d">Works without the internet. Copy the text or download the file, send it to your other device any way you like (AirDrop, Messages, email), then paste it above or load the file there.</span></div>
@@ -609,16 +615,29 @@ function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random
 function prune(a,keep){let j=0;for(let i=0;i<a.length;i++){const v=a[i];if(keep(v))a[j++]=v}a.length=j}
 
 /* ---------- saved settings + profile ---------- */
-function load(key,def){try{const v=JSON.parse(localStorage.getItem(key));if(v&&typeof v==='object')return Object.assign({},def,v)}catch(e){}return Object.assign({},def)}
-function save(key,v){try{localStorage.setItem(key,JSON.stringify(v))}catch(e){}}
+// saved data lives in this browser, per web address. storageOK goes false when the browser blocks it (private mode, strict settings)
+let storageOK=true,saveFailed=false;
+function readKey(key){let raw;try{raw=localStorage.getItem(key)}catch(e){storageOK=false;return null}if(raw==null)return null;try{const v=JSON.parse(raw);if(v&&typeof v==='object')return v}catch(e){}return null}
+function load(key,def){return Object.assign({},def,readKey(key)||{})}
+function save(key,v){try{localStorage.setItem(key,JSON.stringify(v));return true}catch(e){if(!saveFailed){saveFailed=true;setTimeout(()=>toast('!','Couldn\'t save','This browser refused to store your progress. Back it up in Settings › Transfer save.'),500)}return false}}
 const S0={sound:true,vol:80,music:true,musVol:60,wxVol:100,ambVol:100,shake:100,dmgNums:true,flash:true,lowFx:false,autoPause:true};
 const P0={runs:0,kills:0,bossKills:0,eliteKills:0,time:0,best:0,bestKills:0,bestLevel:0,bestRam:0,bestBarrels:0,bestWeapons:0,bestWlvl:0,bestBrink:0,
   acctXp:0,bought:0,lastLevel:0,ach:{},tracks:{},scrap:0,garage:{},cars:{interceptor:1},car:'interceptor',bestProps:0,powerups:0};
 const S=load('carnageSettings',S0);
-let P=load('carnageProfile',P0);normProfile();
-function normProfile(){P.ach=Object.assign({},P.ach);P.tracks=Object.assign({},P.tracks);P.garage=Object.assign({},P.garage);P.cars=Object.assign({interceptor:1},P.cars);if(!P.cars[P.car])P.car='interceptor';P.lbQueue=Object.assign({},P.lbQueue)}
+// the profile, plus a local backup copy that only ever moves forward (it is never overwritten by a profile with less XP),
+// so a damaged or overwritten save can be brought back from Settings › Transfer save
+const PKEY='carnageProfile',PBAK='carnageProfile.bak';
+const KEY_ABC='ABCDEFGHJKMNPQRSTUVWXYZ23456789',fmtKey=k=>String(k||'').match(/.{4}/g).join('-');
+let P=(()=>{const main=readKey(PKEY),bak=readKey(PBAK);if(!main&&bak&&bak.p&&typeof bak.p.acctXp==='number')return Object.assign({},P0,bak.p);return Object.assign({},P0,main||{})})();normProfile();
+let bakXp=(readKey(PBAK)||{p:{}}).p.acctXp??-1,cloudDirty=false;
+// permanent recovery code: the cloud backup is filed under it, and typing it into Transfer save on any device brings the progress back.
+// every profile gets one (fresh, loaded, reset or imported)
+function normProfile(){if(!new RegExp('^['+KEY_ABC+']{12}$').test(P.cloudKey||'')){const a=new Uint8Array(12);crypto.getRandomValues(a);P.cloudKey=[...a].map(x=>KEY_ABC[x%KEY_ABC.length]).join('')}P.ach=Object.assign({},P.ach);P.tracks=Object.assign({},P.tracks);P.garage=Object.assign({},P.garage);P.cars=Object.assign({interceptor:1},P.cars);if(!P.cars[P.car])P.car='interceptor';P.lbQueue=Object.assign({},P.lbQueue)}
 if(!P.best){try{P.best=+localStorage.getItem('carnageBest')||0}catch(e){}}
-const saveSettings=()=>save('carnageSettings',S),saveProfile=()=>save('carnageProfile',P);
+const saveSettings=()=>save('carnageSettings',S);
+function saveProfile(){save(PKEY,P);if((P.acctXp||0)>=bakXp&&save(PBAK,{at:Date.now(),p:P}))bakXp=P.acctXp||0;cloudDirty=true}
+// ask the browser not to clear our storage when space runs low (granted silently on most desktop browsers)
+try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist().catch(()=>{})}catch(e){}
 
 // account level: level n needs 100+50(n-1) XP to clear
 const needFor=n=>100+50*(n-1);
@@ -2531,7 +2550,7 @@ function goBack(){const top=navStack.pop()||{id:'scrMenu',focus:null},id=top.id;
   // re-rendered screens replace their buttons; find the matching one again
   let f=top.focus;if(f&&!f.isConnected)f=f.dataset&&f.dataset.car?$(id).querySelector(`[data-car="${f.dataset.car}"]`):null;(f||$(id).querySelector('button')).focus()}
 function fillAcct(lvId,xpId,fillId){const a=acctInfo(P.acctXp);$(lvId).textContent=a.lv;if(xpId)$(xpId).textContent=`${a.into} / ${a.need} XP`;$(fillId).style.width=(a.into/a.need*100)+'%';return a}
-function refreshMenu(){fillAcct('mAcct','mAcctXp','mAcctFill');
+function refreshMenu(){fillAcct('mAcct','mAcctXp','mAcctFill');$('restoreBtn').hidden=(P.runs||0)>0;
   $('mBest').textContent=fmt(P.best);$('mKills').textContent=P.kills.toLocaleString();$('mClears').textContent=clearedCount()+' / '+LEVELS.length;$('mAch').textContent=Object.keys(P.ach).length+' / '+ACH.length;$('mScrap').textContent=P.scrap.toLocaleString()+' scrap'}
 function carCard(id,mode){const C=CARS[id],own=!!P.cars[id],sel=P.car===id,bar=(v,m)=>`<i style="width:${clamp(v/m,0,1)*100}%"></i>`;
   const gear=[...Object.keys(C.start.w).map(k=>WDEF[k].name),...Object.keys(C.start.p||{}).map(k=>PDEF[k].name)].join(' + ');
@@ -2573,12 +2592,24 @@ async function parseSave(txt){const m=/^(CL[01])\.([A-Za-z0-9_-]+)$/.exec(String
 const saveSummary=p=>{const cars=Object.keys(p.cars||{}).filter(k=>CARS[k]).length;return`Account level ${acctInfo(p.acctXp||0).lv} · ${(p.scrap||0).toLocaleString()} scrap · ${cars} of ${Object.keys(CARS).length} vehicles · ${Object.keys(p.ach||{}).length} of ${ACH.length} achievements · best run ${fmt(p.best||0)}`};
 let xPending=null,xTimer=0;
 const xMsg=(t,cls)=>{const m=$('xMsg');m.textContent=t;m.className=cls||''};
-function renderXfer(){xPending=null;$('xConfirm').hidden=true;$('xIn').value='';xMsg('This device: '+saveSummary(P))}
+function renderXfer(){xPending=null;$('xConfirm').hidden=true;$('xIn').value='';$('xKey').textContent=fmtKey(P.cloudKey);renderCloud();
+  const b=readKey(PBAK);$('xBakRow').hidden=!(b&&b.p&&(b.p.acctXp||0)>(P.acctXp||0));if(!$('xBakRow').hidden)$('xBakInfo').textContent=`Saved ${new Date(b.at).toLocaleString()}: ${saveSummary(b.p)}. That's more than this device has now.`;
+  xMsg(storageOK?'This device: '+saveSummary(P):'This browser is blocking saved data (private window or strict privacy settings), so progress here is lost when you close it. Keep your recovery code.',storageOK?'':'bad')}
+function renderCloud(){const el=$('xCloud');if(!el)return;el.textContent=!lbOnline?'Online backup works on the online site.':cloudState==='not_configured'?'Online backup isn\'t available yet (the server database isn\'t connected). Use Download file to keep a copy.':
+  P.cloudAt?'Last backed up '+new Date(P.cloudAt).toLocaleString()+'.':cloudState&&cloudState!=='ok'?'Couldn\'t reach the backup server yet. It will keep trying.':'Not backed up yet. It happens after your first run.'}
 function xShowConfirm(o){xPending=o;$('xSum').textContent=`Incoming save (${new Date(o.at||Date.now()).toLocaleString()}): ${saveSummary(o.p)}. This device right now: ${saveSummary(P)}. This can't be undone.`;$('xConfirm').hidden=false;$('xApply').focus();xMsg('')}
 const xErr=e=>e.message==='format'?'That isn\'t a Carnage Loop save. Check you copied all of it.':e.message==='browser'?'This browser is too old to read that save. Update it, or export again from the other device.':
-  e.code==='no_code'?'That code doesn\'t exist or has expired. Codes last 15 minutes and work once.':e.code==='not_configured'?'Transfer codes need the online database, which isn\'t connected yet. Use the save text or file instead.':
+  e.code==='no_backup'?'No backup found for that recovery code. Check it, or use a transfer code or save file instead.':e.code==='no_code'?'That code doesn\'t exist or has expired. Codes last 15 minutes and work once.':e.code==='not_configured'?'Transfer codes need the online database, which isn\'t connected yet. Use the save text or file instead.':
   !lbOnline?'Transfer codes work on the online site. Use the save text or file instead.':e.code===429?'Too many requests. Try again in a minute.':'Couldn\'t reach the server. Try again, or use the save text or file instead.';
 $('xferBtn').onclick=e=>openSub('scrXfer',e.currentTarget);
+let cloudBusy=false,cloudState='';
+async function cloudBackup(){if(!lbOnline||cloudBusy||!cloudDirty||!(P.runs>0)||cloudState==='not_configured')return;cloudBusy=true;cloudDirty=false;
+  try{const r=await lbPost({action:'cloudPut',key:P.cloudKey,data:await exportSave(),xp:P.acctXp|0});P.cloudAt=r.at||Date.now();save(PKEY,P);cloudState='ok';
+    if(!P.cloudNoted){P.cloudNoted=1;save(PKEY,P);toast('☁','Progress backed up','Your recovery code is in Settings › Transfer save')}}
+  catch(e){cloudDirty=true;cloudState=e.code||'error'}cloudBusy=false;if(cur==='scrXfer')renderCloud()}
+setInterval(()=>{if(state!=='play')cloudBackup()},30000);
+document.addEventListener('visibilitychange',()=>{if(document.hidden)cloudBackup()});
+$('restoreBtn').onclick=e=>openSub('scrXfer',e.currentTarget);
 $('xGet').onclick=async()=>{const b=$('xGet');if(!lbOnline){xMsg(xErr({}),'bad');return}b.disabled=true;xMsg('Getting a code…');
   try{const r=await lbPost({action:'xferPut',data:await exportSave()});const c=String(r.code||'');if(c.length!==6)throw Object.assign(new Error('lb'),{code:'bad_response'});
     const out=$('xCodeOut'),end=Date.now()+(r.ttl||900)*1000;clearInterval(xTimer);
@@ -2588,17 +2619,25 @@ $('xGet').onclick=async()=>{const b=$('xGet');if(!lbOnline){xMsg(xErr({}),'bad')
 $('xLoad').onclick=async()=>{const v=$('xIn').value.trim();if(!v){$('xIn').focus();return}
   if(G&&G.live){xMsg('Finish or quit the current run first, then load the save.','bad');return}
   try{if(/^CL[01]\./i.test(v.replace(/\s+/g,''))){xShowConfirm(await parseSave(v));return}
-    const code=v.toUpperCase().replace(/[^A-Z0-9]/g,'');if(code.length!==6){xMsg('Transfer codes are 6 letters and numbers, like K7Q-4PZ.','bad');return}
+    // raw profile JSON, e.g. copied from an older build's address with copy(localStorage.carnageProfile) in the browser console
+    if(v[0]==='{'||v[0]==='"'){let o;try{o=JSON.parse(v);if(typeof o==='string')o=JSON.parse(o)}catch(e){throw new Error('format')}if(!o||typeof o.acctXp!=='number')throw new Error('format');xShowConfirm({v:1,at:Date.now(),p:o});return}
+    const code=v.toUpperCase().replace(/[^A-Z0-9]/g,'');
+    if(code.length===12){if(!lbOnline)throw {code:'offline'};xMsg('Looking up your backup…');const r=await lbPost({action:'cloudGet',key:code});
+      // prefer whichever copy has more progress, so a backup made from a fresh start can't hide the real one
+      const useBest=r.best&&r.bestXp>r.latestXp,o=await parseSave(useBest?r.best:r.latest);o.at=useBest?r.bestAt:r.latestAt;xShowConfirm(o);return}
+    if(code.length!==6){xMsg('Codes are 6 characters (transfer code, like K7Q-4PZ) or 12 (recovery code, like ABCD-EFGH-JKMN).','bad');return}
     if(!lbOnline)throw {code:'offline'};xMsg('Fetching the save…');const r=await lbPost({action:'xferGet',code});xShowConfirm(await parseSave(r.data))}
   catch(e){xMsg(xErr(e),'bad')}};
 $('xIn').addEventListener('keydown',e=>{if(e.code==='Enter'||e.code==='NumpadEnter'){e.preventDefault();$('xLoad').click()}});
+$('xKeyCopy').onclick=async()=>{let ok=false;try{await navigator.clipboard.writeText(fmtKey(P.cloudKey));ok=true}catch(e){}xMsg(ok?'Recovery code copied. Keep it somewhere safe.':'Copy it by hand: '+fmtKey(P.cloudKey),ok?'good':'')};
+$('xBak').onclick=()=>{const b=readKey(PBAK);if(b&&b.p)xShowConfirm({v:1,at:b.at,p:b.p})};
 $('xCancel').onclick=()=>{xPending=null;$('xConfirm').hidden=true;xMsg('Nothing changed.');$('xIn').focus()};
 $('xApply').onclick=()=>{const o=xPending;if(!o)return;if(G&&G.live){xMsg('Finish or quit the current run first.','bad');return}
   // keep any runs this device still has waiting to post, then take the incoming profile (and its leaderboard identity)
   const q=Object.assign({},P.lbQueue),keepPid=P.pid;P=Object.assign({},P0,o.p);normProfile();if(!/^[a-f0-9]{32}$/.test(P.pid||''))P.pid=keepPid;if(lbClean(P.lbName).length<2)P.lbName='Driver '+(parseInt(P.pid.slice(0,4),16)%9000+1000);
   for(const id in q){const a=q[id],b=P.lbQueue[id];if(a&&(!b||a.t>b.t||(a.t===b.t&&a.kills>b.kills)))P.lbQueue[id]=a}
   saveProfile();xPending=null;$('xConfirm').hidden=true;$('xIn').value='';curLevel=clamp(P.lastLevel|0,0,LEVELS.length-1);if(state==='menu')newGame(curLevel);refreshMenu();
-  sfx('ach');toast('⇄','Save transferred','Account level '+acctInfo(P.acctXp).lv);xMsg('Done. This device now has: '+saveSummary(P),'good');lbFlush()};
+  sfx('ach');toast('⇄','Save transferred','Account level '+acctInfo(P.acctXp).lv);xMsg('Done. This device now has: '+saveSummary(P),'good');lbFlush();cloudDirty=true;cloudBackup();renderXfer();xMsg('Done. This device now has: '+saveSummary(P),'good')};
 $('xCopy').onclick=async()=>{const t=await exportSave();let ok=false;try{await navigator.clipboard.writeText(t);ok=true}catch(e){}
   if(!ok){const ta=document.createElement('textarea');ta.value=t;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();try{ok=document.execCommand('copy')}catch(e){}ta.remove()}
   xMsg(ok?`Save text copied (${t.length.toLocaleString()} characters). Paste it into the box above on your other device.`:'Couldn\'t copy here. Use Download file instead.',ok?'good':'bad')};
@@ -2611,6 +2650,7 @@ $('xFileIn').onchange=async e=>{const f=e.target.files&&e.target.files[0];e.targ
 // each browser gets a random secret player id; your best run per track is queued locally and posted when the server is reachable
 const LB_API='/api/scores',lbOnline=/^https?:$/.test(location.protocol);
 if(!/^[a-f0-9]{32}$/.test(P.pid||'')){const a=new Uint8Array(16);crypto.getRandomValues(a);P.pid=[...a].map(x=>x.toString(16).padStart(2,'0')).join('')}
+
 const lbClean=s=>String(s||'').replace(/[^\w .\-]/g,'').replace(/\s+/g,' ').trim().slice(0,16);
 if(lbClean(P.lbName).length<2)P.lbName='Driver '+(parseInt(P.pid.slice(0,4),16)%9000+1000);
 P.lbQueue=Object.assign({},P.lbQueue);saveProfile();
@@ -2686,7 +2726,7 @@ function renderReport(){const od=G.odStart>=0?(G.escaped||G.forfeit?G.t-G.odStar
 function results(title){const T=P.tracks[G.L.id]||{best:G.t};$('overTitle').textContent=title;renderReport();
   $('rTime').textContent=fmt(G.t);$('rKills').textContent=G.kills;$('rLvl').textContent=G.level;$('rBest').textContent=fmt(T.best);
   fillAcct('oAcct',null,'oAcctFill');$('oGain').innerHTML=`+${G.gain} XP · +${G.scrapGain} <span class="scrapi"></span>scrap`;
-  lbAfterRun();$('rAchWrap').hidden=!G.newAch.length;{const seen=new Set(),list=G.newAch.filter(a=>!seen.has(a.id)&&seen.add(a.id));$('rAch').innerHTML=list.slice(0,8).map(a=>`<span class="achip" title="${esc(a.desc)}"><i>${a.ic}</i>${esc(a.name)}</span>`).join('')+(list.length>8?`<span class="achip more">+${list.length-8} more</span>`:'')}}
+  lbAfterRun();setTimeout(cloudBackup,1500);$('rAchWrap').hidden=!G.newAch.length;{const seen=new Set(),list=G.newAch.filter(a=>!seen.has(a.id)&&seen.add(a.id));$('rAch').innerHTML=list.slice(0,8).map(a=>`<span class="achip" title="${esc(a.desc)}"><i>${a.ic}</i>${esc(a.name)}</span>`).join('')+(list.length>8?`<span class="achip more">+${list.length-8} more</span>`:'')}}
 function gameOver(title){state='over';commitRun();results(title||(G.forfeit?'Run lost':'Wrecked'));$('tip').hidden=true;const p=G.p;
   // the car blows apart: a big blast, pieces of bodywork in the car's colour, then a burning shell
   explode(p.x,p.y,170,0);G.shake=24;G.wreck={t:0,booms:[.18,.4,.65]};sfx('boom');
@@ -2770,7 +2810,7 @@ $('shakeRange').oninput=e=>{S.shake=+e.target.value;$('shakeOut').textContent=S.
 $('shakeRange').onchange=saveSettings;
 $('resetBtn').onclick=()=>{const b=$('resetBtn');
   if(!resetArm){b.textContent='Sure?';resetArm=setTimeout(()=>{resetArm=0;b.textContent='Reset'},3000);return}
-  clearTimeout(resetArm);resetArm=0;P=Object.assign({},P0,{ach:{},tracks:{},garage:{},cars:{interceptor:1},pid:P.pid,lbName:P.lbName,lbQueue:{}});if(!(G&&G.live))curLevel=0;saveProfile();try{localStorage.removeItem('carnageBest')}catch(e){}b.textContent='Wiped'};
+  clearTimeout(resetArm);resetArm=0;P=Object.assign({},P0,{ach:{},tracks:{},garage:{},cars:{interceptor:1},pid:P.pid,lbName:P.lbName,lbQueue:{},cloudKey:P.cloudKey});normProfile();if(!(G&&G.live))curLevel=0;saveProfile();try{localStorage.removeItem('carnageBest')}catch(e){}b.textContent='Wiped'};
 
 /* ---------- loop ---------- */
 // main-menu backdrop: the car does donuts around the screen edge
