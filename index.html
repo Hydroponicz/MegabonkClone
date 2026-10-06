@@ -130,7 +130,7 @@ kbd{display:inline-block;font-family:var(--body);font-weight:700;font-size:12px;
 .range output{font-weight:700;font-variant-numeric:tabular-nums;min-width:4ch;text-align:right}
 .set-row.danger{border-color:rgba(255,59,78,.4)}
 #codeBox{position:fixed;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;background:rgba(6,5,8,.78);padding:16px}#codeBox[hidden]{display:none}
-.codepanel{background:var(--panel);border:2px solid var(--hazard);box-shadow:6px 6px 0 var(--ink);padding:20px 22px;max-width:420px;width:100%;text-align:center;max-height:100%;overflow:auto;display:flex;flex-direction:column;gap:14px}
+.codepanel{box-sizing:border-box;background:var(--panel);border:2px solid var(--hazard);box-shadow:6px 6px 0 var(--ink);padding:20px 22px;max-width:420px;width:100%;text-align:center;max-height:calc(100dvh - 32px);overflow:auto;display:flex;flex-direction:column;gap:14px}
 .codepanel h3{font-family:var(--display);font-weight:400;font-size:26px;margin:0;color:var(--hazard)}
 .cslots{display:flex;justify-content:center;gap:5px}.cslots i{flex:0 1 28px;min-width:0;height:34px;display:flex;align-items:center;justify-content:center;border:1px solid var(--line);background:var(--panel-2);font-style:normal;font-weight:700;font-size:18px;color:var(--fg)}.cslots i.on{border-color:var(--hazard);color:var(--hazard)}
 .cpad{display:grid;grid-template-columns:repeat(3,52px);grid-template-rows:repeat(2,46px);gap:6px;justify-content:center}.cpad .gap{width:52px}
@@ -144,7 +144,7 @@ kbd{display:inline-block;font-family:var(--body);font-weight:700;font-size:12px;
 .legend .key{flex-direction:row;align-items:center;gap:10px}
 .legend i{flex:none;width:14px;height:14px;display:block}
 
-#toasts{position:fixed;right:16px;bottom:calc(env(safe-area-inset-bottom,0px) + 60px);display:flex;flex-direction:column;align-items:flex-end;gap:8px;pointer-events:none}
+#toasts{position:fixed;right:16px;bottom:calc(env(safe-area-inset-bottom,0px) + 72px);display:flex;flex-direction:column;align-items:flex-end;gap:8px;pointer-events:none}
 /* on touchscreens the glovebox is bigger, so toasts sit above it */
 @media (pointer:coarse){#toasts{bottom:calc(env(safe-area-inset-bottom,0px) + 86px)}}
 .toast{display:flex;align-items:center;gap:12px;background:rgba(10,9,12,.95);border:2px solid var(--hazard);box-shadow:5px 5px 0 var(--ink);padding:8px 16px 8px 8px;max-width:calc(100vw - 32px);animation:tin .35s ease-out;transition:opacity .3s,transform .3s}
@@ -318,6 +318,8 @@ body.nocursor,body.nocursor *{cursor:none!important}
   box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 2px 0 #000}
 #radio #rSeek:active{transform:translateY(2px);box-shadow:inset 0 1px 0 rgba(255,255,255,.08)}
 #radio #rSeek:focus-visible{outline:2px solid var(--hazard);outline-offset:2px}
+#overlay:not(.attract){z-index:7}
+@media (max-height:500px){#radio.inrun{display:none}}
 @media (max-width:720px){#radio.inrun{display:none}#radio{transform:scale(.85);transform-origin:top right}}
 #dbg{position:fixed;left:16px;top:200px;z-index:7;width:330px;max-height:calc(100vh - 290px);overflow:auto;background:rgba(6,6,10,.86);border:1px solid #3fe0d0;box-shadow:0 0 0 1px #000,0 6px 18px rgba(0,0,0,.5);
   padding:8px 10px;font:12px/1.35 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:#cfe;pointer-events:none}
@@ -1090,7 +1092,7 @@ function checkAch(){const r=rec();let any=false;
   if(any){saveProfile();sfx('ach')}}
 const badge=(ic,on)=>`<div class="badge${on?' on':''}">${ic}</div>`;
 function toast(ic,small,title){const el=document.createElement('div');el.className='toast';
-  el.innerHTML=`${badge(ic,true)}<div><small>${small}</small><b>${title}</b></div>`;$('toasts').appendChild(el);
+  el.innerHTML=`${badge(ic,true)}<div><small>${small}</small><b>${title}</b></div>`;const box=$('toasts');box.appendChild(el);while(box.children.length>4)box.firstElementChild.remove();
   setTimeout(()=>{el.classList.add('out');setTimeout(()=>el.remove(),350)},3800)}
 // fold a finished (or abandoned) run into the lifetime profile; returns account XP earned
 function commitRun(){const r=rec();G.live=false;if(G.escaped)P.escapes=(P.escapes||0)+1;G.forfeit=!!G.portal&&!G.escaped;G.lbRun=lbQueueRun();G.lbPosting=lbFlush();
@@ -1814,13 +1816,13 @@ function drawHunterCam(){const el=$('hunterCam');if(!G||!G.live||state==='menu')
   for(const o of G.obs){if(!o.solid||Math.abs(o.x-e.x)>R||Math.abs(o.y-e.y)>R)continue;c2.fillStyle=o.col||'#3a3644';if(o.rect)c2.fillRect(o.x-o.w/2,o.y-o.h/2,o.w,o.h);else{c2.beginPath();c2.arc(o.x,o.y,o.r,0,TAU);c2.fill()}}
   // borrow the real sprite blitter by pointing it at the small canvas for a moment
   const pc=ctx,pd=DPR;ctx=c2;DPR=r*sc;const ox=W/2/sc-e.x,oy=H/2/sc-e.y;
-  try{for(const q of G.enemies){if(q.dead||Math.abs(q.x-e.x)>R||Math.abs(q.y-e.y)>R)continue;blitCar(carSprite(q.len,q.wid,q===e?'#ffffff':q.col,q.flash>0,q.elite?'elite':q.shoots?'gun':''),q.x+ox,q.y+oy,q.a)}
+  try{for(const q of G.enemies){if(q.dead||Math.abs(q.x-e.x)>R||Math.abs(q.y-e.y)>R)continue;blitCar(carSprite(q.len,q.wid,q===e?'#ffffff':G.buffs.freeze>0||q.ice>0?'#a8dcff':q.col,q.flash>0,q.big?(q.type==='lboss'?'lboss':'mini')+(q.charge>0?'C':''):q.shoots?'gun':q.elite?'elite':''),q.x+ox,q.y+oy,q.a)}
     if(Math.abs(G.p.x-e.x)<R&&Math.abs(G.p.y-e.y)<R){ctx.setTransform(r*sc,0,0,r*sc,r*(W/2-e.x*sc),r*(H/2-e.y*sc));ctx.fillStyle=G.car.col;ctx.beginPath();ctx.arc(G.p.x,G.p.y,16,0,TAU);ctx.fill();ctx.strokeStyle='#0a090c';ctx.lineWidth=4;ctx.stroke()}}
   finally{ctx=pc;DPR=pd}
   c2.setTransform(r,0,0,r,0,0);c2.strokeStyle='rgba(232,228,238,.9)';c2.lineWidth=1.5;const bl=Math.floor(G.t*3)%2;c2.strokeRect(W/2-22,H/2-22,44,44);
   c2.fillStyle=bl?'#ff3b4e':'rgba(255,59,78,.35)';c2.beginPath();c2.arc(10,10,4,0,TAU);c2.fill();c2.fillStyle='#e8e4ee';c2.font='700 9px ui-monospace,monospace';c2.fillText('LIVE',17,13);c2.textAlign='right';c2.fillText('CHROME HUNTER',W-6,13);c2.textAlign='left';
   const dx=e.x-G.p.x,dy=e.y-G.p.y,left=huntLeft(e);
-  $('hcInfo').innerHTML=`${Math.ceil(left)}s · ${Math.round(Math.hypot(dx,dy)/10)}m <span class="tarr" style="transform:rotate(${Math.atan2(dy,dx).toFixed(2)}rad)">▶</span>`;el.classList.toggle('urgent',left<15)}
+  {const h=`${Math.ceil(left)}s · ${Math.round(Math.hypot(dx,dy)/10)}m <span class="tarr" style="transform:rotate(${(Math.round(Math.atan2(dy,dx)*10)/10).toFixed(1)}rad)">▶</span>`;if(hudCache.hc!==h){hudCache.hc=h;$('hcInfo').innerHTML=h}}el.classList.toggle('urgent',left<15)}
 
 /* ---------- traders ---------- */
 // breadth-first route over the wide-clearance grid (room for the truck), trimmed to as few straight legs as possible
@@ -2254,7 +2256,7 @@ if(document.fonts)document.fonts.addEventListener('loadingdone',()=>textCache.cl
 // particle buckets reused every frame: one pass sorts them, then each bucket is a single fill
 const PB_S=[[],[],[],[],[]],PB_F=[[],[],[],[],[],[]],PB_D=[],PB_K=[];
 function draw(){
-  const p=G.p,c=G.cam,lo=S.lowFx;
+  const p=G.p,c=G.cam,lo=S.lowFx;ctx.lineCap='butt';
   const sh=G.shake*S.shake/100,sx=(Math.random()-.5)*sh*2,sy=(Math.random()-.5)*sh*2;
   const L=c.x-VW/2-60,T=c.y-VH/2-60,R=c.x+VW/2+60,B=c.y+VH/2+60;
   ctx.setTransform(DPR,0,0,DPR,0,0);if(L<0||T<0||R>ARENA||B>ARENA){ctx.fillStyle='#0b0a0d';ctx.fillRect(0,0,VW,VH)}
@@ -2397,7 +2399,7 @@ function updateHud(){
       else if(m.k==='rc_medic')cd+=chip('MEDIC RC',left>0?k:1,left>0?Math.ceil(left)+'s':'READY',left<=0,'Medic RC|Minion|Patches you up when the bar is full and you\'re hurt.');
       else if(m.k==='rc_scav'&&G.weapons.rc_scav.lvl>=2)cd+=chip('DIG',m.dig/20,Math.ceil((20-m.dig)/(G.weapons.rc_scav.lvl>=5?2:1))+'s',false,'Scavenger RC|Minion|Digs up a pile of bolts when the bar fills.')}
     {const w=G.weapons.hydro;if(w&&w.lvl>=5){const left=Math.max(0,w.wave??5),mx=5*G.stats.cd;cd+=chip('WAVE',1-left/mx,left>0?Math.ceil(left)+'s':'READY',left<=0,'Hydro Cannon|Tidal wave|Bursts out around the van when the bar fills and a car is close.')}}
-    if(hudCache.cd!==cd){hudCache.cd=cd;$('cds').innerHTML=cd}}
+    cd=cd.replace(/--k:([\d.]+)/g,(m,v)=>'--k:'+Math.round(v*20)/20);if(hudCache.cd!==cd){hudCache.cd=cd;$('cds').innerHTML=cd}}
   let bf='';for(const k in G.buffs)if(G.buffs[k]>0)bf+=`<span class="chip buff" style="--c:${BUFFS[k].col}" data-tip="${BUFFS[k].name}|Power-up · ${Math.ceil(G.buffs[k])}s left|${BUFF_DESC[k]}">${BUFFS[k].name.toUpperCase()} ${Math.ceil(G.buffs[k])}s</span>`;if(hudCache.bf!==bf){hudCache.bf=bf;$('buffs').innerHTML=bf}
   const b=G.lboss&&!G.lboss.dead?G.lboss:G.mini&&!G.mini.dead?G.mini:null;$('bossWrap').hidden=!b;
   if(b){setT('bossName',b.type==='lboss'?L.boss.name:'JUGGERNAUT '+['I','II','III','IV','V','VI','VII','VIII'][Math.min(7,(b.num||1)-1)]);setW('bossfill',b.hp/b.maxhp)}
@@ -2409,12 +2411,12 @@ function updateHud(){
   if(hudCache.obj!==obj){hudCache.obj=obj;$('objective').innerHTML=obj}
   // trader tracker: who, how long they stay, how far, and which way
   const tr0=G.trader,th=$('traderHud');if(tr0&&tr0.phase!=='leave'){const dx=tr0.x-p.x,dy=tr0.y-p.y,dm=Math.round(Math.hypot(dx,dy)/10),a=Math.atan2(dy,dx);
-    const t=`<span class="tdot" style="background:${tr0.T.col}"></span><b style="color:${tr0.T.col}">${tr0.T.name}</b> · ${tr0.phase==='arrive'?'pulling in':'parked '+Math.ceil(tr0.stay)+'s'} · ${dm}m <span class="tarr" style="transform:rotate(${a.toFixed(2)}rad)">▶</span>`;
-    if(hudCache.tr!==t){hudCache.tr=t;th.innerHTML=t}th.hidden=false}else th.hidden=true;
+    const t=`<span class="tdot" style="background:${tr0.T.col}"></span><b style="color:${tr0.T.col}">${tr0.T.name}</b> · ${tr0.phase==='arrive'?'pulling in':'parked '+Math.ceil(tr0.stay)+'s'} · ${dm}m <span class="tarr" style="transform:rotate(${(Math.round(a*10)/10).toFixed(1)}rad)">▶</span>`;
+    if(hudCache.tr!==t){hudCache.tr=t;th.innerHTML=t}if(th.hidden)th.hidden=false}else if(!th.hidden)th.hidden=true;
   // trader prompt floats over the truck while you are close enough
   const tip=$('tip');if(G.near){const tr=G.trader;tip.hidden=false;tip.style.setProperty('--c',tr.T.col);
     const t=`<kbd>F</kbd> Trade with ${tr.T.name}`;if(hudCache.tip!==t){hudCache.tip=t;tip.innerHTML=t}
-    tip.style.left=clamp(tr.x+G.view.ox,90,VW-90)+'px';tip.style.top=clamp(tr.y+G.view.oy-78,40,VH-20)+'px'}else tip.hidden=true;
+    tip.style.left=clamp(tr.x+G.view.ox,90,VW-90)+'px';tip.style.top=clamp(tr.y+G.view.oy-78,40,VH-20)+'px'}else if(!tip.hidden)tip.hidden=true;
 }
 const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 function updateLoadout(){
@@ -2439,7 +2441,7 @@ const ZONE_INFO={napalm:['Napalm fire','From your Napalm Tank: burns cars, never
 const PICK_INFO={chest:['Supply crate','Pick a free bolt-on.'],wrench:['Wrench','Repairs 30 HP.'],magnet:['Scrap magnet','Pulls every scrap and bolt on the map to you.'],nuke:['Airstrike','Wrecks every regular car on the map, on screen or not, and dents bosses.'],
   freeze:['Cryo canister','Freezes every car for 5 seconds.'],nitro:['Nitro can','8 seconds of extra speed and double ram damage.'],fury:['Overdrive','10 seconds of double-speed weapon recharge.'],bubble:['Bubble shield','6 seconds of invulnerability.'],sack:['Scrap sack','+15 scrap banked for the Garage.'],bolts:['Bolt bag','+12 bolts to spend at traders.']};
 const mouse={x:0,y:0,overCanvas:false,last:-1e9,inWin:false};
-addEventListener('mousemove',e=>{mouse.x=e.clientX;mouse.y=e.clientY;mouse.overCanvas=e.target===cv;mouse.last=performance.now();mouse.inWin=true;document.body.classList.remove('nocursor')});
+addEventListener('pointermove',e=>{if(e.pointerType!=='mouse')return;mouse.x=e.clientX;mouse.y=e.clientY;mouse.overCanvas=e.target===cv;mouse.last=performance.now();mouse.inWin=true;document.body.classList.remove('nocursor')});
 document.addEventListener('mouseleave',()=>{mouse.inWin=false});
 let domTip=null;
 document.addEventListener('mouseover',e=>{const t=e.target.closest&&e.target.closest('[data-tip]');domTip=t&&$('hud').contains(t)?t:null});
@@ -2489,7 +2491,7 @@ function updateHover(){const tip=$('hoverTip');const idle=performance.now()-mous
   let c=null;if(state==='play'&&!idle&&mouse.inWin){if(domTip&&domTip.isConnected){const [t,k,d]=domTip.dataset.tip.split('|');c=card(t,k,d,null,getComputedStyle(domTip).getPropertyValue('--c').trim()||null)}
     else if(mouse.overCanvas)c=pickHover(mouse.x-G.view.ox,mouse.y-G.view.oy)}
   if(!c){if(!tip.hidden){tip.hidden=true;tipKey=''}return}
-  if(c.html!==tipKey){tipKey=c.html;tip.innerHTML=c.html;tip.style.setProperty('--c',c.col||'var(--hazard)')}tip.hidden=false;
+  if(c.html!==tipKey){tipKey=c.html;tip.innerHTML=c.html;tip.style.setProperty('--c',c.col||'var(--hazard)')}if(tip.hidden)tip.hidden=false;
   const w=tip.offsetWidth,h=tip.offsetHeight;let x=mouse.x+18,y=mouse.y+18;if(x+w>VW-8)x=mouse.x-w-14;if(y+h>VH-8)y=mouse.y-h-14;tip.style.transform=`translate(${Math.max(8,x)}px,${Math.max(8,y)}px)`}
 
 /* ---------- screens ---------- */
