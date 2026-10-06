@@ -247,6 +247,7 @@ kbd{display:inline-block;font-family:var(--body);font-weight:700;font-size:12px;
 #rNote{max-width:640px}
 /* after-action report: two columns on wide screens, compact tiles, details collapsible on phones */
 #scrOver{width:min(980px,100%);gap:12px}
+#lvReroll kbd{margin:0 0 0 6px;font-size:11px}#lvReroll .nut{margin:0 2px 0 4px}
 #scrOver .rep{display:grid;grid-template-columns:minmax(300px,390px) minmax(0,1fr);gap:22px;width:100%;align-items:start}
 #scrOver .repL{display:flex;flex-direction:column;gap:12px;align-items:center;text-align:center;min-width:0}
 #scrOver .big{font-size:clamp(34px,4.6vw,54px);margin:0}
@@ -434,6 +435,7 @@ body.nocursor,body.nocursor *{cursor:none!important}
       <div class="key"><b>Drive</b><span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> or arrows</span></div>
       <div class="key"><b>Handbrake drift</b><span><kbd>Space</kbd></span></div>
       <div class="key"><b>Trade</b><span><kbd>F</kbd> next to a parked trader</span></div>
+      <div class="key"><b>Reroll level-up picks</b><span><kbd>R</kbd> or the Reroll button · first one each run is free, then it costs more bolts each time</span></div>
       <div class="key"><b>Developer console</b><span><kbd>`</kbd> toggles it · F1–F10 and Shift+F1–F10 for test cheats. Debug runs don't post to the leaderboard</span></div>
       <div class="key"><b>Use glovebox item</b><span><kbd>Q</kbd> or tap a glovebox slot (bottom right)</span></div>
       <div class="key"><b>Next radio track</b><span><kbd>N</kbd> or the SEEK button</span></div>
@@ -478,6 +480,7 @@ body.nocursor,body.nocursor *{cursor:none!important}
     <h2 class="big">Level up</h2>
     <p class="sub" id="lvlSub">Pick a bolt-on · keys 1 to 3</p>
     <div class="cards" id="cards"></div>
+    <div class="btns"><button class="btn alt" id="lvReroll">Reroll</button></div>
   </section>
 
   <section id="scrShop" class="panel" hidden>
@@ -813,6 +816,7 @@ addEventListener('keydown',e=>{
   if(e.code==='KeyQ'&&state==='play'&&!e.repeat){useGlove(0);return}
   if(e.code==='KeyP'||e.code==='Escape')togglePause();
   if(state==='levelup'&&/^Digit[1-4]$/.test(e.code))pickChoice(+e.code.slice(5)-1);
+  if(state==='levelup'&&e.code==='KeyR'&&!e.repeat)rerollLevelup();
 });
 addEventListener('keyup',e=>{keys[e.code]=false});
 addEventListener('blur',()=>{for(const k in keys)keys[k]=false;if(state==='play'&&S.autoPause)togglePause()});
@@ -2328,7 +2332,7 @@ $('lbTabs').addEventListener('click',e=>{const b=e.target.closest('.lbtab');if(!
 function lbSaveName(){const nm=lbClean($('lbName').value);if(nm.length<2){$('lbMsg').textContent='Names need at least 2 letters or numbers.';return}
   P.lbName=nm;saveProfile();$('lbName').value=nm;if(!lbOnline){$('lbMsg').textContent='Name saved on this device.';return}
   lbPost({action:'name'}).then(()=>{$('lbMsg').textContent='Name saved.';renderBoard()}).catch(e=>{$('lbMsg').textContent='Name saved on this device. '+lbErrText(e.code)})}
-$('lbSave').onclick=lbSaveName;// glovebox slots fire on touch-down for any finger (click only fires for the primary touch, which is busy steering);
+$('lbSave').onclick=lbSaveName;$('lvReroll').onclick=rerollLevelup;// glovebox slots fire on touch-down for any finger (click only fires for the primary touch, which is busy steering);
 // click still works for keyboard activation (detail 0)
 $('glove').addEventListener('pointerdown',e=>{const b=e.target.closest('.gslot');if(!b||b.dataset.i==null)return;e.preventDefault();e.stopPropagation();useGlove(+b.dataset.i)});
 $('glove').addEventListener('click',e=>{const b=e.target.closest('.gslot');if(b&&b.dataset.i!=null&&e.detail===0)useGlove(+b.dataset.i)});$('rSeek').onclick=e=>{e.currentTarget.blur();initAudio();skipSong()};$('lbName').addEventListener('keydown',e=>{if(e.code==='Enter'||e.code==='NumpadEnter'){e.preventDefault();lbSaveName()}});
@@ -2387,7 +2391,15 @@ function buildChoices(){
 }
 // a fully maxed rig: level ups and supply crates turn into banked scrap instead of pausing the game (and instead of free heals)
 function maxedOut(){const n=G.pending;G.pending=0;if(state==='levelup'){state='play';show(null);last=performance.now()}G.sack+=10*n;toast('MAX','Fully loaded',`+${10*n} scrap banked`);sfx('pick')}
-function openLevelup(){const ch=buildChoices();if(!ch.length){maxedOut();return}state='levelup';choices=ch;sfx('level');
+// reroll the level-up picks: the first one each run is free, then it costs bolts and gets pricier every time
+const rerollCost=()=>{const n=G.rerolls||0;return n===0?0:Math.round(5*n*(1+0.15*(n-1)))};
+function rerollLevelup(){if(state!=='levelup')return;const c=rerollCost();if(G.bolts<c)return;G.bolts-=c;G.rerolls=(G.rerolls||0)+1;
+  const ch=buildChoices();if(!ch.length)return;choices=ch;sfx('buy');renderLevelup();const f=$('choice0');if(f)f.focus()}
+function openLevelup(){const ch=buildChoices();if(!ch.length){maxedOut();return}state='levelup';choices=ch;sfx('level');renderLevelup();
+  show('scrLevel');touch.active=false;for(const k in keys)keys[k]=false;
+  const first=$('choice0');if(first)setTimeout(()=>first.focus(),50);
+}
+function renderLevelup(){
   $('lvlSub').textContent=`Pick a bolt-on or roll an item · keys 1 to ${choices.length} · Weapons ${Object.keys(G.weapons).length}/${slotsW()} · Upgrades ${Object.keys(G.passives).length}/${slotsP()} · Trinkets ${tkCount()}/${slotsT()}`;
   $('cards').innerHTML=choices.map((c,i)=>{
     if(c.kind==='heal')return`<button class="card" id="choice${i}" data-i="${i}"><span class="num">${i+1}</span><span class="kind">Pit stop</span><h3>Full patch-up</h3><p>Repair 50 HP. Your rig is maxed out.</p></button>`;
@@ -2395,9 +2407,8 @@ function openLevelup(){const ch=buildChoices();if(!ch.length){maxedOut();return}
     const d=c.kind==='w'?WDEF[c.k]:PDEF[c.k];const kind=c.kind==='w'?(c.next===1?'New weapon':'Weapon · Lv '+c.next):(c.next===1?'New upgrade':'Upgrade · Lv '+c.next);
     const desc=c.kind==='w'?d.desc[c.next-1]:d.desc;
     return`<button class="card ${c.kind}" id="choice${i}" data-i="${i}"><span class="num">${i+1}</span><span class="kind">${kind}${d.unlock?' · Unlocked':''}</span><h3>${d.name}</h3><p>${desc}</p></button>`}).join('');
-  show('scrLevel');touch.active=false;for(const k in keys)keys[k]=false;
-  const first=$('choice0');if(first)setTimeout(()=>first.focus(),50);
-}
+  const rc=rerollCost(),rb=$('lvReroll');rb.innerHTML=rc?`Reroll · <span class="nut"></span>${rc} <kbd>R</kbd>`:`Reroll · free <kbd>R</kbd>`;rb.disabled=G.bolts<rc;
+  rb.dataset.tip=`Reroll|New picks|${rc?`Costs ${rc} bolts (you have ${G.bolts}). Each reroll this run costs more.`:'Your first reroll this run is free. After that it costs bolts, more each time.'}`}
 function pickChoice(i){const c=choices[i];if(!c||state!=='levelup')return;
   if(c.kind==='w'){if(G.weapons[c.k])G.weapons[c.k].lvl++;else G.weapons[c.k]={lvl:1,cd:0.3,aim:G.p.a}}
   else if(c.kind==='p'){G.passives[c.k]=(G.passives[c.k]||0)+1;recalc()}
