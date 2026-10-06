@@ -208,7 +208,7 @@ kbd{display:inline-block;font-family:var(--body);font-weight:700;font-size:12px;
 .lv .tick{position:absolute;top:8px;right:10px;font-size:11px;font-weight:700;letter-spacing:.12em;background:var(--c);color:var(--ink);padding:2px 6px}
 .lv .body{padding:12px;display:flex;flex-direction:column;gap:6px;flex:1}
 .lv h3{font-family:var(--display);font-weight:400;font-size:19px;margin:0;line-height:1.1}
-.lv p{margin:0;color:var(--dim);font-size:13px;line-height:1.4}
+
 .lv .meta{display:flex;flex-wrap:wrap;gap:6px 12px;margin-top:auto;padding-top:6px;font-size:11px;font-weight:700;letter-spacing:.1em;color:var(--dim);text-transform:uppercase}
 .lv .meta b{color:var(--fg)}
 .lv:disabled{cursor:not-allowed}
@@ -1021,15 +1021,15 @@ cv.addEventListener('pointerup',endTouch);cv.addEventListener('pointercancel',en
 /* ---------- tracks ---------- */
 // diff scales enemy HP/damage and account XP; head starts the spawn curve later in time; abil = level boss moves
 const LEVELS=[
-  {id:'yard',name:'Scrapyard',desc:'Where every driver earns their plates. Container stacks, junk piles and leaking toxic drums.',req:1,diff:1,head:0,rate:1,minis:2,theme:'yard',barrels:['barrel','barrel','toxic'],
+  {id:'yard',name:'Scrapyard',req:1,diff:1,head:0,rate:1,minis:2,theme:'yard',barrels:['barrel','barrel','toxic'],
     ground:'#232128',paint:'255,194,26',wall:'#ffc21a',boss:{name:'THE CRUSHER',col:'#d63434',hp:7000,abil:{charge:1,summon:1}}},
-  {id:'dust',name:'Outskirts',desc:'Farmland at the edge of town. Groves, rock piles, barns and propane tanks.',req:3,diff:1.2,head:20,rate:1.05,minis:2,theme:'outskirts',barrels:['barrel','propane'],
+  {id:'dust',name:'Outskirts',req:3,diff:1.2,head:20,rate:1.05,minis:2,theme:'outskirts',barrels:['barrel','propane'],
     ground:'#34361f',paint:'255,236,200',wall:'#e0a050',boss:{name:'SANDSTORM',col:'#c98a3a',hp:10500,abil:{charge:1,ring:1}}},
-  {id:'neon',name:'Neon District',desc:'Downtown after dark. Wide neon boulevards, towering blocks and live tesla pylons.',req:6,diff:1.4,head:20,rate:1.04,minis:2,spd:1.08,theme:'city',bossWalls:1,barrels:['barrel','propane'],
+  {id:'neon',name:'Neon District',req:6,diff:1.4,head:20,rate:1.04,minis:2,spd:1.08,theme:'city',bossWalls:1,barrels:['barrel','propane'],
     ground:'#17142a',paint:'255,79,216',wall:'#ff4fd8',boss:{name:'OVERCLOCK',col:'#7a3cff',hp:14500,spd:1.4,abil:{burst:1,ring:1}}},
-  {id:'frost',name:'Frostbite Flats',desc:'Black ice and pine forest. Your tires barely grip. Theirs grip just fine.',req:10,diff:1.55,head:60,rate:1.12,minis:2,grip:2.6,theme:'frost',barrels:['barrel','propane'],
+  {id:'frost',name:'Frostbite Flats',req:10,diff:1.55,head:60,rate:1.12,minis:2,grip:2.6,theme:'frost',barrels:['barrel','propane'],
     ground:'#26313c',paint:'200,240,255',wall:'#9fe4ff',boss:{name:'GLACIER HAULER',col:'#5aa8d6',hp:19500,abil:{charge:1,ring:1,summon:1}}},
-  {id:'inferno',name:'Inferno Raceway',desc:'The last lap. Lava pools, spike strips, and a boss with every trick.',req:15,diff:1.65,head:50,rate:1.15,minis:2,spd:1.12,theme:'inferno',barrels:['barrel','propane','toxic'],
+  {id:'inferno',name:'Inferno Raceway',req:15,diff:1.65,head:50,rate:1.15,minis:2,spd:1.12,theme:'inferno',barrels:['barrel','propane','toxic'],
     ground:'#2a1512',paint:'255,90,31',wall:'#ff5a1f',boss:{name:'HELLFIRE TITAN',col:'#ff3b1f',hp:26000,abil:{charge:1,ring:1,burst:1,summon:1}}},
 ];
 
@@ -2809,7 +2809,7 @@ function renderLevels(){const lv=acctInfo(P.acctXp).lv;$('lvAcct').textContent='
   $('lvGrid').innerHTML=LEVELS.map((L,i)=>{const T=P.tracks[L.id]||{},open=lv>=L.req;
     return`<button class="lv" id="lv${i}" data-i="${i}" ${open?'':'disabled'} style="--c:${L.wall};--g:${L.ground};--p:rgb(${L.paint})">
       <div class="art"><span class="no">${i+1}</span>${T.cleared?'<span class="tick">Cleared</span>':''}</div>
-      <div class="body"><h3>${L.name}</h3><p>${L.desc}</p>
+      <div class="body"><h3>${L.name}</h3>
       ${open?`<div class="meta"><span>Threat <b>×${L.diff}</b></span><span class="wx" style="--wc:${WEATHER[FORECAST[L.id]||'clear'].col}"><i></i>Forecast <b>${WEATHER[FORECAST[L.id]||'clear'].name}</b></span><span>Boss <b>${L.boss.name}</b></span><span>Best <b>${fmt(T.best||0)}</b></span></div>`
         :`<span class="lockmsg">Locked · account level ${L.req}</span>`}</div></button>`}).join('')}
 function startGame(li=curLevel){if(G&&G.live)commitRun();navStack.length=0;initAudio();newGame(li);delete FORECAST[LEVELS[li].id];P.lastLevel=li;G.live=true;P.runs++;saveProfile();
