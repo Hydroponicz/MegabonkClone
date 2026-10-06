@@ -979,7 +979,7 @@ const WDEF={
   rc_ram:{name:'Rammer RC',rc:1,desc:['A souped-up RC car rams the nearest car over and over, leaving it dazed for a moment.','Harder hits.','A second rammer.','Faster, and hits harder still.','A third rammer.']},
   rc_bomb:{name:'Bomb RC',rc:1,desc:['A rigged RC car drives into the thickest crowd and blows up. A new one is built a few seconds later.','Bigger blast.','Rebuilt faster.','Heavier charge.','Two bomb cars at a time.']},
   rc_scav:{name:'Scavenger RC',rc:1,desc:['A scavenger RC car hoovers up scrap and bolts lying around and sends them your way.','Drives faster, and digs up a few bolts now and then.','Wider vacuum.','A second scavenger.','Digs up bolts twice as often.']},
-  rc_jam:{name:'Jammer RC',rc:1,desc:['A jammer RC car hunts down packs of cars and parks in the middle, scrambling everything in its field: they slow down and gunners can\'t fire.','Bigger field.','Fries enemy bullets that fly into the field.','The field burns cars inside it.','A second jammer.']},
+  rc_jam:{name:'Jammer RC',rc:1,desc:['A jammer RC car hunts down nearby packs of cars and parks in the middle, scrambling everything in its field: they slow down and gunners can\'t fire. Its battery lasts a few seconds of jamming, then it drives back to you to recharge.','Bigger field and a bigger battery.','Fries enemy bullets that fly into the field.','The field burns cars inside it.','A second jammer.']},
   hydro:{name:'Hydro Cannon',only:'hydro',desc:['Roof cannon blasts the nearest car with a high-pressure jet, shoving it back and soaking it (soaked cars slow down).','Longer, harder-hitting jet.','A second jet locks on to another car.','Soaked cars take 25% more damage from everything.','Every 5 seconds a tidal wave bursts out around the van.']},
   drone:{name:'Attack Drone',unlock:'escapee',desc:['A drone circles your car and shoots the nearest car.','Faster fire.','A second drone.','Harder-hitting rounds.','A third drone, and rounds punch through.']},
 };
@@ -1767,6 +1767,8 @@ function updateWeatherSound(){if(!AC||!master)return;const X=G&&G.wx,W=X&&X.W,on
 
 /* ---------- RC minions: tiny remote-control cars with antennas, each with its own job ---------- */
 const JAM_LEASH=300; // the jammer never parks more than this far from you
+// battery: seconds of jamming per charge, and seconds to recharge beside your car
+const jamCap=lv=>4+1.2*lv,jamRecharge=(lv,mc)=>(3.5-.2*lv)*mc;
 const RC_COL={rc_medic:'#5cf08a',rc_ram:'#ff5a3a',rc_bomb:'#ffc21a',rc_scav:'#c9a46a',rc_jam:'#b07aff'};
 const rcCount=(k,lv)=>k==='rc_medic'?(lv>=4?2:1):k==='rc_ram'?[0,1,1,2,2,3][lv]:k==='rc_bomb'?(lv>=5?2:1):k==='rc_scav'?(lv>=4?2:1):(lv>=5?2:1);
 function rcDrive(m,tx,ty,spd,dt,charge){const dx=tx-m.x,dy=ty-m.y,d=Math.hypot(dx,dy);
@@ -1808,7 +1810,11 @@ function updateRC(dt,wdt){const p=G.p,s=G.stats,W=G.weapons,up=G.passives.uplink
       if(m.tg)rcDrive(m,m.tg.x,m.tg.y,(lv>=2?520:430)*ms,dt);else rcDrive(m,hx,hy,follow,dt);
       for(const g of G.gems)if(!g.pull&&Math.abs(g.x-m.x)<vac&&Math.abs(g.y-m.y)<vac){g.pull=true;if(Math.random()<.3)part(g.x,g.y,0,0,.25,4,'#c9a46a','spark')}
       if(lv>=2){m.dig+=dt*(lv>=5?2:1);if(m.dig>=20){m.dig=0;dropBolts(m.x,m.y,3+lv);for(let i=0;i<8;i++)part(m.x,m.y,rand(-120,120),rand(-120,120),rand(.3,.6),rand(3,6),'#8a7350','debris');tone(300,.1,'square',.04,600)}}}
-    else if(m.k==='rc_jam'){const R=110+18*lv;m.R=R;
+    else if(m.k==='rc_jam'){const R=110+18*lv,cap=jamCap(lv);m.R=R;if(m.bat==null)m.bat=cap;m.cap=cap;
+      // flat battery: field off, drive back to your car and recharge beside it, then head out again
+      if(m.home){m.on=false;const dd=rcDrive(m,p.x-Math.cos(p.a)*34,p.y-Math.sin(p.a)*34,Math.max(follow,460*ms),dt);
+        if(Math.hypot(m.x-p.x,m.y-p.y)<80){m.bat=Math.min(cap,m.bat+cap/jamRecharge(lv,mc)*dt);if(Math.random()<dt*8)rcFx(m.x,m.y,p.x,p.y,'176,122,255');if(m.bat>=cap){m.home=false;m.jx=undefined;tone(990,.08,'triangle',.03,1500)}}
+        return}
       // hunt for the biggest pack near you (gunners count double, closer packs count more), park in its middle,
       // and leave a pack another jammer is already sitting on
       if(m.jx===undefined)m.cd=0;
@@ -1823,18 +1829,20 @@ function updateRC(dt,wdt){const p=G.p,s=G.stats,W=G.weapons,up=G.passives.uplink
         if(best<2)m.jx=null;m.lx=m.jx;m.ly=m.jy}
       // the parking spot is pulled back onto the leash every frame, so the jammer keeps up when you drive off
       if(m.jx!=null){let tx=m.jx,ty=m.jy;const lx=tx-p.x,ly=ty-p.y,ld=Math.hypot(lx,ly);if(ld>JAM_LEASH){tx=p.x+lx/ld*JAM_LEASH;ty=p.y+ly/ld*JAM_LEASH}rcDrive(m,tx,ty,Math.max(follow,420*ms),dt)}else rcDrive(m,p.x+Math.cos(G.t*1.1+j)*120,p.y+Math.sin(G.t*1.1+j)*120,follow,dt);
-      for(const e of near(m.x,m.y,R+60)){if(e.dead||d2(e.x,e.y,m.x,m.y)>(R+e.r)**2)continue;e.jam=.3;if(lv>=4){DSRC='rc_jam';damageEnemy(e,10*mb*s.dmg*dt,false)}}
+      let hit=0;for(const e of near(m.x,m.y,R+60)){if(e.dead||d2(e.x,e.y,m.x,m.y)>(R+e.r)**2)continue;hit++;e.jam=.3;if(lv>=4){DSRC='rc_jam';damageEnemy(e,16*mb*s.dmg*dt,false)}}
+      m.on=true;if(hit){m.bat-=dt;if(m.bat<=0){m.bat=0;m.home=true;m.jx=null;tone(240,.18,'sawtooth',.03,120)}}
       if(lv>=3)for(const b of G.ebullets)if(b.life>0&&d2(b.x,b.y,m.x,m.y)<R*R){b.life=0;for(let i=0;i<3;i++)part(b.x,b.y,rand(-90,90),rand(-90,90),.15,2,'#b07aff','spark')}}
   });
   for(const f of G.rcfx)f.life-=dt;prune(G.rcfx,f=>f.life>0)}
 function drawRC(vis){
-  for(const m of G.rcs){if(m.k==='rc_jam'&&m.R){ctx.strokeStyle=`rgba(176,122,255,${.18+.08*Math.sin(G.t*6)})`;ctx.lineWidth=2;ctx.setLineDash([6,8]);ctx.beginPath();ctx.arc(m.x,m.y,m.R,0,TAU);ctx.stroke();ctx.setLineDash([])}}
+  for(const m of G.rcs){if(m.k==='rc_jam'&&m.R&&m.on!==false){ctx.strokeStyle=`rgba(176,122,255,${.18+.08*Math.sin(G.t*6)})`;ctx.lineWidth=2;ctx.setLineDash([6,8]);ctx.beginPath();ctx.arc(m.x,m.y,m.R,0,TAU);ctx.stroke();ctx.setLineDash([])}}
   for(const f of G.rcfx){ctx.strokeStyle=`rgba(${f.col},${f.life/.3})`;ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(f.x1,f.y1);ctx.lineTo(f.x2,f.y2);ctx.stroke()}
   // recharge rings: a bomb being rebuilt shows as a ghost car beside you that fills in; medics carry a ring that fills to a full circle
   const p=G.p;G.rcs.forEach((m,j)=>{const col=RC_COL[m.k];let k=-1,x=m.x,y=m.y;
     if(m.k==='rc_bomb'&&m.st===0){const side=G.rcs.filter(o=>o.k==='rc_bomb').indexOf(m)%2?1:-1;x=p.x-Math.cos(p.a)*40-Math.sin(p.a)*side*22;y=p.y-Math.sin(p.a)*40+Math.cos(p.a)*side*22;k=1-Math.max(0,m.cd)/(m.cdMax||1);
       ctx.save();ctx.globalAlpha=.25+.35*k;ctx.translate(x,y);ctx.rotate(p.a);ctx.strokeStyle=col;ctx.lineWidth=1.5;ctx.setLineDash([3,3]);rr(-10.5,-6,21,12,3);ctx.stroke();ctx.setLineDash([]);ctx.restore()}
     else if(m.k==='rc_medic'&&m.cd>0)k=1-m.cd/(m.cdMax||1);
+    else if(m.k==='rc_jam'&&m.home)k=m.bat/(m.cap||1);
     if(k<0)return;ctx.lineWidth=3;ctx.strokeStyle='rgba(0,0,0,.5)';ctx.beginPath();ctx.arc(x,y,17,0,TAU);ctx.stroke();ctx.strokeStyle=col;ctx.beginPath();ctx.arc(x,y,17,-Math.PI/2,-Math.PI/2+TAU*clamp(k,0,1));ctx.stroke()});
   for(const m of G.rcs){if(m.k==='rc_bomb'&&m.st===0)continue;if(!vis(m.x,m.y,30))continue;const col=RC_COL[m.k],L=21,Wd=12;
     drawCar(m.x,m.y,m.a,L,Wd,col,false,()=>{
@@ -2055,7 +2063,7 @@ function updateEnemies(dt){
     const da=angDiff(e.a,want),turn=e.charge>0?0.3:e.turn;
     e.a+=clamp(da,-turn*dt,turn*dt);
     if(!e.orbit)target*=0.45+0.55*Math.max(0,Math.cos(da));
-    if(e.jam>0)target*=e.big?.85:.6;
+    if(e.jam>0)target*=e.big?.85:.5;
     if(e.wet>0){target*=e.big?.85:.7;if(Math.random()<dt*5)part(e.x+rand(-e.r,e.r)*.7,e.y+rand(-e.r,e.r)*.7,0,0,.35,2.5,'#8fd4ff','spark')}
     e.v+=(target-e.v)*Math.min(1,2.2*dt);
     }else e.v*=Math.exp(-6*dt);
@@ -2473,6 +2481,7 @@ function updateHud(){
     for(const m of G.rcs){const left=Math.max(0,m.cd),k=1-left/(m.cdMax||1);
       if(m.k==='rc_bomb')cd+=m.st?chip('BOMB RC',1,'ARMED',true,'Bomb RC|Minion|Armed and driving at the biggest crowd. A new one is built after it blows.'):(left<=0?chip('BOMB RC',1,'WAITING',true,'Bomb RC|Minion|Built and waiting for a car to come within reach.'):chip('BOMB RC',k,'BUILDING '+Math.ceil(left)+'s',false,'Bomb RC|Minion|Building the next bomb car. It rolls out when the bar fills.'));
       else if(m.k==='rc_medic')cd+=chip('MEDIC RC',left>0?k:1,left>0?Math.ceil(left)+'s':'READY',left<=0,'Medic RC|Minion|Patches you up when the bar is full and you\'re hurt.');
+      else if(m.k==='rc_jam'&&m.cap)cd+=m.home?chip('JAMMER',m.bat/m.cap,'RECHARGING',false,'Jammer RC|Minion|Battery flat: it\'s back at your car recharging, then heads out again.'):chip('JAMMER',m.bat/m.cap,m.bat>=m.cap?'READY':Math.ceil(m.bat)+'s',m.bat>=m.cap,'Jammer RC|Minion|Battery drains only while it\'s jamming cars. When it runs flat the jammer comes back to you to recharge.');
       else if(m.k==='rc_scav'&&G.weapons.rc_scav.lvl>=2)cd+=chip('DIG',m.dig/20,Math.ceil((20-m.dig)/(G.weapons.rc_scav.lvl>=5?2:1))+'s',false,'Scavenger RC|Minion|Digs up a pile of bolts when the bar fills.')}
     {const w=G.weapons.hydro;if(w&&w.lvl>=5){const left=Math.max(0,w.wave??5),mx=5*G.stats.cd;cd+=chip('WAVE',1-left/mx,left>0?Math.ceil(left)+'s':'READY',left<=0,'Hydro Cannon|Tidal wave|Bursts out around the van when the bar fills and a car is close.')}}
     cd=cd.replace(/--k:([\d.]+)/g,(m,v)=>'--k:'+Math.round(v*20)/20);if(hudCache.cd!==cd){hudCache.cd=cd;$('cds').innerHTML=cd}}
@@ -2535,7 +2544,7 @@ function rcCard(m){const p=G.p,W=G.weapons[m.k],lv=W?W.lvl:1,d=WDEF[m.k],up=G.pa
   if(m.k==='rc_bomb')return card(d.name,kind+' · armed',d.desc[0],[['Blast damage',Math.round((50+18*lv+(lv>=4?25:0))*mb*s.dmg)],['Blast radius',Math.round((80+12*lv+(lv>=2?15:0))*s.blast)],['Damage this run',dealt]],col);
   if(m.k==='rc_scav')return card(d.name,kind+(m.tg?' · fetching':''),d.desc[0],[['Vacuum reach',(lv>=3?70:34)+'px'],['Next bolt dig',lv>=2?Math.ceil((20-m.dig)/(lv>=5?2:1))+'s':'from level 2']],col,lv>=2?m.dig/20:null);
   const jammed=G.enemies.filter(e=>!e.dead&&e.jam>0&&d2(e.x,e.y,m.x,m.y)<(m.R+e.r)**2).length;
-  return card(d.name,kind+(m.jx!=null?' · jamming a pack':' · circling you'),d.desc[0],[['Field radius',Math.round(m.R||0)+'px'],['Cars jammed now',jammed],['Bullets fried',lv>=3?'yes':'from level 3'],['Damage this run',dealt]],col)}
+  return card(d.name,kind+(m.home?' · recharging at your car':m.jx!=null?' · jamming a pack':' · circling you'),d.desc[0],[['Field radius',Math.round(m.R||0)+'px'],['Battery',`${(m.bat||0).toFixed(1)} / ${(m.cap||0).toFixed(1)}s`],['Recharge',jamRecharge(lv,1/(1+.087*up)).toFixed(1)+'s'],['Cars jammed now',jammed],['Bullets fried',lv>=3?'yes':'from level 3'],['Damage this run',dealt]],col)}
 // what's under the cursor, top-most first
 function pickHover(wx,wy){const p=G.p,in2=(x,y,r)=>d2(wx,wy,x,y)<r*r;
   // RC minions are small and drive among the enemies, so they're checked first
