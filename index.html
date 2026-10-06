@@ -1766,6 +1766,7 @@ function updateWeatherSound(){if(!AC||!master)return;const X=G&&G.wx,W=X&&X.W,on
 
 
 /* ---------- RC minions: tiny remote-control cars with antennas, each with its own job ---------- */
+const JAM_LEASH=300; // the jammer never parks more than this far from you
 const RC_COL={rc_medic:'#5cf08a',rc_ram:'#ff5a3a',rc_bomb:'#ffc21a',rc_scav:'#c9a46a',rc_jam:'#b07aff'};
 const rcCount=(k,lv)=>k==='rc_medic'?(lv>=4?2:1):k==='rc_ram'?[0,1,1,2,2,3][lv]:k==='rc_bomb'?(lv>=5?2:1):k==='rc_scav'?(lv>=4?2:1):(lv>=5?2:1);
 function rcDrive(m,tx,ty,spd,dt,charge){const dx=tx-m.x,dy=ty-m.y,d=Math.hypot(dx,dy);
@@ -1811,16 +1812,17 @@ function updateRC(dt,wdt){const p=G.p,s=G.stats,W=G.weapons,up=G.passives.uplink
       // hunt for the biggest pack near you (gunners count double, closer packs count more), park in its middle,
       // and leave a pack another jammer is already sitting on
       if(m.jx===undefined)m.cd=0;
-      if((m.cd-=dt)<=0){m.cd=.4;m.jx=null;const pool=near(p.x,p.y,560).filter(e=>!e.dead&&!e.big);let best=0;
+      if((m.cd-=dt)<=0){m.cd=.4;m.jx=null;const pool=near(p.x,p.y,JAM_LEASH+R).filter(e=>!e.dead&&!e.big&&d2(e.x,e.y,p.x,p.y)<(JAM_LEASH+R)**2);let best=0;
         for(let c=0;c<Math.min(10,pool.length);c++){const e0=pool[Math.floor(Math.random()*pool.length)];let n=0,sx=0,sy=0;
           for(const e of near(e0.x,e0.y,R+40))if(!e.dead&&d2(e.x,e.y,e0.x,e0.y)<R*R){const w=e.shoots?2:1;n+=w;sx+=e.x*w;sy+=e.y*w}
-          if(!n)continue;const cx=sx/n,cy=sy/n;let sc=n*(1.3-Math.min(1,Math.hypot(cx-p.x,cy-p.y)/560)*.6);
+          if(!n)continue;const cx=sx/n,cy=sy/n,cd=Math.hypot(cx-p.x,cy-p.y);if(cd>JAM_LEASH+R*.9)continue;/* still worth it if the field can reach the pack from the end of the leash */let sc=n*(1.3-Math.min(1,cd/(JAM_LEASH+R))*.6);
           for(const o of G.rcs)if(o!==m&&o.k==='rc_jam'&&o.jx!=null&&d2(o.jx,o.jy,cx,cy)<(R*1.4)**2)sc*=.3;
           // stick with the current pack unless a clearly bigger one turns up
           if(m.lx!=null&&d2(m.lx,m.ly,cx,cy)<(R*.6)**2)sc*=1.25;
           if(sc>best){best=sc;m.jx=cx;m.jy=cy}}
         if(best<2)m.jx=null;m.lx=m.jx;m.ly=m.jy}
-      if(m.jx!=null)rcDrive(m,m.jx,m.jy,Math.max(follow,420*ms),dt);else rcDrive(m,p.x+Math.cos(G.t*1.1+j)*120,p.y+Math.sin(G.t*1.1+j)*120,follow,dt);
+      // the parking spot is pulled back onto the leash every frame, so the jammer keeps up when you drive off
+      if(m.jx!=null){let tx=m.jx,ty=m.jy;const lx=tx-p.x,ly=ty-p.y,ld=Math.hypot(lx,ly);if(ld>JAM_LEASH){tx=p.x+lx/ld*JAM_LEASH;ty=p.y+ly/ld*JAM_LEASH}rcDrive(m,tx,ty,Math.max(follow,420*ms),dt)}else rcDrive(m,p.x+Math.cos(G.t*1.1+j)*120,p.y+Math.sin(G.t*1.1+j)*120,follow,dt);
       for(const e of near(m.x,m.y,R+60)){if(e.dead||d2(e.x,e.y,m.x,m.y)>(R+e.r)**2)continue;e.jam=.3;if(lv>=4){DSRC='rc_jam';damageEnemy(e,10*mb*s.dmg*dt,false)}}
       if(lv>=3)for(const b of G.ebullets)if(b.life>0&&d2(b.x,b.y,m.x,m.y)<R*R){b.life=0;for(let i=0;i<3;i++)part(b.x,b.y,rand(-90,90),rand(-90,90),.15,2,'#b07aff','spark')}}
   });
