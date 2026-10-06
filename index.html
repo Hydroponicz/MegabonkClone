@@ -1989,7 +1989,7 @@ function drawRC(vis){
 
 /* ---------- chrome bandits (internally "hunters"): loot piñatas that run, hide, and get away after a minute ---------- */
 const HUNT_LIFE=60;
-function spawnHunter(){const e=spawnEnemy(Math.random()<.5?'truck':'sedan',{elite:true,hpMul:9,scale:1.3,xpMul:5,col:'#e8e4ee',spdMul:1.1});e.born=G.t;e.want=Math.atan2(e.y-G.p.y,e.x-G.p.x);
+function spawnHunter(){const e=spawnEnemy(Math.random()<.5?'truck':'sedan',{elite:true,hpMul:9,scale:1.3,xpMul:5,col:'#e8e4ee',spdMul:1.1});e.born=G.t;e.turn=Math.max(e.turn,2.8);/* a getaway driver: it can swerve round a barrel even in the truck */e.want=Math.atan2(e.y-G.p.y,e.x-G.p.x);
   showBanner('Chrome bandit spotted','It runs and hides · wreck it within a minute for a supply crate and bolts');return e}
 // pick an escape heading: away from you, clear of walls and the arena edge, preferring spots you can't see.
 // It only drifts once it's well clear of you (over ~1,000px), so it stays on the radar
@@ -2000,10 +2000,26 @@ function hunterBump(e){const r=e.r,x0=clamp((e.x-r)/OG|0,0,ON-1),x1=clamp((e.x+r
     if(KNOCK[o.k])tipProp(o,e.x-Math.cos(e.a)*6,e.y-Math.sin(e.a)*6,e.v);else breakProp(o);e.v*=.6;e.boost=0}
   for(const b of G.barrels)if(b.alive&&b.fuse<0&&Math.abs(b.x-e.x)<b.r+r&&Math.abs(b.y-e.y)<b.r+r&&d2(b.x,b.y,e.x,e.y)<(b.r+r)**2){
     b.fuse=0.35;e.v*=.5;e.boost=0;const dx=e.x-b.x,dy=e.y-b.y,dd=Math.hypot(dx,dy)||1;e.kx+=dx/dd*160;e.ky+=dy/dd*160;sfx('crash')}}
+// what a fleeing bandit would rather not drive through: live barrels (worst), smashable props, and hazard zones.
+// Returns a penalty for a point; checked along each candidate heading
+const BANDIT_ZONE={lava:1,acid:1,spikes:1,oil:.5,ice:.4};
+function banditHazard(x,y,r,near){let pen=0;
+  for(const b of G.barrels)if(b.alive&&b.fuse<0&&Math.abs(b.x-x)<b.r+r+22&&Math.abs(b.y-y)<b.r+r+22&&d2(b.x,b.y,x,y)<(b.r+r+22)**2)pen+=near?1400:700;
+  const R=r+10,x0=clamp((x-R)/OG|0,0,ON-1),x1=clamp((x+R)/OG|0,0,ON-1),y0=clamp((y-R)/OG|0,0,ON-1),y1=clamp((y+R)/OG|0,0,ON-1);
+  for(let cx=x0;cx<=x1;cx++)for(let cy=y0;cy<=y1;cy++)for(const o of ocells[cx*ON+cy])if(o.prop&&!o.dead&&d2(o.x,o.y,x,y)<(o.r+R)**2)pen+=near?260:130;
+  for(const z of G.zones){const w=BANDIT_ZONE[z.k];if(w&&zoneHit(z,x,y,r))pen+=(near?500:250)*w}
+  return pen}
+// something nasty right in front: plan again now instead of waiting for the next look round
+function banditReflex(e){const ca=Math.cos(e.a),sa=Math.sin(e.a),L=Math.max(50,e.v*.28);
+  for(const b of G.barrels)if(b.alive&&b.fuse<0){const dx=b.x-e.x,dy=b.y-e.y,f=dx*ca+dy*sa;if(f>0&&f<L&&Math.abs(-dx*sa+dy*ca)<b.r+e.r+10)return true}return false}
 function hunterSteer(e,dt,d){const p=G.p;
-  if((e.react-=dt)<=0){e.react=rand(.25,.4);let best=e.want||0,bs=-1e9;const toP=Math.atan2(p.y-e.y,p.x-e.x);
-    for(let i=0;i<12;i++){const a=i/12*TAU+rand(-.12,.12),cx=Math.cos(a),cy=Math.sin(a);let sc=0;
+  const danger=banditReflex(e);e.reflexCd=(e.reflexCd||0)-dt;
+  // last-moment swerve: ease sideways away from a barrel it's about to brush past
+  for(const b of G.barrels){if(!b.alive||b.fuse>=0)continue;const dx=e.x-b.x,dy=e.y-b.y,R=e.r+b.r+28;if(Math.abs(dx)>R||Math.abs(dy)>R)continue;const dd=Math.hypot(dx,dy)||1;if(dd<R){const k=(R-dd)/R*1500*dt;e.kx+=dx/dd*k;e.ky+=dy/dd*k}}
+  if((e.react-=dt)<=0||danger&&e.reflexCd<=0){e.react=rand(.25,.4);if(danger)e.reflexCd=.15;let best=e.want||0,bs=-1e9;const toP=Math.atan2(p.y-e.y,p.x-e.x);
+    for(let i=0;i<16;i++){const a=i/16*TAU+rand(-.1,.1),cx=Math.cos(a),cy=Math.sin(a);let sc=0;
       for(const L of[90,180]){const x=e.x+cx*L,y=e.y+cy*L;if(x<90||y<90||x>ARENA-90||y>ARENA-90)sc-=600;if(solidAt(x,y,e.r+6))sc-=L===90?1000:500}
+      for(const L of[35,75,120,170])sc-=banditHazard(e.x+cx*L,e.y+cy*L,e.r,L<100);
       const x=e.x+cx*200,y=e.y+cy*200,nd=Math.hypot(x-p.x,y-p.y);
       sc+=d>1000?-Math.abs(nd-1050)*0.6:(nd-d)*1.4;
       sc-=Math.max(0,Math.cos(angDiff(a,toP)))*140;
@@ -2014,7 +2030,8 @@ function hunterSteer(e,dt,d){const p=G.p;
   // when you get close it hits a nitro burst to slip away (every 5s)
   e.boostCd=(e.boostCd??2)-dt;if(d<320&&e.boostCd<=0){e.boost=1.1;e.boostCd=5}
   if(e.boost>0){e.boost-=dt;if(Math.random()<.7)part(e.x-Math.cos(e.a)*e.len*.5,e.y-Math.sin(e.a)*e.len*.5,rand(-30,30),rand(-30,30),rand(.2,.35),rand(5,9),'#6fa8ff','spark')}
-  SH_T=Math.max(e.spd,300)*(d<450?1.25:d>1000?0.8:1.1)*(e.boost>0?1.45:1);return e.want}
+  // lift off when a barrel is right ahead so the swerve has room
+  SH_T=Math.max(e.spd,300)*(d<450?1.25:d>1000?0.8:1.1)*(e.boost>0?1.45:1)*(danger?.7:1);return e.want}
 function hunterEscapes(e){e.dead=true;for(let i=0;i<(S.lowFx?6:16);i++)part(e.x+rand(-20,20),e.y+rand(-20,20),rand(-60,60),rand(-60,60),rand(.6,1.1),rand(10,18),null,'smoke');
   toast('CB','Chrome bandit','Got away with the loot')}
 const huntLeft=e=>Math.max(0,HUNT_LIFE-(G.t-(e.born??G.t)));
@@ -2356,7 +2373,7 @@ function updateProjectiles(dt){
   prune(G.mines,m=>m.life>0);
   for(const r of G.rings){r.r+=640*dt;if(!r.dmg||!r.hit)continue;for(const e of G.enemies){if(e.dead||r.hit.has(e))continue;const d=Math.hypot(e.x-r.x,e.y-r.y);if(d<r.r+e.r){r.hit.add(e);DSRC=r.src||'other';if(r.soak)e.wet=3;damageEnemy(e,r.dmg);const k=e.big?40:380;e.kx+=(e.x-r.x)/(d||1)*k;e.ky+=(e.y-r.y)/(d||1)*k}}}
   prune(G.rings,r=>r.r<r.max);
-  for(const b of G.barrels){if(!b.alive){b.respawn-=dt;if(b.respawn<=0&&d2(b.x,b.y,p.x,p.y)>500*500){b.alive=true;b.fuse=-1}continue}
+  for(const b of G.barrels){if(!b.alive){b.respawn-=dt;if(b.respawn<=0&&d2(b.x,b.y,p.x,p.y)>500*500&&!G.enemies.some(e=>e.elite&&!e.dead&&d2(b.x,b.y,e.x,e.y)<220*220)){b.alive=true;b.fuse=-1}continue}
     if(b.fuse>=0){b.fuse-=dt;if(b.fuse<0){const B=BTYPES[b.t];b.alive=false;b.respawn=20;G.barrelBooms++;DSRC='barrels';explode(b.x,b.y,B.R,B.dmg*G.stats.dmg,B.hurt);if(B.acid)G.zones.push({k:'acid',x:b.x,y:b.y,r:B.R*.9,life:8,pts:blob(B.R*.9,10,.3)})}}}
 }
 
