@@ -189,6 +189,10 @@ kbd{display:inline-block;font-family:var(--body);font-weight:700;font-size:12px;
 .scrapi{display:inline-block;width:.62em;height:.62em;background:var(--xp);transform:rotate(45deg);margin:0 .38em 0 .12em;vertical-align:.05em}
 .stat .scrapi{margin:0 2px 0 8px}
 #buffs{display:flex;gap:6px;flex-wrap:wrap;min-height:0}
+#cds{display:flex;gap:6px;flex-wrap:wrap;min-height:0;pointer-events:auto}
+.chip.cd{color:var(--dim);border-color:var(--line);font-variant-numeric:tabular-nums;gap:6px}.chip.cd b{color:#3fe0d0;font-weight:700}
+.chip.cd i{display:block;width:44px;height:5px;background:linear-gradient(90deg,#3fe0d0 calc(var(--k)*100%),rgba(63,224,208,.15) 0)}
+.chip.cd.ready{color:#3fe0d0;border-color:#3fe0d0;animation:tpulse .9s ease-in-out infinite alternate}
 .chip.buff{border-color:var(--c);color:var(--c);font-variant-numeric:tabular-nums}
 .carpick{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;width:100%}
 .cargrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px;width:100%}
@@ -338,6 +342,7 @@ body.nocursor,body.nocursor *{cursor:none!important}
     <div id="traderHud" hidden data-tip="Trader|Shop on wheels|Drive into the dashed ring around the truck and press F (or tap the prompt) to buy items with bolts. Items also come from the Trader's Roll on level up."></div>
     <div id="wxHud" hidden></div>
     <div id="buffs"></div>
+    <div id="cds"></div>
     <div id="bossWrap" hidden data-tip="Boss health|Boss|Bosses smash straight through props and most walls. Downtown, even they have to drive around the buildings."><div id="bossName">JUGGERNAUT</div><div class="bossbar"><div id="bossfill"></div></div></div>
   </div>
   <div id="loadout"></div>
@@ -1996,7 +2001,10 @@ function drawPlayerBody(){
   const p=G.p,blink=p.inv>0&&Math.floor(G.t*20)%2===0;
   // wrecked: only a charred shell is left
   if(G.wreck){const C=G.car;drawCar(p.x,p.y,p.a,C.len,C.wid,'#262329',false,null,C.style==='monster'?1.6:C.style==='dozer'?1.2:1);return}
-  if(G.stats.shieldCd&&G.shieldT<=0){ctx.strokeStyle='rgba(63,224,208,.55)';ctx.lineWidth=3;ctx.beginPath();ctx.arc(p.x,p.y,p.r+13+Math.sin(G.t*6)*2,0,TAU);ctx.stroke()}
+  if(G.stats.shieldCd){const R=p.r+13;if(G.shieldT<=0){ctx.strokeStyle='rgba(63,224,208,.6)';ctx.lineWidth=3;ctx.beginPath();ctx.arc(p.x,p.y,R+Math.sin(G.t*6)*2,0,TAU);ctx.stroke()}
+    else{// recharging: a thin track and an arc that fills clockwise from the top
+      const k=1-G.shieldT/G.stats.shieldCd;ctx.lineWidth=2;ctx.strokeStyle='rgba(63,224,208,.14)';ctx.beginPath();ctx.arc(p.x,p.y,R,0,TAU);ctx.stroke();
+      ctx.lineWidth=3;ctx.strokeStyle=k>.85?'rgba(63,224,208,.95)':'rgba(63,224,208,.65)';ctx.beginPath();ctx.arc(p.x,p.y,R,-Math.PI/2,-Math.PI/2+TAU*k);ctx.stroke()}}
   drawRig(p.x,p.y,p.a,G.car,G.weapons,G.passives,blink,G.t,G.weapons.flame&&G.weapons.flame.on);
   if(G.buffs.bubble>0){ctx.fillStyle='rgba(63,224,208,.12)';ctx.strokeStyle='rgba(63,224,208,.7)';ctx.lineWidth=2;ctx.beginPath();ctx.arc(p.x,p.y,p.r+18,0,TAU);ctx.fill();ctx.stroke()}
 }
@@ -2159,6 +2167,11 @@ function updateHud(){
   {const W=G.wx.W,h=$('wxHud');if(hudCache.wx!==W.name){hudCache.wx=W.name;h.hidden=false;h.style.setProperty('--c',W.col);h.dataset.tip=`${W.name}|Weather|${W.desc}`;h.innerHTML=`<i></i>Weather <b>${W.name}</b>`}}
   const p=G.p,L=G.L;setW('xpfill',G.xp/G.xpNeed);setW('hpfill',p.hp/p.maxhp);
   setT('hptext',Math.ceil(p.hp)+' / '+p.maxhp);setT('lvl',String(G.level));setT('kills',String(G.kills));setT('timer',fmt(G.t));setT('bolts',String(G.bolts));setT('scrapH',String(scrapEst()));
+  // recharging upgrades: a progress bar while charging, READY when it's back
+  {let cd='';const s=G.stats,P_=G.passives;
+    if(s.shieldCd){const k=G.shieldT>0?1-G.shieldT/s.shieldCd:1;cd+=`<span class="chip cd${k>=1?' ready':''}" data-tip="Bumper Shield|Upgrade · recharge ${s.shieldCd}s|Blocks the next hit completely, then recharges. The ring around your car fills up as it charges."><b>SHIELD</b><i style="--k:${k.toFixed(2)}"></i>${k>=1?'READY':Math.ceil(G.shieldT)+'s'}</span>`}
+    if(P_.crumple){const c=Math.max(1.5,4-0.4*P_.crumple),left=Math.max(0,(G.crumpleAt||0)-G.t),k=1-left/c;cd+=`<span class="chip cd${left<=0?' ready':''}" data-tip="Crumple Zone|Upgrade · recharge ${c.toFixed(1)}s|The next hit you take sets off a shockwave."><b>CRUMPLE</b><i style="--k:${Math.min(1,k).toFixed(2)}"></i>${left<=0?'READY':Math.ceil(left)+'s'}</span>`}
+    if(hudCache.cd!==cd){hudCache.cd=cd;$('cds').innerHTML=cd}}
   let bf='';for(const k in G.buffs)if(G.buffs[k]>0)bf+=`<span class="chip buff" style="--c:${BUFFS[k].col}" data-tip="${BUFFS[k].name}|Power-up · ${Math.ceil(G.buffs[k])}s left|${BUFF_DESC[k]}">${BUFFS[k].name.toUpperCase()} ${Math.ceil(G.buffs[k])}s</span>`;if(hudCache.bf!==bf){hudCache.bf=bf;$('buffs').innerHTML=bf}
   const b=G.lboss&&!G.lboss.dead?G.lboss:G.mini&&!G.mini.dead?G.mini:null;$('bossWrap').hidden=!b;
   if(b){setT('bossName',b.type==='lboss'?L.boss.name:'JUGGERNAUT '+['I','II','III','IV','V','VI','VII','VIII'][Math.min(7,(b.num||1)-1)]);setW('bossfill',b.hp/b.maxhp)}
