@@ -2324,12 +2324,18 @@ function draw(){
   const arrow=(wx,wy,col)=>{const sx2=wx+ox,sy2=wy+oy;if(sx2>0&&sx2<VW&&sy2>0&&sy2<VH)return;
     const a=Math.atan2(sy2-VH/2,sx2-VW/2),ex=clamp(sx2,28,VW-28),ey=clamp(sy2,110,VH-50);ctx.save();ctx.translate(ex,ey);ctx.rotate(a);ctx.fillStyle=col;ctx.beginPath();ctx.moveTo(14,0);ctx.lineTo(-8,-10);ctx.lineTo(-8,10);ctx.closePath();ctx.fill();ctx.restore()};
   if(state!=='menu')for(const q of G.enemies)if(q.elite&&!q.dead)hunterArrow(q);
+  if(state!=='menu')for(const m of G.rcs)if(m.k==='rc_scav')scavArrow(m);
   if(state!=='menu'){for(const k of G.pickups)if(k.type==='chest')arrow(k.x,k.y,'#ffc21a');else if(k.type!=='wrench'&&k.type!=='magnet')arrow(k.x,k.y,DROPS[k.type].col);if(G.trader&&G.trader.phase!=='leave')traderArrow();if(G.portal)portalArrow()}
   // chrome hunter off screen: a silver arrow with a CH tag and the seconds it has left
   function hunterArrow(e){const sx2=e.x+ox,sy2=e.y+oy;if(sx2>0&&sx2<VW&&sy2>0&&sy2<VH)return;const a=Math.atan2(sy2-VH/2,sx2-VW/2),ex=clamp(sx2,44,VW-44),ey=clamp(sy2,ex>VW-340?250:200,VH-80),left=huntLeft(e),pl=1+(left<15?.18:.08)*Math.sin(G.t*(left<15?10:5));
     ctx.save();ctx.translate(ex,ey);ctx.save();ctx.rotate(a);ctx.scale(pl,pl);ctx.fillStyle='#e8e4ee';ctx.beginPath();ctx.moveTo(26,0);ctx.lineTo(-6,-16);ctx.lineTo(-6,16);ctx.closePath();ctx.fill();ctx.strokeStyle='#0a090c';ctx.lineWidth=2;ctx.stroke();ctx.restore();
     ctx.fillStyle='#0a090c';ctx.beginPath();ctx.arc(0,0,13,0,TAU);ctx.fill();ctx.strokeStyle=left<15?'#ff3b4e':'#e8e4ee';ctx.lineWidth=2;ctx.stroke();ctx.fillStyle='#e8e4ee';ctx.font='700 10px "Chakra Petch",sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';
     ctx.fillText('CH',0,1);ctx.font='700 11px "Chakra Petch",sans-serif';ctx.fillText(Math.ceil(left)+'s',0,24);ctx.textAlign='left';ctx.textBaseline='alphabetic';ctx.restore()}
+  // scavenger RC off screen: a smaller tan arrow with a little RC badge (and its antenna) so you can see where it went
+  function scavArrow(m){const sx2=m.x+ox,sy2=m.y+oy;if(sx2>-8&&sx2<VW+8&&sy2>-8&&sy2<VH+8)return;const a=Math.atan2(sy2-VH/2,sx2-VW/2),ex=clamp(sx2,40,VW-40),ey=clamp(sy2,ex>VW-340?240:190,VH-70),col=RC_COL.rc_scav;
+    ctx.save();ctx.translate(ex,ey);ctx.scale(1.3,1.3);ctx.save();ctx.rotate(a);ctx.fillStyle=col;ctx.beginPath();ctx.moveTo(21,0);ctx.lineTo(-4,-12);ctx.lineTo(-4,12);ctx.closePath();ctx.fill();ctx.strokeStyle='#0a090c';ctx.lineWidth=2;ctx.stroke();ctx.restore();
+    ctx.strokeStyle='#d9d6e0';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(5,-8);ctx.quadraticCurveTo(9,-16,6+Math.sin(G.t*8)*2,-21);ctx.stroke();ctx.fillStyle=col;ctx.beginPath();ctx.arc(6+Math.sin(G.t*8)*2,-21,2.2,0,TAU);ctx.fill();
+    ctx.fillStyle='#0a090c';ctx.beginPath();ctx.arc(0,0,11,0,TAU);ctx.fill();ctx.strokeStyle=col;ctx.lineWidth=2;ctx.stroke();ctx.fillStyle=col;ctx.font='700 9px "Chakra Petch",sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('RC',0,1);ctx.textAlign='left';ctx.textBaseline='alphabetic';ctx.restore()}
   // exit portal off screen: a pulsing purple arrow with a ring
   function portalArrow(){const o=G.portal,sx2=o.x+ox,sy2=o.y+oy;if(sx2>0&&sx2<VW&&sy2>0&&sy2<VH)return;const a=Math.atan2(sy2-VH/2,sx2-VW/2),ex=clamp(sx2,44,VW-44),ey=clamp(sy2,190,VH-70),pl=1+.15*Math.sin(G.t*7);
     ctx.save();ctx.translate(ex,ey);ctx.save();ctx.rotate(a);ctx.scale(pl,pl);ctx.fillStyle='#c78bff';ctx.beginPath();ctx.moveTo(30,0);ctx.lineTo(-6,-19);ctx.lineTo(-6,19);ctx.closePath();ctx.fill();ctx.restore();
