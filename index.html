@@ -1468,7 +1468,7 @@ function newGame(li){const L=LEVELS[li];curLevel=li;const wk=FORECAST[L.id]||rol
     p:{x:ARENA/2,y:ARENA/2+200,a:-Math.PI/2,vx:0,vy:0,hp:100,maxhp:100,r:Math.max(C.len,C.wid)*.43,inv:0},
     stats:{},weapons:start,passives:Object.assign({},C.start.p),
     enemies:[],bullets:[],ebullets:[],missiles:[],mines:[],gems:[],pickups:[],parts:[],texts:[],rings:[],booms:[],barrels:Wd.barrels,decals:[],arcs:[],beams:[],shells:[],
-    spawnT:0,nextMini:180,nextElite:70,nextAmbush:35,cam:{x:ARENA/2,y:ARENA/2+200},view:{ox:0,oy:0}};
+    spawnT:0,nextMini:180,nextElite:70,nextAmbush:50,cam:{x:ARENA/2,y:ARENA/2+200},view:{ox:0,oy:0}};
   for(let i=0;i<70;i++)G.decals.push({x:rand(0,ARENA),y:rand(0,ARENA),r:rand(18,60),rot:rand(0,TAU),k:'oil'});
   G.wx=makeWeather(wk);
   G.bolts=8*gl('wallet');G.pending=gl('kit');
@@ -1586,9 +1586,10 @@ function spawnPoint(r,lean){const p=G.p,sp=Math.hypot(p.vx,p.vy),va=Math.atan2(p
     if(Math.abs(x-p.x)>VW/2+40||Math.abs(y-p.y)>VH/2+40)return[x,y];const d=d2(x,y,p.x,p.y);if(d>bd){bd=d;best=[x,y]}}
   // backed into a corner: use the farthest valid point, or the far side of the arena
   return best||[clamp(ARENA-p.x,60,ARENA-60),clamp(ARENA-p.y,60,ARENA-60)]}
-function pickType(t){const w=[['buggy',5],['sedan',t>20?4:1],['truck',t>60?2:0],['gunner',t>90?2:0]];let tot=0;for(const x of w)tot+=x[1];let r=Math.random()*tot;for(const [k,v] of w){if((r-=v)<0)return k}return'buggy'}
+function pickType(t){const w=[['buggy',5],['sedan',t>35?4:1],['truck',t>80?2:0],['gunner',t>110?2:0]];let tot=0;for(const x of w)tot+=x[1];let r=Math.random()*tot;for(const [k,v] of w){if((r-=v)<0)return k}return'buggy'}
 function spawnUpdate(dt){
-  const t=G.t,L=G.L,te=t+L.head,od=odHeat(),rate=(0.8+te/22+(te>240?(te-240)/14:0))*L.rate*(od<0?1:1.6+od/40);
+  // the horde eases in: the growth term is scaled by sqrt(time/4min), so it reaches the full curve at 4:00
+  const t=G.t,L=G.L,te=t+L.head,od=odHeat(),rate=(0.8+te/22*Math.min(1,Math.sqrt(te/240))+(te>240?(te-240)/14:0))*L.rate*(od<0?1:1.6+od/40);
   G.spawnT+=DBG.noSpawn?0:dt*rate;
   while(G.spawnT>=1){G.spawnT-=1;if(G.enemies.length<260)spawnEnemy(pickType(te))}
   if(t>=G.nextAmbush){G.nextAmbush+=od<0?45:20;const n=12+Math.floor(te/30);for(let i=0;i<n&&G.enemies.length<ECAP;i++){const a=i/n*TAU,x=G.p.x+Math.cos(a)*460,y=G.p.y+Math.sin(a)*460;if(x<40||y<40||x>ARENA-40||y>ARENA-40||solidAt(x,y,14))continue;spawnEnemy('buggy',{x,y})}showBanner('Ambush!','They’re boxing you in')}
