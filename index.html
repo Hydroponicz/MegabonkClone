@@ -1362,7 +1362,7 @@ function updateWeather(dt){const X=G.wx,W=X.W,p=G.p;X.int=0.8+0.45*Math.sin(G.t*
   for(const b of X.bolts)b.life-=dt;prune(X.bolts,b=>b.life>0);X.flash=Math.max(0,X.flash-dt*2.5);
   // tornadoes wander in from off screen, drift across, and fade out
   if(W.tornado){X.nextTwister-=dt*X.int;if(X.nextTwister<=0){X.nextTwister=rand(16,26);if(X.twisters.length<(X.int>1.05?3:2)){const a=rand(0,TAU),R=rand(520,700),x=clamp(p.x+Math.cos(a)*R,80,ARENA-80),y=clamp(p.y+Math.sin(a)*R,80,ARENA-80),h=Math.atan2(p.y-y,p.x-x)+rand(-.6,.6);
-      X.twisters.push({x,y,h,v:rand(55,85),life:rand(20,26),age:0,R:58,pull:190,spin:0,fire:!!W.fire});if(X.twisters.length===1)showBanner(W.fire?'Fire twister':'Tornado','Keep clear or get spun')}}}
+      X.twisters.push({x,y,h,v:rand(55,85),life:rand(20,26),age:0,R:58,pull:190,spin:0,fire:!!W.fire});}}}
   for(const tw of X.twisters){tw.age+=dt;tw.life-=dt;tw.spin+=dt*7;tw.h+=Math.sin(G.t*.7+tw.x*.01)*dt*.6;tw.x+=Math.cos(tw.h)*tw.v*dt;tw.y+=Math.sin(tw.h)*tw.v*dt;
     if(tw.x<80||tw.x>ARENA-80)tw.h=Math.PI-tw.h;if(tw.y<80||tw.y>ARENA-80)tw.h=-tw.h;tw.x=clamp(tw.x,80,ARENA-80);tw.y=clamp(tw.y,80,ARENA-80);
     const k=Math.min(1,tw.age/1.5,tw.life/1.5);if(k<=0)continue;DSRC='weather';
