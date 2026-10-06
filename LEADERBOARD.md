@@ -40,6 +40,9 @@ runs on their device, then uploads them once the server works.
   - `lbname` hash (display names)
   - `rl:<ip>` counter that expires after 60 seconds, used for rate limiting
     (30 posts per minute per address)
+  - `cloud:<sha256 of recovery code>` hash holding the automatic cloud backup:
+    the latest save and the one with the most progress. It's refreshed for a year
+    on every backup.
   - `xfer:<code>` an exported save parked for **Settings › Transfer save**. It
     expires after 15 minutes and is deleted the first time the code is used.
 - **Cheating:** the server rejects impossible runs (time, wreck rate and level
@@ -59,3 +62,28 @@ stats, achievements and leaderboard identity) to another device. It can use a
 above. It can also use a save text or file, which works with no server at all.
 Loading a save replaces that device's progress after a confirmation step.
 Device settings such as volume are not transferred.
+
+## Save safety
+
+Browsers keep saved data separately for each web address. Every Vercel
+deployment has its own URL (`vibecodingmegabonkclone-<hash>.vercel.app`), so a
+player who opens a newer deployment link starts with an empty save. Their old
+save still sits at the old address. **Always share the project's stable
+production domain**, not per-deployment links.
+
+The game protects saves in four ways:
+- A local backup copy (`carnageProfile.bak`) that is never overwritten by a
+  profile with less progress. The game loads it automatically if the main save is
+  missing, and Transfer save offers it after a reset or overwrite.
+- `navigator.storage.persist()`, so the browser doesn't evict the data when
+  space runs low.
+- An automatic cloud backup after each run, under a permanent 12-character
+  **recovery code** shown in Transfer save. Entering it on any device or address
+  restores the progress. This needs the database.
+- A "Played before? Restore your progress" button on the main menu for fresh
+  profiles.
+
+To rescue a save stuck at an old address from before Transfer save existed:
+1. Open that address.
+2. In the browser console, run `copy(localStorage.carnageProfile)`.
+3. Paste the result into Transfer save on the current site.

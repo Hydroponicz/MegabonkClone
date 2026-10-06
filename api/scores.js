@@ -5,10 +5,13 @@
 //   POST /api/scores {pid,name,action:'name'}    change your display name everywhere
 //   POST /api/scores {pid,name,action:'xferPut',data}   park a save for 15 minutes under a one-time 6-letter code
 //   POST /api/scores {pid,name,action:'xferGet',code}   claim a parked save (the code is deleted when used)
+//   POST /api/scores {pid,name,action:'cloudPut',key,data,xp}   automatic cloud backup under the player's permanent recovery code
+//   POST /api/scores {pid,name,action:'cloudGet',key}           restore: the latest backup and the one with the most progress
 //
 // Ranking: longest survival time, then most wrecks. Player ids are random secrets made by the game and are never returned.
 // Storage: lb:<track> sorted set (pid -> score), lbrun:<track> hash (pid -> run JSON), lbname hash (pid -> name),
-// xfer:<code> string (an exported save, expires after 15 minutes).
+// xfer:<code> string (an exported save, expires after 15 minutes),
+// cloud:<sha256(recovery code)> hash (latest + best save, refreshed for a year on every backup).
 
 // Find the Upstash REST credentials. The Vercel integration names them KV_REST_API_URL / KV_REST_API_TOKEN,
 // but the connect dialog can add a custom prefix (e.g. STORAGE_KV_REST_API_URL), and Upstash's own names are
@@ -32,6 +35,8 @@ const CARS = ['interceptor', 'dozer', 'hornet', 'pyro', 'volt', 'junker', 'hydro
 const MAX_T = 4 * 3600;
 // transfer codes skip look-alike characters (no 0/O, 1/I/L)
 const XFER_ABC = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789', XFER_TTL = 900, XFER_MAX = 120000;
+const CLOUD_TTL = 365 * 86400, validKey = k => typeof k === 'string' && new RegExp('^[' + XFER_ABC + ']{12}$').test(k);
+const cloudId = k => 'cloud:' + require('crypto').createHash('sha256').update('carnage-loop|' + k).digest('hex');
 const xferCode = () => Array.from(require('crypto').randomBytes(6), b => XFER_ABC[b % XFER_ABC.length]).join('');
 
 async function redis(cmds) {
@@ -112,6 +117,25 @@ module.exports = async (req, res) => {
       const [hits] = await redis([['INCR', 'rl:' + ip], ['EXPIRE', 'rl:' + ip, 60, 'NX']]);
       if (hits > 30) return res.status(429).json({ error: 'slow_down' });
 
+      if (b.action === 'cloudPut') {
+        const data = typeof b.data === 'string' ? b.data : '', xp = Math.max(0, Math.floor(+b.xp) || 0);
+        if (!validKey(b.key)) return res.status(400).json({ error: 'key' });
+        if (!/^CL[01]\.[A-Za-z0-9_-]+$/.test(data) || data.length > XFER_MAX) return res.status(400).json({ error: 'data' });
+        const id = cloudId(b.key), now = Date.now();
+        const [[bestXp]] = await redis([['HMGET', id, 'bestXp']]);
+        // the "best" copy only moves forward, so a fresh or reset profile can never overwrite real progress
+        const cmds = [['HSET', id, 'latest', data, 'latestXp', String(xp), 'latestAt', String(now)]];
+        if (bestXp === null || xp >= +bestXp) cmds.push(['HSET', id, 'best', data, 'bestXp', String(xp), 'bestAt', String(now)]);
+        cmds.push(['EXPIRE', id, CLOUD_TTL]);
+        await redis(cmds);
+        return res.status(200).json({ ok: true, at: now });
+      }
+      if (b.action === 'cloudGet') {
+        if (!validKey(b.key)) return res.status(400).json({ error: 'key' });
+        const [[latest, latestXp, latestAt, best, bestXp, bestAt]] = await redis([['HMGET', cloudId(b.key), 'latest', 'latestXp', 'latestAt', 'best', 'bestXp', 'bestAt']]);
+        if (!latest && !best) return res.status(404).json({ error: 'no_backup' });
+        return res.status(200).json({ ok: true, latest, latestXp: +latestXp || 0, latestAt: +latestAt || 0, best, bestXp: +bestXp || 0, bestAt: +bestAt || 0 });
+      }
       if (b.action === 'xferPut') {
         const data = typeof b.data === 'string' ? b.data : '';
         if (!/^CL[01]\.[A-Za-z0-9_-]+$/.test(data) || data.length > XFER_MAX) return res.status(400).json({ error: 'data' });
