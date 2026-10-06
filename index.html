@@ -33,7 +33,11 @@ html,body{height:100%;margin:0;overflow:hidden;background:var(--asphalt);color:v
 #bossName{font-family:var(--display);font-size:14px;color:var(--hp);text-shadow:2px 2px 0 var(--ink)}
 .bossbar{width:min(520px,90vw);height:12px;background:rgba(0,0,0,.65);border:2px solid var(--ink)}
 #bossfill{height:100%;background:linear-gradient(90deg,var(--hp),var(--ember));width:100%}
-#loadout{display:flex;flex-wrap:wrap;gap:6px;max-width:100%}
+#loadout{display:flex;flex-wrap:wrap;gap:6px;max-width:calc(100% - 190px)}
+#glove{position:absolute;right:16px;bottom:16px;display:flex;gap:6px;pointer-events:auto}
+#glove .gslot{width:52px;height:46px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;background:rgba(10,9,12,.85);border:2px solid var(--line);color:var(--fg);font:700 13px var(--body);letter-spacing:.06em;padding:0;cursor:pointer}
+#glove .gslot:first-child:not(.empty){border-color:var(--hazard)}#glove .gslot small{font-size:9px;color:var(--hazard);letter-spacing:.14em;min-height:10px}
+#glove .gslot.empty{border-style:dashed;opacity:.45;cursor:default}
 .chip{background:rgba(10,9,12,.82);border:1px solid var(--line);padding:4px 8px;display:flex;gap:7px;align-items:center;font-size:11px;font-weight:700;letter-spacing:.08em}
 .pips{display:flex;gap:2px}.pips i{width:6px;height:6px;background:var(--line);display:block}
 .pips i.on{background:var(--hazard)}.chip.p .pips i.on{background:var(--xp)}
@@ -302,6 +306,7 @@ body.nocursor,body.nocursor *{cursor:none!important}
     <div id="bossWrap" hidden data-tip="Boss health|Boss|Bosses ignore walls and smash straight through props."><div id="bossName">JUGGERNAUT</div><div class="bossbar"><div id="bossfill"></div></div></div>
   </div>
   <div id="loadout"></div>
+  <div id="glove" aria-label="Glovebox"></div>
 </div>
 <div id="banner"></div>
 <div id="radio" hidden data-tip="Car radio|Music|Shuffles through the station's tracks. Hit SEEK or press N to skip to the next one.">
@@ -394,6 +399,7 @@ body.nocursor,body.nocursor *{cursor:none!important}
       <div class="key"><b>Drive</b><span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> or arrows</span></div>
       <div class="key"><b>Handbrake drift</b><span><kbd>Space</kbd></span></div>
       <div class="key"><b>Trade</b><span><kbd>F</kbd> next to a parked trader</span></div>
+      <div class="key"><b>Use glovebox item</b><span><kbd>Q</kbd> or tap a glovebox slot (bottom right)</span></div>
       <div class="key"><b>Next radio track</b><span><kbd>N</kbd> or the SEEK button</span></div>
       <div class="key"><b>Pause</b><span><kbd>P</kbd> or <kbd>Esc</kbd></span></div>
       <div class="key"><b>Touch</b><span>Drag anywhere to steer. Tap the trader prompt to trade</span></div>
@@ -679,6 +685,7 @@ addEventListener('keydown',e=>{
   if(e.code==='KeyN'&&!e.repeat&&!(e.target&&e.target.tagName==='INPUT')){skipSong();if(state==='play')return}
   if(state==='shop'){if(e.code==='Escape'||e.code==='KeyF')closeShop();else if(e.code==='KeyR')restock();else if(/^Digit[1-3]$/.test(e.code))buy(+e.code.slice(5)-1);return}
   if(e.code==='KeyF'&&state==='play'&&G.near){openShop();return}
+  if(e.code==='KeyQ'&&state==='play'&&!e.repeat){useGlove(0);return}
   if(e.code==='KeyP'||e.code==='Escape')togglePause();
   if(state==='levelup'&&/^Digit[1-4]$/.test(e.code))pickChoice(+e.code.slice(5)-1);
 });
@@ -721,6 +728,10 @@ const WDEF={
   tesla:{name:'Tesla Arc',unlock:'chrome',desc:['Zaps the nearest car, then jumps to 2 more.','Jumps to 2 more cars.','Faster recharge.','Harder zaps.','Arcs twice per discharge.']},
   mortar:{name:'Junk Mortar',unlock:'giant',desc:['Lobs a shell onto a far-off car.','Bigger blast.','Two shells per volley.','Faster reload.','Three shells per volley.']},
   laser:{name:'Rail Laser',unlock:'breaker',desc:['Fires a piercing beam straight off your hood.','Wider beam.','Faster recharge.','Adds a rear beam.','Heavier beam, faster still.']},
+  scatter:{name:'Scattergun',unlock:'thousand',desc:['Blasts a cone of pellets at the nearest car and shoves it back.','More pellets.','Harder-hitting pellets.','Pellets punch through one car.','A wider blast and a faster pump.']},
+  disc:{name:'Ricochet Disc',unlock:'longhaul',desc:['Throws a spinning disc that slices through cars and flies back to you.','Flies faster and farther.','Throws two discs.','Bigger discs.','Throws three discs.']},
+  trail:{name:'Burnout Trail',unlock:'vandal',desc:['Your tires leave a strip of fire behind you while you drive.','Hotter flames.','Wider strip.','Burns longer.','A roaring blaze.']},
+  drone:{name:'Attack Drone',unlock:'escapee',desc:['A drone circles your car and shoots the nearest car.','Faster fire.','A second drone.','Harder-hitting rounds.','A third drone, and rounds punch through.']},
 };
 const PDEF={
   armor:{name:'Armor Plating',desc:'+25 max HP and 4% less damage taken.'},
@@ -733,6 +744,9 @@ const PDEF={
   scrap:{name:'Scrap Sifter',unlock:'crew',desc:'+15% XP from scrap.'},
   shield:{name:'Bumper Shield',unlock:'fumes',desc:'Blocks one hit, then recharges. Faster recharge per level.'},
   thorns:{name:'Razor Wire',unlock:'ram',desc:'Cars that hit you take damage back.'},
+  crit:{name:'Lucky Lug Nuts',unlock:'stocked',desc:'+6% chance for any hit to deal triple damage.'},
+  crumple:{name:'Crumple Zone',unlock:'punching',desc:'Taking a hit sets off a shockwave that hurts and shoves nearby cars. Bigger and more often per level.'},
+  recycle:{name:'Scrap Recycler',unlock:'fatwallet',desc:'Every level up repairs 4 HP.'},
 };
 const unlocked=d=>!d.unlock||!!P.ach[d.unlock];
 const ETYPES={
@@ -764,7 +778,7 @@ const TRINKETS={
   cables:{name:'Jumper Cables',desc:'Each wreck has a 15% chance to arc into the 2 nearest cars.',cost:24,cat:'gun',rar:'rare'},
   napalm:{name:'Napalm Tank',desc:'Each wreck has a 12% chance to leave a fire patch that burns cars (not you) for 3s.',cost:24,cat:'gun',rar:'rare'},
   glass:{name:'Glass Cannon',desc:'+35% damage on every weapon, but 20% less max HP.',cost:30,cat:'gun',rar:'epic',max:1},
-  patch:{name:'Patch Kit',desc:'Repair half your max HP right now.',cost:10,cat:'doc',rar:'common',shop:1},
+  patch:{name:'Patch Kit',desc:'Repairs half your max HP when you use it.',cost:10,cat:'doc',rar:'common',shop:1,glove:'KIT'},
   cage:{name:'Roll Cage',desc:'+20 max HP.',cost:16,cat:'doc',rar:'common'},
   heat:{name:'Heat Shield',desc:'Take 6% less damage.',cost:18,cat:'doc',rar:'common'},
   drip:{name:'Coolant Drip',desc:'Repair 0.5 HP every second.',cost:16,cat:'doc',rar:'common'},
@@ -781,6 +795,20 @@ const TRINKETS={
   battery:{name:'Overcharged Battery',desc:'Power-ups last 25% longer.',cost:20,cat:'luck',rar:'rare',max:3},
   bounty:{name:'Bounty Board',desc:'Every 60 wrecks drops a supply crate (10 fewer per extra stack), at most one every 20s.',cost:28,cat:'luck',rar:'rare',max:3},
   dice:{name:'Loaded Dice',desc:'15% chance that a level up gives a bonus pick.',cost:30,cat:'luck',rar:'epic',max:3},
+  cryo:{name:'Cryo Coolant',desc:'Hits have a 4% chance per stack to freeze a car solid for a moment.',cost:22,cat:'gun',rar:'rare',max:3},
+  shrapnel:{name:'Shrapnel Shells',desc:'Wrecked cars have a 20% chance per stack to burst into four shards that hit other cars.',cost:22,cat:'gun',rar:'rare',max:3},
+  exec:{name:'Finishing Move',desc:'Regular cars left under 15% health are wrecked outright when you hit them.',cost:32,cat:'gun',rar:'epic',max:1},
+  bullbar:{name:'Bull Bar',desc:'+30% ramming damage.',cost:12,cat:'doc',rar:'common'},
+  toolbox:{name:"Mechanic's Toolbox",desc:'Wrenches repair 50% more per stack.',cost:18,cat:'doc',rar:'rare',max:3},
+  runflat:{name:'Run-Flat Tires',desc:'Hazards, lightning and tornadoes hurt you half as much.',cost:24,cat:'doc',rar:'rare',max:1},
+  horseshoe:{name:'Bent Horseshoe',desc:'+15% power-up drop chance per stack.',cost:18,cat:'luck',rar:'rare',max:3},
+  piggy:{name:'Piggy Bank',desc:'Every 20s, bolts you carry earn 3% interest per stack (up to 6 bolts per stack).',cost:12,cat:'luck',rar:'common',max:3},
+  jackpot:{name:'Jackpot Lever',desc:'Supply crates give two free picks instead of one.',cost:34,cat:'luck',rar:'epic',max:1},
+  pipebomb:{name:'Pipe Bomb',desc:'Blows up everything close to you when you use it.',cost:16,cat:'gun',rar:'common',shop:1,glove:'BOMB'},
+  beacon:{name:'Airstrike Beacon',desc:'Calls an airstrike on everything near you when you use it.',cost:28,cat:'gun',rar:'common',shop:1,glove:'AIR'},
+  shieldcell:{name:'Shield Cell',desc:'A bubble shield for 5 seconds when you use it.',cost:18,cat:'doc',rar:'common',shop:1,glove:'SHLD'},
+  nitrocan:{name:'Nitro Canister',desc:'8 seconds of Nitro when you use it: top speed and ramming way up.',cost:12,cat:'luck',rar:'common',shop:1,glove:'NOS'},
+  empnade:{name:'EMP Grenade',desc:'Stuns every car around you for 3 seconds when you use it.',cost:20,cat:'luck',rar:'common',shop:1,glove:'EMP'},
 };
 const itemOpen=k=>(G.tk[k]||0)<(TRINKETS[k].max||5);
 // a Trader's Roll: any non-consumable item you can still stack
@@ -790,8 +818,23 @@ function rollItem(){const pool=rollPool();if(!pool.length)return'patch';
   const tiers=Object.keys(RAR).filter(r=>pool.some(k=>TRINKETS[k].rar===r));let tot=0;for(const r of tiers)tot+=RAR[r].w;
   let x=Math.random()*tot,tier=tiers[0];for(const r of tiers)if((x-=RAR[r].w)<0){tier=r;break}
   const opts=pool.filter(k=>TRINKETS[k].rar===tier);return opts[Math.random()*opts.length|0]}
-function grantItem(id){if(id==='patch')G.p.hp=Math.min(G.p.maxhp,G.p.hp+G.p.maxhp*0.5);else if(id==='voucher')G.pending++;else{G.tk[id]=(G.tk[id]||0)+1;recalc()}updateLoadout()}
-const stockFor=cat=>shuffle(Object.keys(TRINKETS).filter(k=>TRINKETS[k].cat===cat&&itemOpen(k))).slice(0,3).map(id=>({id,sold:false}));
+
+// glovebox: consumables bought from traders wait in up to three slots until you use them (Q or tap)
+const GLOVE_MAX=3;
+function useGlove(i=0){if(state!=='play'||G.exitT>=0)return;const id=G.glove[i];if(!id)return;G.glove.splice(i,1);const p=G.p,s=G.stats;DSRC='glovebox';
+  if(id==='patch'){p.hp=Math.min(p.maxhp,p.hp+p.maxhp*0.5);addText(p.x,p.y-30,'+'+Math.round(p.maxhp*0.5)+' HP','#5cf08a');sfx('buy')}
+  else if(id==='pipebomb'){explode(p.x,p.y,240,80*hpScale(G.t)*G.L.diff*s.dmg,0);G.shake=Math.max(G.shake,14);sfx('boom')}
+  else if(id==='beacon'){G.flashT=0.4;G.shake=18;sfx('boom');for(const e of G.enemies){if(e.dead||d2(e.x,e.y,p.x,p.y)>900*900)continue;damageEnemy(e,e.big?e.maxhp*0.08:e.maxhp*2+50)}showBanner('Airstrike','Called in from the glovebox')}
+  else if(id==='shieldcell'){G.buffs.bubble=Math.max(G.buffs.bubble,5*s.buffMul);tone(900,0.2,'triangle',0.05,1400)}
+  else if(id==='nitrocan'){G.buffs.nitro=Math.max(G.buffs.nitro,8*s.buffMul);tone(300,0.3,'sawtooth',0.05,900)}
+  else if(id==='empnade'){for(const e of G.enemies)if(!e.dead&&d2(e.x,e.y,p.x,p.y)<380*380)e.ice=e.big?1:3;G.rings.push({x:p.x,y:p.y,r:20,max:380,dmg:0,hit:null});sfx('zap')}
+  updateGlove()}
+function updateGlove(){const el=$('glove');if(!el||!G)return;let h='';for(let i=0;i<GLOVE_MAX;i++){const id=G.glove[i],d=id&&TRINKETS[id];
+    h+=d?`<button class="gslot" data-i="${i}" data-tip="${esc(d.name)}|Glovebox · ${i?'slot '+(i+1):'next up (Q)'}|${esc(d.desc)}"><b>${d.glove}</b><small>${i?'':'Q'}</small></button>`:`<span class="gslot empty"></span>`}
+  el.innerHTML=h}
+function grantItem(id){if(TRINKETS[id].glove){if(G.glove.length<GLOVE_MAX)G.glove.push(id);updateGlove()}else if(id==='voucher')G.pending++;else{G.tk[id]=(G.tk[id]||0)+1;recalc()}updateLoadout()}
+const stockFor=cat=>{const ks=Object.keys(TRINKETS).filter(k=>TRINKETS[k].cat===cat),items=shuffle(ks.filter(k=>!TRINKETS[k].shop&&itemOpen(k))),cons=shuffle(ks.filter(k=>TRINKETS[k].shop));
+  return[...items.slice(0,cons.length?2:3),...cons.slice(0,1)].map(id=>({id,sold:false}))};
 // unique item effects that trigger on a wreck
 function chainZap(x,y){const ps=DSRC;DSRC='cables';const hits=near(x,y,260,[]).filter(e=>!e.dead&&d2(x,y,e.x,e.y)<200*200).sort((a,b)=>d2(x,y,a.x,a.y)-d2(x,y,b.x,b.y)).slice(0,2);
   for(const e of hits){G.arcs.push({pts:[[x,y],[e.x,e.y]],life:.18});damageEnemy(e,30*G.stats.dmg)}if(hits.length)sfx('zap');DSRC=ps}
@@ -800,6 +843,7 @@ function onWreckItems(e){const T=G.tk;
   if(T.leech){const cap=T.leech;G.leechBank=Math.min(cap,(G.leechBank||0)+(G.t-(G.leechAt||0))*cap);G.leechAt=G.t;const h=Math.min(0.3*T.leech,G.leechBank);G.leechBank-=h;G.p.hp=Math.min(G.p.maxhp,G.p.hp+h)}
   if(T.cables&&Math.random()<0.15*T.cables)chainZap(e.x,e.y);
   if(T.napalm&&Math.random()<0.12*T.napalm)G.zones.push({k:'napalm',x:e.x,y:e.y,r:55,life:3,pts:blob(55,10,.3)});
+  if(T.shrapnel&&Math.random()<0.2*T.shrapnel){const a0=rand(0,TAU);for(let i=0;i<4;i++){const a=a0+i*TAU/4;G.bullets.push({x:e.x,y:e.y,vx:Math.cos(a)*700,vy:Math.sin(a)*700,dmg:14*G.stats.dmg,life:.35,pierce:0,hit:[e],src:'shrapnel'})}}
   if(T.bounty&&G.kills%Math.max(20,60-10*(T.bounty-1))===0&&G.t-(G.bountyAt??-99)>=20){G.bountyAt=G.t;dropPickup(e.x,e.y,'chest');addText(e.x,e.y-20,'BOUNTY','#ffc21a')}}
 const price=id=>Math.round(TRINKETS[id].cost*(1+0.4*(G.tk[id]||0)));
 
@@ -830,6 +874,12 @@ const ACH=[
   {id:'powered',ic:'PU',name:'Powered Up',desc:'Grab 25 power-ups across all runs.',k:'powerups',n:25},
   {id:'tinker',ic:'G10',name:'Tinkerer',desc:'Buy 10 garage upgrades.',k:'garage',n:10},
   {id:'fleet',ic:'6V',name:'Full Fleet',desc:'Own every vehicle.',k:'cars',n:6},
+  {id:'thousand',ic:'1K',name:'Scrapper',desc:'Wreck 1,000 cars across all runs.',k:'total',n:1000},
+  {id:'longhaul',ic:'6m',name:'Long Haul',desc:'Survive for 6 minutes.',k:'time',n:360,time:true},
+  {id:'escapee',ic:'EX',name:'Getaway Driver',desc:'Escape through an exit portal.',k:'escapes',n:1},
+  {id:'stocked',ic:'P10',name:'Stocked Up',desc:'Grab 10 power-ups in a single run.',k:'runPowerups',n:10},
+  {id:'punching',ic:'HIT',name:'Punching Bag',desc:'Take 1,000 damage in a single run.',k:'dmgTaken',n:1000},
+  {id:'fatwallet',ic:'150',name:'Fat Wallet',desc:'Carry 150 bolts at once.',k:'boltsHeld',n:150},
 ];
 const rewardOf=id=>[...Object.values(WDEF),...Object.values(PDEF)].filter(d=>d.unlock===id).map(d=>d.name).join(', ');
 const clearedCount=()=>LEVELS.filter(L=>P.tracks[L.id]&&P.tracks[L.id].cleared).length;
@@ -841,7 +891,7 @@ function rec(){const L=G&&G.live?G:null,W=L?Object.values(L.weapons):[];
     weapons:Math.max(P.bestWeapons,W.length),wlvl:Math.max(P.bestWlvl,...W.map(w=>w.lvl)),
     brink:Math.max(P.bestBrink,L&&L.lowAt>=0?L.t-L.lowAt:0),
     clears:clearedCount(),bought:P.bought+(L?L.bought:0),acct:acctInfo(P.acctXp).lv,
-    props:Math.max(P.bestProps,L?L.propsBroken:0),powerups:P.powerups+(L?L.powerups:0),cars:Object.keys(P.cars).length,garage:Object.values(P.garage).reduce((a,b)=>a+b,0)}}
+    props:Math.max(P.bestProps,L?L.propsBroken:0),powerups:P.powerups+(L?L.powerups:0),escapes:P.escapes||0,runPowerups:L?L.powerups:0,dmgTaken:L?Math.round(L.dmgTaken):0,boltsHeld:L?L.bolts:0,cars:Object.keys(P.cars).length,garage:Object.values(P.garage).reduce((a,b)=>a+b,0)}}
 function checkAch(){const r=rec();let any=false;
   for(const a of ACH){if(P.ach[a.id]||r[a.k]<a.n)continue;P.ach[a.id]=Date.now();any=true;if(G)G.newAch.push(a);
     toast(a.ic,'Achievement unlocked',a.name);const rw=rewardOf(a.id);if(rw)toast('+','New bolt-on in the pool',rw)}
@@ -851,7 +901,7 @@ function toast(ic,small,title){const el=document.createElement('div');el.classNa
   el.innerHTML=`${badge(ic,true)}<div><small>${small}</small><b>${title}</b></div>`;$('toasts').appendChild(el);
   setTimeout(()=>{el.classList.add('out');setTimeout(()=>el.remove(),350)},3800)}
 // fold a finished (or abandoned) run into the lifetime profile; returns account XP earned
-function commitRun(){const r=rec();G.live=false;G.forfeit=!!G.portal&&!G.escaped;G.lbRun=lbQueueRun();G.lbPosting=lbFlush();
+function commitRun(){const r=rec();G.live=false;if(G.escaped)P.escapes=(P.escapes||0)+1;G.forfeit=!!G.portal&&!G.escaped;G.lbRun=lbQueueRun();G.lbPosting=lbFlush();
   P.kills+=G.kills;P.bossKills+=G.miniKills;P.eliteKills+=G.eliteKills;P.time+=G.t;P.bought+=G.bought;
   P.bestProps=r.props;P.powerups+=G.powerups;P.best=r.time;P.bestKills=r.kills;P.bestLevel=r.level;P.bestRam=r.ram;P.bestBarrels=r.barrels;P.bestWeapons=r.weapons;P.bestWlvl=r.wlvl;P.bestBrink=r.brink;
   const T=P.tracks[G.L.id]=Object.assign({best:0,cleared:0},P.tracks[G.L.id]);T.best=Math.max(T.best,G.t);
@@ -1067,7 +1117,7 @@ function breakProp(o){if(o.dead)return;o.dead=true;G.propsBroken++;
 function updateHazards(dt){const p=G.p;
   for(const z of G.zones)if(z.life!=null)z.life-=dt;prune(G.zones,z=>z.life==null||z.life>0);
   for(const py of G.pylons){py.t+=dt;if(py.t>=4.5){py.t=0;const R=170,pts=[];
-    if(d2(p.x,p.y,py.x,py.y)<R*R){hurt(14*(0.7+0.3*G.L.diff));pts.push([p.x,p.y])}
+    if(d2(p.x,p.y,py.x,py.y)<R*R){hurt(14*(0.7+0.3*G.L.diff)*(G.tk.runflat?0.5:1));pts.push([p.x,p.y])}
     for(const e of near(py.x,py.y,R+70)){if(e.dead||d2(e.x,e.y,py.x,py.y)>R*R)continue;DSRC='hazard';damageEnemy(e,(e.big?120:70)*G.L.diff);if(pts.length<10)pts.push([e.x,e.y])}
     for(const q of pts)G.arcs.push({pts:[[py.x,py.y],q],life:0.2});G.rings.push({x:py.x,y:py.y,r:20,max:R,dmg:0,hit:null,col:'140,230,255'});if(pts.length)sfx('zap')}}
   // props shatter when the player (or a boss) drives through them
@@ -1076,9 +1126,9 @@ function updateHazards(dt){const p=G.p;
   updateTumbles(dt)
 }
 function usePickup(k){const p=G.p;G.powerups++;
-  if(k.type==='wrench'){p.hp=Math.min(p.maxhp,p.hp+30);addText(p.x,p.y-30,'+30 HP','#5cf08a');G.powerups--}
+  if(k.type==='wrench'){const h=Math.round(30*(1+0.5*(G.tk.toolbox||0)));p.hp=Math.min(p.maxhp,p.hp+h);addText(p.x,p.y-30,'+'+h+' HP','#5cf08a');G.powerups--}
   else if(k.type==='magnet'){for(const g of G.gems)g.pull=true;showBanner('Scrap magnet','Hoovering every scrap on the map')}
-  else if(k.type==='chest'){G.pending++;showBanner('Supply crate','Free bolt-on');G.powerups--}
+  else if(k.type==='chest'){const n=G.tk.jackpot?2:1;G.pending+=n;showBanner('Supply crate',n>1?'Jackpot · two free bolt-ons':'Free bolt-on');G.powerups--}
   else if(k.type==='nuke'){G.flashT=0.4;G.shake=18;sfx('boom');DSRC='airstrike';for(const e of G.enemies){if(e.dead||d2(e.x,e.y,p.x,p.y)>900*900)continue;damageEnemy(e,e.big?e.maxhp*0.08:e.maxhp*2+50)}showBanner('Airstrike','Everything nearby is scrap')}
   else if(k.type==='sack'){G.sack+=15;addText(p.x,p.y-30,'+15 scrap','#8fd6cf')}
   else if(k.type==='bolts'){G.bolts+=12;G.boltsGot+=12;addText(p.x,p.y-30,'+12 bolts','#ffd65a')}
@@ -1187,6 +1237,13 @@ function drawRig(x,y,a,C,W,Pa,blink,t,flameOn){const len=C.len,wid=C.wid,st=C.st
     if(lv('saws')){ctx.fillStyle='#c9c6d0';ctx.beginPath();for(let i=0;i<8;i++){const aa=i/8*TAU+t*10,r2=i%2?3:5;ctx.lineTo(len*.12+Math.cos(aa)*r2,wid*.28+Math.sin(aa)*r2)}ctx.closePath();ctx.fill()}
     if(lv('tesla')){ctx.strokeStyle='#8f8a9c';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(-len*.3,-wid*.25);ctx.lineTo(-len*.5-7,-wid*.25);ctx.stroke();ctx.fillStyle='#8ce6ff';ctx.beginPath();ctx.arc(-len*.5-8,-wid*.25,3+Math.random(),0,TAU);ctx.fill()}
     if(lv('emp')){ctx.strokeStyle=`rgba(63,224,208,${.5+.4*Math.sin(t*6)})`;ctx.lineWidth=2;ctx.beginPath();ctx.arc(0,0,10+lv('emp')*.6,0,TAU);ctx.stroke()}
+    if(lv('scatter')){ctx.fillStyle='#3a3644';ctx.fillRect(len*.14,-wid*.46,len*.36,5);ctx.fillStyle='#8f8a9c';ctx.fillRect(len*.46,-wid*.46-1,5,7)}
+    if(lv('disc')){ctx.fillStyle='#c9c6d0';ctx.beginPath();ctx.arc(-len*.12,-wid*.2,5,0,TAU);ctx.fill();ctx.fillStyle='#141318';ctx.beginPath();ctx.arc(-len*.12,-wid*.2,1.8,0,TAU);ctx.fill()}
+    if(lv('trail')){ctx.fillStyle='#55525d';ctx.fillRect(-len/2-5,wid*.16,6,4);ctx.fillRect(-len/2-5,-wid*.16-4,6,4);if(Math.random()<.7){ctx.fillStyle='#ff7a1f';ctx.fillRect(-len/2-9-Math.random()*4,wid*.16,4,4);ctx.fillRect(-len/2-9-Math.random()*4,-wid*.16-4,4,4)}}
+    if(lv('drone')){ctx.strokeStyle='#3fe0d0';ctx.lineWidth=1.5;ctx.strokeRect(-len*.34,wid*.04,9,9)}
+    if(pv('crit')){ctx.fillStyle='#ffd65a';for(const [xx,yy] of[[len*.3,-wid/2+1],[len*.3,wid/2-3],[-len*.3,-wid/2+1],[-len*.3,wid/2-3]])ctx.fillRect(xx-1.5,yy,3,2)}
+    if(pv('crumple')){ctx.fillStyle='#ffc21a';for(let i=0;i<3;i++)ctx.fillRect(len/2-5,-wid/2+3+i*(wid-6)/3,3,(wid-6)/6)}
+    if(pv('recycle')){ctx.strokeStyle='#5cf08a';ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(-len*.25,wid*.24,3.5,0,4.7);ctx.stroke()}
     if(lv('mg')){const m=lv('mg'),bn=m>=5?3:m>=3?2:1;ctx.save();ctx.rotate((W.mg.aim??a)-a);ctx.fillStyle='#2b2930';ctx.beginPath();ctx.arc(0,0,7,0,TAU);ctx.fill();ctx.fillStyle='#8f8a9c';for(let i=0;i<bn;i++)ctx.fillRect(2,-1.5+(i-(bn-1)/2)*4,16,3);ctx.restore()}
   },st==='monster'?1.6:st==='dozer'?1.2:1)}
 const thumbs={};
@@ -1203,7 +1260,7 @@ function newGame(li){const L=LEVELS[li];curLevel=li;const wk=FORECAST[L.id]||rol
     miniKills:0,minisSpawned:0,eliteKills:0,ramKills:0,barrelBooms:0,lowAt:-1,newAch:[],achT:0,
     bolts:0,tk:{},bought:0,trader:null,lastTrader:-1,near:false,nextTrader:100+rand(0,40),
     bossDue:-1,lboss:null,mini:null,cleared:false,clearT:-1,portalT:-1,portal:null,odStart:-1,odTier:0,exitT:-1,escaped:false,forfeit:false,dmgBy:{},dmgTaken:0,dist:0,boltsGot:0,shieldT:0,gain:0,car:C,scrapRaw:0,sack:0,scrapGain:0,propsBroken:0,powerups:0,flashT:0,
-    buffs:{nitro:0,fury:0,freeze:0,bubble:0},tumbles:[],flowT:0,frame:0,leashT:1,recycled:0,revives:gl('revive'),obs:Wd.obs,props:Wd.props,zones:Wd.zones,pylons:Wd.pylons,deco:Wd.deco,
+    buffs:{nitro:0,fury:0,freeze:0,bubble:0},discs:[],trail:[],drones:[],glove:[],tumbles:[],flowT:0,frame:0,leashT:1,recycled:0,revives:gl('revive'),obs:Wd.obs,props:Wd.props,zones:Wd.zones,pylons:Wd.pylons,deco:Wd.deco,
     p:{x:ARENA/2,y:ARENA/2+200,a:-Math.PI/2,vx:0,vy:0,hp:100,maxhp:100,r:Math.max(C.len,C.wid)*.43,inv:0},
     stats:{},weapons:start,passives:Object.assign({},C.start.p),
     enemies:[],bullets:[],ebullets:[],missiles:[],mines:[],gems:[],pickups:[],parts:[],texts:[],rings:[],booms:[],barrels:Wd.barrels,decals:[],arcs:[],beams:[],shells:[],
@@ -1216,9 +1273,9 @@ function newGame(li){const L=LEVELS[li];curLevel=li;const wk=FORECAST[L.id]||rol
 
 function recalc(){const P_=G.passives,T=G.tk,s=G.stats,C=G.car;
   // bonuses from upgrades, items and the garage add up instead of multiplying, so a maxed rig is strong without being 10x
-  s.dmg=1+0.12*(P_.warhead||0)+0.1*(T.hollow||0)+0.05*gl('ammo')+0.35*(T.glass||0);s.cd=1/(1+0.087*(P_.cool||0)+0.075*(T.trigger||0)+0.031*gl('loader'));s.drop=1+0.15*gl('luck');
+  s.dmg=1+0.12*(P_.warhead||0)+0.1*(T.hollow||0)+0.05*gl('ammo')+0.35*(T.glass||0);s.cd=1/(1+0.087*(P_.cool||0)+0.075*(T.trigger||0)+0.031*gl('loader'));s.drop=(1+0.15*gl('luck'))*(1+0.15*(T.horseshoe||0));
   s.speed=(1+0.08*(P_.nitro||0))*(1+0.06*(T.turbo||0))*(1+0.03*gl('engine'))*C.speed;s.magnet=90*(1+0.35*(P_.magnet||0))*(1+0.25*(T.coil||0))*(1+0.1*gl('magnet'));
-  s.ram=(1+0.4*(P_.spikes||0))*C.ram;s.regen=0.6*(P_.repair||0)+0.5*(T.drip||0);s.taken=(1-0.04*(P_.armor||0))*Math.pow(0.94,T.heat||0);
+  s.ram=(1+0.4*(P_.spikes||0))*C.ram*(1+0.3*(T.bullbar||0));s.crit=0.06*(P_.crit||0);s.regen=0.6*(P_.repair||0)+0.5*(T.drip||0);s.taken=(1-0.04*(P_.armor||0))*Math.pow(0.94,T.heat||0);
   s.blast=1+0.15*(T.bigboom||0);s.buffMul=1+0.25*(T.battery||0);s.xpMul=(1+0.15*(P_.scrap||0))*(1+0.1*(T.lens||0));s.luck=1+0.3*(T.hubcap||0);
   s.shieldCd=P_.shield?16-2*P_.shield:0;s.thorns=12*(P_.thorns||0);
   const old=G.p.maxhp;G.p.maxhp=Math.round((C.hp+10*gl('frame')+25*(P_.armor||0)+20*(T.cage||0))*(T.glass?0.8:1));G.p.hp=Math.min(G.p.maxhp,G.p.hp+Math.max(0,G.p.maxhp-old));}
@@ -1248,7 +1305,14 @@ function showBanner(t,s){const b=$('banner');b.innerHTML=t+(s?`<small>${s}</smal
 /* ---------- combat ---------- */
 // which weapon, item or hazard is dealing damage right now (for the after-action report)
 let DSRC='other';
-function damageEnemy(e,amt,txt=true){if(e.dead)return;G.dmgBy[DSRC]=(G.dmgBy[DSRC]||0)+Math.min(amt,Math.max(0,e.hp));e.hp-=amt;e.flash=0.07;if(txt&&S.dmgNums&&amt>=1)addText(e.x,e.y-e.r,Math.round(amt),amt>=45?'#ffc21a':'#f2eef7');if(e.hp<=0)killEnemy(e)}
+function damageEnemy(e,amt,txt=true){if(e.dead)return;const T=G.tk;let crit=false;
+  if(G.stats.crit&&Math.random()<G.stats.crit){amt*=3;crit=true}
+  G.dmgBy[DSRC]=(G.dmgBy[DSRC]||0)+Math.min(amt,Math.max(0,e.hp));e.hp-=amt;e.flash=0.07;
+  // Finishing Move: a regular car left under 15% is wrecked outright (direct hits only, not burns)
+  if(T.exec&&txt&&e.hp>0&&!e.big&&!e.elite&&e.hp<e.maxhp*0.15){G.dmgBy[DSRC]+=e.hp;e.hp=0}
+  // Cryo Coolant: a direct hit can freeze the car solid
+  if(T.cryo&&txt&&e.hp>0&&Math.random()<0.04*T.cryo)e.ice=e.big?0.5:1.5;
+  if(txt&&S.dmgNums&&amt>=1)addText(e.x,e.y-e.r,Math.round(amt)+(crit?'!':''),crit?'#ff4fd8':amt>=45?'#ffc21a':'#f2eef7');if(e.hp<=0)killEnemy(e)}
 function dropBolts(x,y,n){n=Math.round(n*G.stats.luck);if(n<=0)return;const k=Math.min(n,8);for(let i=0;i<k;i++)G.gems.push({x,y,v:Math.floor(n/k)+(i<n%k?1:0),b:true,vx:rand(-1,1)*(k>1?240:40),vy:rand(-1,1)*(k>1?240:40),pull:false,sp:0})}
 function killEnemy(e){
   e.dead=true;G.kills++;boomFx(e.x,e.y,e.r*2.4);onWreckItems(e);
@@ -1265,21 +1329,23 @@ function killEnemy(e){
   if(e.type==='lboss'){G.lboss=null;G.cleared=true;explode(e.x,e.y,240,0);showBanner(G.L.boss.name+' wrecked','Track cleared · an exit portal is opening');G.clearT=G.t;G.portalT=2.5;
     const T=P.tracks[G.L.id]=Object.assign({best:0,cleared:0},P.tracks[G.L.id]);if(!T.cleared)T.cleared=Date.now();saveProfile();checkAch()}
 }
+// Crumple Zone: a hit sets off a shockwave, at most every few seconds
+function crumple(){const lv=G.passives.crumple;if(!lv||G.t<(G.crumpleAt||0))return;G.crumpleAt=G.t+Math.max(1.5,4-0.4*lv);G.rings.push({src:'crumple',x:G.p.x,y:G.p.y,r:20,max:150+15*lv,dmg:(20+12*lv)*G.stats.dmg,hit:new Set()})}
 function hurt(amt){const p=G.p,s=G.stats;if(G.exitT>=0||p.inv>0||state!=='play'||G.buffs.bubble>0)return;
   if(s.shieldCd&&G.shieldT<=0){G.shieldT=s.shieldCd;p.inv=0.4;G.rings.push({x:p.x,y:p.y,r:20,max:90,dmg:0,hit:new Set()});tone(900,0.15,'triangle',0.05,400);return}
-  p.hp-=amt*s.taken;G.dmgTaken+=amt*s.taken;p.inv=0.45;G.shake=Math.min(18,G.shake+6);G.hurtFlash=0.3;sfx('hurt');
+  p.hp-=amt*s.taken;G.dmgTaken+=amt*s.taken;p.inv=0.45;crumple();G.shake=Math.min(18,G.shake+6);G.hurtFlash=0.3;sfx('hurt');
   if(p.hp<=0){if(G.tk.tire>0){G.tk.tire--;p.hp=p.maxhp*0.5;p.inv=2;explode(p.x,p.y,180,60*s.dmg,0);showBanner('Spare tire','Back on the road');return}
     if(G.revives>0){G.revives--;p.hp=p.maxhp*0.5;p.inv=2;explode(p.x,p.y,180,60*s.dmg,0);showBanner('Second wind','Back on the road');return}p.hp=0;gameOver()}
   else if(p.hp<p.maxhp*0.1&&G.lowAt<0)G.lowAt=G.t}
 // damage over time from hazards: no i-frames, but bubble and armor still apply
-function chip(amt){const p=G.p;if(G.exitT>=0||G.buffs.bubble>0||state!=='play')return;p.hp-=amt*G.stats.taken;G.dmgTaken+=amt*G.stats.taken;G.hurtFlash=Math.max(G.hurtFlash,0.12);if(p.hp<=0){p.hp=0.01;p.inv=0;hurt(1)}else if(p.hp<p.maxhp*0.1&&G.lowAt<0)G.lowAt=G.t}
+function chip(amt){const p=G.p;if(G.tk.runflat)amt*=0.5;if(G.exitT>=0||G.buffs.bubble>0||state!=='play')return;p.hp-=amt*G.stats.taken;G.dmgTaken+=amt*G.stats.taken;G.hurtFlash=Math.max(G.hurtFlash,0.12);if(p.hp<=0){p.hp=0.01;p.inv=0;hurt(1)}else if(p.hp<p.maxhp*0.1&&G.lowAt<0)G.lowAt=G.t}
 // a rocket prefers the nearest car no other rocket is already chasing (bosses can take several)
 function missileTarget(m){let best=null,bd=900*900,any=null,ad=900*900;
   for(const e of G.enemies){if(e.dead)continue;const d=d2(m.x,m.y,e.x,e.y);if(d<ad){ad=d;any=e}if(d<bd&&(e.big||!G.missiles.some(o=>o!==m&&o.t===e))){bd=d;best=e}}return best||any}
 // nearest car the gun can actually hit: in clear line of sight, or close enough not to matter
 function nearestVisible(x,y,maxD){let best=null,bd=maxD*maxD;for(const e of G.enemies){if(e.dead)continue;const d=d2(x,y,e.x,e.y);if(d<bd&&(e.los||d<170*170)){bd=d;best=e}}return best}
 function nearestEnemy(x,y,maxD){let best=null,bd=maxD*maxD;for(const e of G.enemies){if(e.dead)continue;const d=d2(x,y,e.x,e.y);if(d<bd){bd=d;best=e}}return best}
-function addXp(v){G.xp+=v*G.stats.xpMul*(G.odStart>=0?1.5:1);while(G.xp>=G.xpNeed){G.xp-=G.xpNeed;G.level++;G.xpNeed=Math.floor(G.xpNeed*1.16+5);G.pending++;
+function addXp(v){G.xp+=v*G.stats.xpMul*(G.odStart>=0?1.5:1);while(G.xp>=G.xpNeed){G.xp-=G.xpNeed;G.level++;if(G.passives.recycle)G.p.hp=Math.min(G.p.maxhp,G.p.hp+4*G.passives.recycle);G.xpNeed=Math.floor(G.xpNeed*1.16+5);G.pending++;
     if(G.tk.dice&&Math.random()<0.15*G.tk.dice){G.pending++;toast('+1','Loaded Dice','Bonus pick')}}}
 
 /* ---------- spawning ---------- */
@@ -1376,7 +1442,7 @@ function lightning(st){const X=G.wx,p=G.p;X.flash=1;sfx('thunder');G.shake=Math.
   boomFx(st.x,st.y,60);G.decals.push({x:st.x,y:st.y,r:st.R*.6,rot:rand(0,TAU),k:'scorch'});DSRC='weather';
   for(const e of near(st.x,st.y,st.R+70,[]))if(!e.dead&&d2(e.x,e.y,st.x,st.y)<(st.R+e.r)**2)damageEnemy(e,e.big?e.maxhp*0.05:e.maxhp*0.8+40);
   for(const b of G.barrels)if(b.alive&&b.fuse<0&&d2(b.x,b.y,st.x,st.y)<(st.R+b.r)**2)b.fuse=0.05;
-  if(d2(p.x,p.y,st.x,st.y)<(st.R+p.r)**2)hurt(22*(0.7+0.3*G.L.diff))}
+  if(d2(p.x,p.y,st.x,st.y)<(st.R+p.r)**2)hurt(22*(0.7+0.3*G.L.diff)*(G.tk.runflat?0.5:1))}
 function drawWeatherWorld(vis){const X=G.wx;if(!X)return;
   for(const st of X.strikes){if(!vis(st.x,st.y,st.R))continue;const f=1-st.t/1.1,bl=Math.floor(G.t*14)%2;
     ctx.fillStyle=`rgba(170,150,255,${.12+.22*f})`;ctx.beginPath();ctx.arc(st.x,st.y,st.R*(.35+.65*f),0,TAU);ctx.fill();
@@ -1501,8 +1567,8 @@ function renderShop(){const tr=G.trader;if(!tr)return;$('scrShop').style.setProp
   $('shopTitle').textContent=tr.T.title;$('shopName').textContent=tr.T.name;$('shopBolts').textContent=G.bolts;
   const rc=restockCost();$('shopReroll').innerHTML=`Restock · <span class="nut"></span>${rc}`;$('shopReroll').disabled=G.bolts<rc;
   $('shopCards').innerHTML=tr.offers.map((o,i)=>{const d=TRINKETS[o.id],c=price(o.id),own=G.tk[o.id]||0;
-    return`<button class="card${o.sold?' sold':''}" data-i="${i}" ${o.sold||G.bolts<c?'disabled':''}><span class="num">${i+1}</span><span class="kind" style="color:${RAR[d.rar].col}">${d.shop?'Consumable':RAR[d.rar].name+' item'}</span><h3>${d.name}</h3><p>${d.desc}</p>${own?`<span class="owned">Owned ×${own}</span>`:''}<span class="price">${o.sold?'Sold':`<span class="nut"></span>${c}`}</span></button>`}).join('')}
-function buy(i){const tr=G.trader;if(!tr||state!=='shop')return;const o=tr.offers[i];if(!o||o.sold)return;const c=price(o.id);if(G.bolts<c)return;
+    const full=d.glove&&G.glove.length>=GLOVE_MAX;return`<button class="card${o.sold?' sold':''}" data-i="${i}" ${o.sold||G.bolts<c||full?'disabled':''}><span class="num">${i+1}</span><span class="kind" style="color:${RAR[d.rar].col}">${d.glove?(full?'Glovebox full':'Consumable · glovebox'):d.shop?'Consumable':RAR[d.rar].name+' item'}</span><h3>${d.name}</h3><p>${d.desc}</p>${own?`<span class="owned">Owned ×${own}</span>`:''}<span class="price">${o.sold?'Sold':`<span class="nut"></span>${c}`}</span></button>`}).join('')}
+function buy(i){const tr=G.trader;if(!tr||state!=='shop')return;const o=tr.offers[i];if(!o||o.sold)return;const c=price(o.id);if(G.bolts<c||(TRINKETS[o.id].glove&&G.glove.length>=GLOVE_MAX))return;
   G.bolts-=c;o.sold=true;G.bought++;sfx('buy');grantItem(o.id);
   renderShop();checkAch();const f=$('shopCards').querySelector('button:not(:disabled)')||$('shopLeave');f.focus()}
 const restockCost=()=>4+4*G.trader.restocks;
@@ -1557,7 +1623,8 @@ function updateEnemies(dt){
     const dx=p.x-e.x,dy=p.y-e.y,d=Math.hypot(dx,dy)||1;let target=e.spd;
     // line of sight is refreshed for a sixth of the cars each frame
     if((G.frame+e.id)%6===0)e.los=d<1100&&losClear(e.x,e.y,p.x,p.y);
-    if(!fr){
+    const fz=fr||e.ice>0;if(e.ice>0)e.ice-=dt;
+    if(!fz){
     if(e.shoots){e.scd-=dt;
       if(e.scd<=0&&d<560&&(e.los||d<170)){e.scd=rand(1.8,2.6);const a=Math.atan2(dy+p.vy*.25,dx+p.vx*.25);G.ebullets.push({x:e.x,y:e.y,vx:Math.cos(a)*340,vy:Math.sin(a)*340,life:2.5,dmg:9*(1+G.t/400)*(0.7+0.3*G.L.diff)})}}
     if(e.ab)target=bossMoves(e,dt,d,dx,dy);
@@ -1583,7 +1650,7 @@ function updateEnemies(dt){
         const kb=(e.big?0.12:1)*(140+impact*0.9);e.kx+=nx*kb;e.ky+=ny*kb;
         p.vx-=nx*impact*(e.big?0.9:0.35);p.vy-=ny*impact*(e.big?0.9:0.35);
         if(e.charge>0){p.vx-=nx*420;p.vy-=ny*420}
-        if(!fr)hurt(e.dmg*(impact>260?0.35:1)*(e.charge>0?1.6:1));
+        if(!fz)hurt(e.dmg*(impact>260?0.35:1)*(e.charge>0?1.6:1));
         if(impact>140){for(let i=0;i<10;i++){const a=Math.atan2(ny,nx)+rand(-1,1);part(p.x+nx*p.r,p.y+ny*p.r,Math.cos(a)*rand(150,420),Math.sin(a)*rand(150,420),rand(.15,.35),2,'#ffd27a','spark')}G.shake=Math.min(16,G.shake+impact/90);sfx('crash')}
       }
     }
@@ -1649,7 +1716,22 @@ function updateWeapons(dt){
       // hold fire until the beam would actually hit something
       if(!hits.length)w.cd=0.1;else{w.cd=Math.max(0.9,(lv>=3?2.2:2.8)-0.15*lv)*s.cd;for(const e of hits)damageEnemy(e,dmg);
         dirs.forEach((dir,di)=>G.beams.push({x:p.x+Math.cos(dir)*20,y:p.y+Math.sin(dir)*20,a:dir,len:lens[di],w:wid,life:0.22,max:0.22}));sfx('laser');G.shake=Math.min(16,G.shake+3)}}}
+  if(W.scatter){DSRC='scatter';const w=W.scatter,lv=w.lvl;w.cd-=wdt;const t=nearestVisible(p.x,p.y,330);
+    if(t&&w.cd<=0){w.cd=Math.max(.45,1.35-.13*lv)*s.cd;const a0=Math.atan2(t.y-p.y,t.x-p.x),n=4+lv+(lv>=5?2:0),spr=lv>=5?.75:.5;w.aim=a0;
+      for(let i=0;i<n;i++){const a=a0+(i/(n-1)-.5)*spr+rand(-.04,.04),sp=rand(780,900);G.bullets.push({x:p.x+Math.cos(a)*16,y:p.y+Math.sin(a)*16,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,dmg:(6+2.5*lv+(lv>=3?3:0))*s.dmg,life:.34,pierce:lv>=4?1:0,hit:null,src:'scatter',kb:3})}
+      noise(0.1,0.1,1800);tone(110,0.1,'square',0.05,55)}}
+  if(W.disc){const w=W.disc,lv=w.lvl;w.cd-=wdt;if(w.cd<=0){const t=nearestEnemy(p.x,p.y,420);if(t){w.cd=Math.max(.9,2.6-.22*lv)*s.cd;const n=lv>=5?3:lv>=3?2:1,a0=Math.atan2(t.y-p.y,t.x-p.x);
+      for(let i=0;i<n;i++)G.discs.push({x:p.x,y:p.y,a:a0+(i-(n-1)/2)*.45,sp:560+(lv>=2?80:0),out:true,dist:0,range:300+(lv>=2?60:0),r:lv>=4?16:12,dmg:(16+7*lv)*s.dmg,hit:new Set(),spin:0,life:4});tone(520,0.08,'triangle',0.04,900)}}}
+  if(W.trail){const w=W.trail,lv=w.lvl,bx=p.x-Math.cos(p.a)*G.car.len*.45,by=p.y-Math.sin(p.a)*G.car.len*.45;
+    // a fire patch every 18px of road behind the car, at any speed above a crawl
+    if(w.lx==null||Math.hypot(p.vx,p.vy)<40){w.lx=bx;w.ly=by}else if(d2(bx,by,w.lx,w.ly)>18*18){w.lx=bx;w.ly=by;const L=2+.4*lv+(lv>=5?.8:0);
+      G.trail.push({x:bx,y:by,r:26+(lv>=3?10:0)+3*lv,life:L,max:L,dps:(70+35*lv+(lv>=2?20:0))*s.dmg});if(G.trail.length>90)G.trail.shift()}}
+  if(W.drone){DSRC='drone';const w=W.drone,lv=w.lvl,n=lv>=5?3:lv>=3?2:1;G.drones.length=Math.min(G.drones.length,n);
+    for(let i=0;i<n;i++){const d=G.drones[i]||(G.drones[i]={x:p.x,y:p.y,cd:rand(0,.5),aim:0});const a=G.t*1.4+i*TAU/n,tx=p.x+Math.cos(a)*64,ty=p.y+Math.sin(a)*64;d.x+=(tx-d.x)*Math.min(1,6*dt);d.y+=(ty-d.y)*Math.min(1,6*dt);
+      d.cd-=wdt;if(d.cd<=0){const t=nearestVisible(d.x,d.y,520);if(t){d.cd=Math.max(.2,(lv>=2?.45:.55)-.05*lv)*s.cd;const a2=Math.atan2(t.y-d.y,t.x-d.x);d.aim=a2;
+        G.bullets.push({x:d.x,y:d.y,vx:Math.cos(a2)*900,vy:Math.sin(a2)*900,dmg:(11+4*lv+(lv>=4?6:0))*s.dmg,life:.65,pierce:lv>=5?1:0,hit:null,src:'drone'});tone(1300,0.03,'square',0.012,900)}else d.cd=.15}}}
 }
+
 
 const shotBlocked=(b,dt)=>solidAt(b.x,b.y,2)||solidAt(b.x-b.vx*dt*.5,b.y-b.vy*dt*.5,2);
 function updateProjectiles(dt){
@@ -1659,10 +1741,18 @@ function updateProjectiles(dt){
     if(shotBlocked(b,dt)){b.life=0;for(let k=0;k<(S.lowFx?1:3);k++)part(b.x,b.y,-b.vx*rand(.05,.2)+rand(-90,90),-b.vy*rand(.05,.2)+rand(-90,90),rand(.08,.16),2,'#ffe7a0','spark');continue}
     for(const br of G.barrels)if(br.alive&&br.fuse<0&&Math.abs(br.x-b.x)<20&&Math.abs(br.y-b.y)<20&&d2(b.x,b.y,br.x,br.y)<(br.r+3)**2){br.fuse=0.05;b.life=0}
     if(b.life<=0)continue;
-    for(const e of near(b.x,b.y,74)){if(e.dead||b.life<=0||(b.hit&&b.hit.includes(e)))continue;if(d2(b.x,b.y,e.x,e.y)<(e.r+4)**2){DSRC='mg';damageEnemy(e,b.dmg);(b.hit||(b.hit=[])).push(e);e.kx+=b.vx*.04;e.ky+=b.vy*.04;
+    for(const e of near(b.x,b.y,74)){if(e.dead||b.life<=0||(b.hit&&b.hit.includes(e)))continue;if(d2(b.x,b.y,e.x,e.y)<(e.r+4)**2){DSRC=b.src||'mg';damageEnemy(e,b.dmg);(b.hit||(b.hit=[])).push(e);e.kx+=b.vx*.04*(b.kb||1);e.ky+=b.vy*.04*(b.kb||1);
       for(let k=0;k<(S.lowFx?1:3);k++)part(b.x,b.y,-b.vx*rand(.1,.3)+rand(-80,80),-b.vy*rand(.1,.3)+rand(-80,80),rand(.08,.18),2,'#ffe7a0','spark');
       if(b.pierce>0)b.pierce--;else b.life=0}}}
   prune(G.bullets,b=>b.life>0);
+  // ricochet discs: out to their range (or a wall), then home back to the car, slicing everything once per leg
+  for(const d of G.discs){d.spin+=dt*20;d.life-=dt;if(d.out){d.x+=Math.cos(d.a)*d.sp*dt;d.y+=Math.sin(d.a)*d.sp*dt;d.dist+=d.sp*dt;if(d.dist>=d.range||solidAt(d.x,d.y,4)){d.out=false;d.hit.clear()}}
+    else{const dx=p.x-d.x,dy=p.y-d.y,dd=Math.hypot(dx,dy)||1;d.x+=dx/dd*d.sp*1.15*dt;d.y+=dy/dd*d.sp*1.15*dt;if(dd<24)d.life=0}
+    for(const e of near(d.x,d.y,d.r+70)){if(e.dead||d.hit.has(e))continue;if(d2(d.x,d.y,e.x,e.y)<(e.r+d.r)**2){d.hit.add(e);DSRC='disc';damageEnemy(e,d.dmg)}}}
+  prune(G.discs,d=>d.life>0);
+  // burnout trail: each car burns once per frame however many patches it's standing in
+  for(const f of G.trail){f.life-=dt;DSRC='trail';for(const e of near(f.x,f.y,f.r+60)){if(e.dead||e.trailF===G.frame)continue;if(d2(f.x,f.y,e.x,e.y)<(f.r+e.r)**2){e.trailF=G.frame;damageEnemy(e,f.dps*dt,false)}}}
+  prune(G.trail,f=>f.life>0);
   for(const m of G.missiles){m.life-=dt;if(!m.t||m.t.dead)m.t=missileTarget(m);
     if(m.t){const da=angDiff(m.a,Math.atan2(m.t.y-m.y,m.t.x-m.x));m.a+=clamp(da,-5*dt,5*dt)}
     m.v=Math.min(720,m.v+900*dt);m.x+=Math.cos(m.a)*m.v*dt;m.y+=Math.sin(m.a)*m.v*dt;
@@ -1714,6 +1804,7 @@ function update(dt){
   G.frame++;if((G.flowT-=dt)<=0){G.flowT=0.25;updateFlow()}
   if((G.leashT-=dt)<=0){G.leashT=0.5;recycleStragglers()}
   G.dist+=Math.hypot(G.p.vx,G.p.vy)*dt;DSRC='other';
+  if(G.tk.piggy&&G.t>=(G.piggyAt??20)){G.piggyAt=G.t+20;const g=Math.min(6*G.tk.piggy,Math.floor(G.bolts*0.03*G.tk.piggy));if(g>0){G.bolts+=g;G.boltsGot+=g;addText(G.p.x,G.p.y-30,'+'+g+' interest','#ffd65a')}}
   if(G.exitT>=0)pullIntoPortal(dt);else updatePlayer(dt);spawnUpdate(dt);updateTrader(dt);updateEnemies(dt);
   // cars, bosses and the trader can shove the player after it moved: settle it against walls again
   keepInArena(G.p);collideObs(G.p,G.p.r);keepInArena(G.p);
@@ -1827,6 +1918,8 @@ function draw(){
       else{const a=spin+g.x,ca=Math.cos(a)*s,sa=Math.sin(a)*s;ctx.moveTo(g.x+sa,g.y-ca);ctx.lineTo(g.x+ca*.7,g.y+sa*.7);ctx.lineTo(g.x-sa,g.y+ca);ctx.lineTo(g.x-ca*.7,g.y-sa*.7);ctx.closePath()}}
     ctx.fill()}
   for(const k of G.pickups)if(vis(k.x,k.y,30))drawPickup(k);
+  // burnout trail
+  if(G.trail.length){ctx.globalCompositeOperation='lighter';for(const f of G.trail){if(!vis(f.x,f.y,f.r))continue;const k=f.life/f.max;ctx.fillStyle=`rgba(255,${90+80*k|0},30,${.32*k})`;ctx.beginPath();ctx.arc(f.x,f.y,f.r*(.7+.3*k),0,TAU);ctx.fill()}ctx.globalCompositeOperation='source-over'}
   // mines
   for(const m of G.mines){if(!vis(m.x,m.y,12))continue;ctx.fillStyle='#2a2830';ctx.beginPath();ctx.arc(m.x,m.y,9,0,TAU);ctx.fill();ctx.strokeStyle='#55525d';ctx.lineWidth=2;ctx.stroke();ctx.fillStyle=m.arm<=0&&Math.floor(G.t*6)%2?'#ff3b2a':'#5a1a14';ctx.beginPath();ctx.arc(m.x,m.y,3,0,TAU);ctx.fill()}
   // mortar targets
@@ -1838,11 +1931,14 @@ function draw(){
   const frz=G.buffs.freeze>0;
   for(const e of G.enemies){if(!vis(e.x,e.y,e.len))continue;
     const kind=e.big?(e.type==='lboss'?'lboss':'mini')+(e.charge>0?'C':''):e.shoots?'gun':e.elite?'elite':'';
-    blitCar(carSprite(e.len,e.wid,frz?'#a8dcff':e.col,e.flash>0,kind),e.x+ox,e.y+oy,e.a)}
+    blitCar(carSprite(e.len,e.wid,frz||e.ice>0?'#a8dcff':e.col,e.flash>0,kind),e.x+ox,e.y+oy,e.a)}
   ctx.setTransform(DPR,0,0,DPR,ox*DPR,oy*DPR);
   ctx.fillStyle='rgba(0,0,0,.7)';for(const e of G.enemies)if(!e.big&&e.hp<e.maxhp&&(e.maxhp>60||e.elite)&&vis(e.x,e.y,e.len))ctx.fillRect(e.x-e.len/2,e.y-e.r-14,e.len,5);
   ctx.fillStyle='#ff3b4e';for(const e of G.enemies)if(!e.big&&e.hp<e.maxhp&&(e.maxhp>60||e.elite)&&vis(e.x,e.y,e.len))ctx.fillRect(e.x-e.len/2,e.y-e.r-14,e.len*Math.max(0,e.hp/e.maxhp),5);
   drawPlayer();
+  for(const d of G.discs){if(!vis(d.x,d.y,20))continue;ctx.save();ctx.translate(d.x,d.y);ctx.rotate(d.spin);ctx.fillStyle='#d9d6e0';ctx.beginPath();for(let i=0;i<12;i++){const a=i/12*TAU,r=i%2?d.r*.7:d.r;ctx.lineTo(Math.cos(a)*r,Math.sin(a)*r)}ctx.closePath();ctx.fill();ctx.fillStyle='#2b2930';ctx.beginPath();ctx.arc(0,0,d.r*.3,0,TAU);ctx.fill();ctx.restore()}
+  for(const d of G.drones){ctx.save();ctx.translate(d.x,d.y);ctx.fillStyle='rgba(0,0,0,.3)';ctx.beginPath();ctx.arc(4,6,8,0,TAU);ctx.fill();ctx.strokeStyle='#55525d';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(-8,-8);ctx.lineTo(8,8);ctx.moveTo(8,-8);ctx.lineTo(-8,8);ctx.stroke();
+    ctx.fillStyle='rgba(200,240,255,.35)';for(const [rx,ry] of[[-8,-8],[8,-8],[-8,8],[8,8]]){ctx.beginPath();ctx.arc(rx,ry,4.5,0,TAU);ctx.fill()}ctx.fillStyle='#2b2930';ctx.beginPath();ctx.arc(0,0,5,0,TAU);ctx.fill();ctx.fillStyle='#3fe0d0';ctx.fillRect(Math.cos(d.aim)*4-1.5,Math.sin(d.aim)*4-1.5,3,3);ctx.restore()}
   // saws
   if(G.weapons.saws&&G.weapons.saws.pos){for(const [x,y] of G.weapons.saws.pos){ctx.save();ctx.translate(x,y);ctx.rotate(G.t*18);ctx.fillStyle='#c9c6d0';ctx.beginPath();for(let i=0;i<10;i++){const a=i/10*TAU,r=i%2?9:14;ctx.lineTo(Math.cos(a)*r,Math.sin(a)*r)}ctx.closePath();ctx.fill();ctx.fillStyle='#2b2930';ctx.beginPath();ctx.arc(0,0,4,0,TAU);ctx.fill();ctx.restore()}}
   // bullets
@@ -1955,7 +2051,7 @@ let domTip=null;
 document.addEventListener('mouseover',e=>{const t=e.target.closest&&e.target.closest('[data-tip]');domTip=t&&$('hud').contains(t)?t:null});
 const statRows=rows=>`<div class="ts">${rows.map(([k,v])=>`<span>${k}</span><b>${v}</b>`).join('')}</div>`;
 const card=(title,kind,desc,rows,col,bar)=>({col,html:`<div class="tt">${esc(title)}</div><div class="tk">${esc(kind)}</div>${bar!=null?`<div class="tb"><i style="width:${(clamp(bar,0,1)*100).toFixed(1)}%"></i></div>`:''}${rows&&rows.length?statRows(rows):''}${desc?`<div class="td">${esc(desc)}</div>`:''}`});
-function enemyCard(e){const fr=G.buffs.freeze>0,st=[];if(fr)st.push('frozen');if(e.charge>0)st.push('charging');if(e.burn>0)st.push('on fire');
+function enemyCard(e){const fr=G.buffs.freeze>0||e.ice>0,st=[];if(fr)st.push('frozen');if(e.charge>0)st.push('charging');if(e.burn>0)st.push('on fire');
   let name,kind,desc;if(e.type==='lboss'){name=G.L.boss.name;kind='Level boss';desc='Wreck it to clear '+G.L.name+'. It '+Object.keys(e.ab).map(k=>ABIL[k]).join(', ')+'.'}
   else if(e.elite){name='Chrome Hunter';kind='Elite '+ENEMY_INFO[e.type][1].toLowerCase();desc='Seven times the armour of a normal '+ENEMY_INFO[e.type][0].toLowerCase()+'. Drops a supply crate and bolts.'}
   else [name,kind,desc]=ENEMY_INFO[e.type];
@@ -2026,7 +2122,7 @@ function renderLevels(){const lv=acctInfo(P.acctXp).lv;$('lvAcct').textContent='
       ${open?`<div class="meta"><span>Threat <b>×${L.diff}</b></span><span class="wx" style="--wc:${WEATHER[FORECAST[L.id]||'clear'].col}"><i></i>Forecast <b>${WEATHER[FORECAST[L.id]||'clear'].name}</b></span><span>Boss <b>${L.boss.name}</b></span><span>Best <b>${fmt(T.best||0)}</b></span></div>`
         :`<span class="lockmsg">Locked · account level ${L.req}</span>`}</div></button>`}).join('')}
 function startGame(li=curLevel){if(G&&G.live)commitRun();navStack.length=0;initAudio();newGame(li);delete FORECAST[LEVELS[li].id];P.lastLevel=li;G.live=true;P.runs++;saveProfile();
-  state='play';show(null);$('hud').hidden=false;updateLoadout();touch.active=false;last=performance.now();for(const k in hudCache)delete hudCache[k];
+  state='play';show(null);$('hud').hidden=false;updateLoadout();updateGlove();touch.active=false;last=performance.now();for(const k in hudCache)delete hudCache[k];
   startBanner();checkAch()}
 const startBanner=()=>showBanner(G.L.name,`${G.wx.k==='clear'?'':G.wx.W.name+' · '}Wreck ${G.L.minis} Juggernauts to draw out ${G.L.boss.name}`);
 function toMenu(){if(G&&G.live)commitRun();navStack.length=0;state='menu';newGame(curLevel);$('hud').hidden=true;$('tip').hidden=true;show('scrMenu');refreshMenu();$('startBtn').focus()}
@@ -2082,9 +2178,9 @@ $('lbTabs').addEventListener('click',e=>{const b=e.target.closest('.lbtab');if(!
 function lbSaveName(){const nm=lbClean($('lbName').value);if(nm.length<2){$('lbMsg').textContent='Names need at least 2 letters or numbers.';return}
   P.lbName=nm;saveProfile();$('lbName').value=nm;if(!lbOnline){$('lbMsg').textContent='Name saved on this device.';return}
   lbPost({action:'name'}).then(()=>{$('lbMsg').textContent='Name saved.';renderBoard()}).catch(e=>{$('lbMsg').textContent='Name saved on this device. '+lbErrText(e.code)})}
-$('lbSave').onclick=lbSaveName;$('rSeek').onclick=e=>{e.currentTarget.blur();initAudio();skipSong()};$('lbName').addEventListener('keydown',e=>{if(e.code==='Enter'||e.code==='NumpadEnter'){e.preventDefault();lbSaveName()}});
+$('lbSave').onclick=lbSaveName;$('glove').addEventListener('click',e=>{const b=e.target.closest('.gslot');if(b&&b.dataset.i!=null){b.blur();useGlove(+b.dataset.i)}});$('rSeek').onclick=e=>{e.currentTarget.blur();initAudio();skipSong()};$('lbName').addEventListener('keydown',e=>{if(e.code==='Enter'||e.code==='NumpadEnter'){e.preventDefault();lbSaveName()}});
 lbFlush();
-const SRCNAME={weather:'Weather',ram:'Ramming',bumpers:'Blast Bumpers',cables:'Jumper Cables',napalm:'Napalm Tank',hazard:'Hazards',barrels:'Barrels',airstrike:'Airstrikes',other:'Other'};
+const SRCNAME={glovebox:'Glovebox',shrapnel:'Shrapnel Shells',crumple:'Crumple Zone',weather:'Weather',ram:'Ramming',bumpers:'Blast Bumpers',cables:'Jumper Cables',napalm:'Napalm Tank',hazard:'Hazards',barrels:'Barrels',airstrike:'Airstrikes',other:'Other'};
 function renderReport(){const od=G.odStart>=0?(G.escaped||G.forfeit?G.t-G.odStart:0):-1,items=Object.values(G.tk).reduce((a,b)=>a+b,0);
   $('rWhere').textContent=`${G.L.name} · ${G.car.name} · ${G.wx.W.name}`;
   const note=G.escaped?`You made it through the exit portal after ${fmt(od)} of Overdrive (tier ${roman(Math.max(1,G.odTier))}). Run banked · +25% XP and scrap.`:
