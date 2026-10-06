@@ -1183,7 +1183,8 @@ function spawnEnemy(type,o={}){
   if(o.x!=null){x=o.x;y=o.y}else[x,y]=spawnPoint(d.r,.6);
   x=clamp(x,40,ARENA-40);y=clamp(y,40,ARENA-40);
   // Overdrive (after the level boss): every new car is tougher, hits harder and drives faster the longer you stay
-  const od=odHeat(),oh=od<0?1:1.5+od/45,odd=od<0?1:1.3+od/90,osp=od<0?1:1.1+Math.min(.35,od/240);
+  // (speed tops out at +30% so the fastest buggies stay a touch slower than your car)
+  const od=odHeat(),oh=od<0?1:1.5+od/45,odd=od<0?1:1.3+od/90,osp=od<0?1:1.1+Math.min(.2,od/300);
   const hm=o.hp?1:(type==='mini'||o.elite?1+G.t/75:hpScale(G.t))*L.diff*(o.hpMul||1)*oh,sc=o.scale||1,hp=o.hp||d.hp*hm;
   const e={id:eid++,type,x,y,a:Math.atan2(p.y-y,p.x-x),v:0,kx:0,ky:0,hp,maxhp:hp,r:d.r*sc,len:d.len*sc,wid:d.wid*sc,
     spd:d.spd*(o.spdMul||1)*(L.spd||1)*osp*rand(.92,1.08),turn:d.turn,dmg:d.dmg*(1+G.t/400)*(0.7+0.3*L.diff)*(o.dmgMul||1)*odd,xp:d.xp*(o.xpMul||1),col:o.col||d.col,
