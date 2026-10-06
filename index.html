@@ -2446,8 +2446,18 @@ function enemyCard(e){const fr=G.buffs.freeze>0||e.ice>0,st=[];if(fr)st.push('fr
   else if(e.elite){name='Chrome Hunter';kind='Elite '+ENEMY_INFO[e.type][1].toLowerCase();desc='Nine times the armour of a normal '+ENEMY_INFO[e.type][0].toLowerCase()+'. Runs and hides from you, and gets away '+(e.born!=null?Math.ceil(huntLeft(e))+'s from now':'after a minute')+'. Drops a supply crate and bolts.';if(e.born!=null)st.push('fleeing')}
   else [name,kind,desc]=ENEMY_INFO[e.type];
   return card(name,kind+(st.length?' · '+st.join(', '):''),desc,[['HP',`${Math.max(0,Math.ceil(e.hp)).toLocaleString()} / ${Math.ceil(e.maxhp).toLocaleString()}`],['Ram damage',Math.round(e.dmg)],['Top speed',Math.round(e.spd)],['XP',Math.round(e.xp)]],e.big||e.elite?'#ff3b4e':e.col,e.hp/e.maxhp)}
+function rcCard(m){const W=G.weapons[m.k],lv=W?W.lvl:1,d=WDEF[m.k],up=G.passives.uplink||0,mb=1+.15*up,s=G.stats,col=RC_COL[m.k],dealt=Math.round(G.dmgBy[m.k]||0).toLocaleString();
+  const kind='RC minion · level '+lv+' of 5'+(up?' · boosted':''),left=Math.max(0,m.cd),k=1-left/(m.cdMax||1);
+  if(m.k==='rc_medic')return card(d.name,kind,d.desc[0],[['Patch',Math.round((3+1.5*lv)*mb)+' HP'],['Recharge',((9-.6*lv)/(1+.087*up)).toFixed(1)+'s'],['Next patch',left>0?Math.ceil(left)+'s':p.hp<p.maxhp?'now':'ready (you\'re at full HP)'],['Healed this run',Math.round(G.rcHeal||0)+' HP']],col,left>0?k:1);
+  if(m.k==='rc_ram')return card(d.name,kind+(m.tg&&m.cd<=0?' · charging':''),d.desc[0],[['Damage per hit',Math.round((24+10*lv+(lv>=4?14:0))*mb*s.dmg)],['Rammers',rcCount('rc_ram',lv)],['Damage this run',dealt]],col);
+  if(m.k==='rc_bomb')return card(d.name,kind+' · armed',d.desc[0],[['Blast damage',Math.round((50+18*lv+(lv>=4?25:0))*mb*s.dmg)],['Blast radius',Math.round((80+12*lv+(lv>=2?15:0))*s.blast)],['Damage this run',dealt]],col);
+  if(m.k==='rc_scav')return card(d.name,kind+(m.tg?' · fetching':''),d.desc[0],[['Vacuum reach',(lv>=3?70:34)+'px'],['Next bolt dig',lv>=2?Math.ceil((20-m.dig)/(lv>=5?2:1))+'s':'from level 2']],col,lv>=2?m.dig/20:null);
+  const jammed=G.enemies.filter(e=>!e.dead&&e.jam>0&&d2(e.x,e.y,m.x,m.y)<(m.R+e.r)**2).length;
+  return card(d.name,kind+(m.jx!=null?' · jamming a pack':' · circling you'),d.desc[0],[['Field radius',Math.round(m.R||0)+'px'],['Cars jammed now',jammed],['Bullets fried',lv>=3?'yes':'from level 3'],['Damage this run',dealt]],col)}
 // what's under the cursor, top-most first
 function pickHover(wx,wy){const p=G.p,in2=(x,y,r)=>d2(wx,wy,x,y)<r*r;
+  // RC minions are small and drive among the enemies, so they're checked first
+  for(const m of G.rcs){if(m.k==='rc_bomb'&&m.st===0)continue;if(in2(m.x,m.y,16))return rcCard(m)}
   let best=null,bd=1e9;for(const e of near(wx,wy,80)){if(e.dead)continue;const q=d2(wx,wy,e.x,e.y);if(q<(e.r+8)**2&&q<bd){bd=q;best=e}}if(best)return enemyCard(best);
   for(const e of G.enemies)if(e.big&&!e.dead&&in2(e.x,e.y,e.r+8))return enemyCard(e);
   if(G.wx){for(const st of G.wx.strikes)if(in2(st.x,st.y,st.R))return card('Lightning strike','Weather hazard','Lands in a moment and wrecks everything inside the ring, you included. Get out.',[['Lands in',st.t.toFixed(1)+'s']],'#a98bff');
