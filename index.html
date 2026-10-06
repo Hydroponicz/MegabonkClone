@@ -689,7 +689,7 @@ let P=(()=>{const main=readKey(PKEY),bak=readKey(PBAK);if(!main&&bak&&bak.p&&typ
 let bakXp=(readKey(PBAK)||{p:{}}).p.acctXp??-1,cloudDirty=false;
 // permanent recovery code: the cloud backup is filed under it, and typing it into Transfer save on any device brings the progress back.
 // every profile gets one (fresh, loaded, reset or imported)
-function normProfile(){if(!new RegExp('^['+KEY_ABC+']{12}$').test(P.cloudKey||'')){const a=new Uint8Array(12);crypto.getRandomValues(a);P.cloudKey=[...a].map(x=>KEY_ABC[x%KEY_ABC.length]).join('')}P.ach=Object.assign({},P.ach);P.tracks=Object.assign({},P.tracks);P.garage=Object.assign({},P.garage);P.cars=Object.assign({interceptor:1},P.cars);if(!P.cars[P.car])P.car='interceptor';P.lbQueue=Object.assign({},P.lbQueue)}
+function normProfile(){if(!new RegExp('^['+KEY_ABC+']{12}$').test(P.cloudKey||'')){const a=new Uint8Array(12);crypto.getRandomValues(a);P.cloudKey=[...a].map(x=>KEY_ABC[x%KEY_ABC.length]).join('')}P.ach=Object.assign({},P.ach);/* Vandal was retired (30 achievements): drop it, but keep the Burnout Trail it unlocked */if(P.ach.vandal){delete P.ach.vandal;P.trailKept=1}P.tracks=Object.assign({},P.tracks);P.garage=Object.assign({},P.garage);P.cars=Object.assign({interceptor:1},P.cars);if(!P.cars[P.car])P.car='interceptor';P.lbQueue=Object.assign({},P.lbQueue)}
 if(!P.best){try{P.best=+localStorage.getItem('carnageBest')||0}catch(e){}}
 const saveSettings=()=>save('carnageSettings',S);
 function saveProfile(){save(PKEY,P);if((P.acctXp||0)>=bakXp&&save(PBAK,{at:Date.now(),p:P}))bakXp=P.acctXp||0;cloudDirty=true}
@@ -1047,7 +1047,7 @@ const WDEF={
   laser:{name:'Rail Laser',unlock:'breaker',desc:['Fires a piercing beam straight off your hood.','Wider beam.','Faster recharge.','Adds a rear beam.','Heavier beam, faster still.']},
   scatter:{name:'Scattergun',unlock:'thousand',desc:['Blasts a cone of pellets at the nearest car and shoves it back.','More pellets.','Harder-hitting pellets.','Pellets punch through one car.','A wider blast and a faster pump.']},
   disc:{name:'Ricochet Disc',unlock:'longhaul',desc:['Throws a spinning disc that slices through cars and flies back to you.','Flies faster and farther.','Throws two discs.','Bigger discs.','Throws three discs.']},
-  trail:{name:'Burnout Trail',unlock:'vandal',desc:['Your tires leave a strip of fire behind you while you drive.','Hotter flames.','Wider strip.','Burns longer.','A roaring blaze.']},
+  trail:{name:'Burnout Trail',unlock:'chain',kept:'trailKept',desc:['Your tires leave a strip of fire behind you while you drive.','Hotter flames.','Wider strip.','Burns longer.','A roaring blaze.']},
   rc_medic:{name:'Medic RC',rc:1,desc:['A little medic RC car tags along and patches you up for a few HP every 8 seconds.','Bigger patches.','Patches more often.','A second medic car joins the convoy.','Each patch also makes you untouchable for a moment.']},
   rc_ram:{name:'Rammer RC',rc:1,desc:['A souped-up RC car rams the nearest car over and over, leaving it dazed for a moment.','Harder hits.','A second rammer.','Faster, and hits harder still.','A third rammer.']},
   rc_bomb:{name:'Bomb RC',rc:1,desc:['A rigged RC car drives into the thickest crowd and blows up. A new one is built a few seconds later.','Bigger blast.','Rebuilt faster.','Heavier charge.','Two bomb cars at a time.']},
@@ -1073,7 +1073,8 @@ const PDEF={
   recycle:{name:'Scrap Recycler',unlock:'fatwallet',desc:'Every level up repairs 4 HP.'},
 };
 // car-exclusive gear (the Hydro Cannon) only ever shows up for the car that carries it
-const unlocked=d=>d.only?!!(G&&G.car===CARS[d.only]):!d.unlock||!!P.ach[d.unlock];
+// kept: a profile flag that keeps an unlock for players who earned it under an achievement that has since been retired
+const unlocked=d=>d.only?!!(G&&G.car===CARS[d.only]):!d.unlock||!!P.ach[d.unlock]||!!(d.kept&&P[d.kept]);
 const ETYPES={
   buggy:{r:13,hp:10,spd:250,turn:3.2,dmg:6,xp:1,col:'#b8c93e',len:28,wid:16},
   sedan:{r:17,hp:20,spd:178,turn:2.3,dmg:10,xp:2,col:'#4a86d9',len:36,wid:20},
@@ -1199,7 +1200,6 @@ const ACH=[
   {id:'warrior',ic:'5K',name:'Road Warrior',desc:'Wreck 5,000 cars across all runs.',k:'total',n:5000},
   {id:'vet',ic:'A10',name:'Veteran',desc:'Reach account level 10.',k:'acct',n:10},
   {id:'regular',ic:'25',name:'Repeat Offender',desc:'Start 25 runs.',k:'runs',n:25},
-  {id:'vandal',ic:'PR',name:'Vandal',desc:'Smash 100 props in a single run.',k:'props',n:100},
   {id:'powered',ic:'PU',name:'Powered Up',desc:'Grab 25 power-ups across all runs.',k:'powerups',n:25},
   {id:'tinker',ic:'G10',name:'Tinkerer',desc:'Buy 10 garage upgrades.',k:'garage',n:10},
   {id:'fleet',ic:'6V',name:'Full Fleet',desc:'Own every vehicle.',k:'cars',n:6},
@@ -1210,6 +1210,7 @@ const ACH=[
   {id:'punching',ic:'HIT',name:'Punching Bag',desc:'Take 1,000 damage in a single run.',k:'dmgTaken',n:1000},
   {id:'fatwallet',ic:'150',name:'Fat Wallet',desc:'Carry 150 bolts at once.',k:'boltsHeld',n:150},
 ];
+const achCount=p=>ACH.filter(a=>p&&p.ach&&p.ach[a.id]).length;
 const rewardOf=id=>[...Object.values(WDEF),...Object.values(PDEF)].filter(d=>d.unlock===id).map(d=>d.name).join(', ');
 const clearedCount=()=>LEVELS.filter(L=>P.tracks[L.id]&&P.tracks[L.id].cleared).length;
 // best-ever values, folding in the run in progress
@@ -2772,7 +2773,7 @@ function goBack(){const top=navStack.pop()||{id:'scrMenu',focus:null},id=top.id;
   let f=top.focus;if(f&&!f.isConnected)f=f.dataset&&f.dataset.car?$(id).querySelector(`[data-car="${f.dataset.car}"]`):null;(f||$(id).querySelector('button')).focus()}
 function fillAcct(lvId,xpId,fillId){const a=acctInfo(P.acctXp);$(lvId).textContent=a.lv;if(xpId)$(xpId).textContent=`${a.into} / ${a.need} XP`;$(fillId).style.width=(a.into/a.need*100)+'%';return a}
 function refreshMenu(){fillAcct('mAcct','mAcctXp','mAcctFill');$('restoreBtn').hidden=(P.runs||0)>0;
-  $('mBest').textContent=fmt(P.best);$('mKills').textContent=P.kills.toLocaleString();$('mClears').textContent=clearedCount()+' / '+LEVELS.length;$('mAch').textContent=Object.keys(P.ach).length+' / '+ACH.length;$('mScrap').textContent=P.scrap.toLocaleString()+' scrap'}
+  $('mBest').textContent=fmt(P.best);$('mKills').textContent=P.kills.toLocaleString();$('mClears').textContent=clearedCount()+' / '+LEVELS.length;$('mAch').textContent=achCount(P)+' / '+ACH.length;$('mScrap').textContent=P.scrap.toLocaleString()+' scrap'}
 function carCard(id,mode){const C=CARS[id],own=!!P.cars[id],sel=P.car===id,bar=(v,m)=>`<i style="width:${clamp(v/m,0,1)*100}%"></i>`;
   const gear=[...Object.keys(C.start.w).map(k=>WDEF[k].name),...Object.keys(C.start.p||{}).map(k=>PDEF[k].name)].join(' + ');
   const btn=mode==='pick'?(own?(sel?'Driving':'Drive this'):`Garage · <span class="scrapi"></span>${C.cost}`):own?(sel?'Selected':'Select'):`Buy · <span class="scrapi"></span>${C.cost}`;
@@ -2810,7 +2811,7 @@ async function parseSave(txt){const m=/^(CL[01])\.([A-Za-z0-9_-]+)$/.exec(String
   if(m[1]==='CL1'&&!window.DecompressionStream)throw new Error('browser');
   // anything cut short or mangled fails to decode: report it as a bad save, not a network problem
   let o;try{let u=b64u.dec(m[2]);if(m[1]==='CL1')u=await zipBytes(u,false);o=JSON.parse(new TextDecoder().decode(u))}catch(e){throw new Error('format')}if(!o||o.v!==1||!o.p||typeof o.p!=='object'||typeof o.p.acctXp!=='number')throw new Error('format');return o}
-const saveSummary=p=>{const cars=Object.keys(p.cars||{}).filter(k=>CARS[k]).length;return`Account level ${acctInfo(p.acctXp||0).lv} · ${(p.scrap||0).toLocaleString()} scrap · ${cars} of ${Object.keys(CARS).length} vehicles · ${Object.keys(p.ach||{}).length} of ${ACH.length} achievements · best run ${fmt(p.best||0)}`};
+const saveSummary=p=>{const cars=Object.keys(p.cars||{}).filter(k=>CARS[k]).length;return`Account level ${acctInfo(p.acctXp||0).lv} · ${(p.scrap||0).toLocaleString()} scrap · ${cars} of ${Object.keys(CARS).length} vehicles · ${achCount(p)} of ${ACH.length} achievements · best run ${fmt(p.best||0)}`};
 let xPending=null,xTimer=0;
 const xMsg=(t,cls)=>{const m=$('xMsg');m.textContent=t;m.className=cls||''};
 function renderXfer(){xPending=null;$('xConfirm').hidden=true;$('xIn').value='';$('xKey').textContent=fmtKey(P.cloudKey);renderCloud();
@@ -2957,7 +2958,7 @@ function gameOver(title){state='over';commitRun();results(title||(G.forfeit?'Run
 function updateWreck(dt){const w=G.wreck,p=G.p;if(!w)return;w.t+=dt;
   while(w.booms.length&&w.t>=w.booms[0]){w.booms.shift();boomFx(p.x+rand(-28,28),p.y+rand(-22,22),rand(70,125))}
   if(Math.random()<.6){part(p.x+rand(-14,14),p.y+rand(-10,10),rand(-25,25),rand(-70,-20),rand(.35,.7),rand(6,13),null,'fire');part(p.x+rand(-8,8),p.y,rand(-15,15),rand(-55,-20),rand(1,1.9),rand(10,18),null,'smoke')}}
-function renderAch(){const r=rec(),n=Object.keys(P.ach).length;
+function renderAch(){const r=rec(),n=achCount(P);
   $('achCount').textContent=`${n} of ${ACH.length} unlocked`;$('achFill').style.width=(n/ACH.length*100)+'%';
   const val=(a,v)=>a.time?fmt(v):Math.floor(v).toLocaleString();
   $('achGrid').innerHTML=ACH.map(a=>{const on=P.ach[a.id],v=Math.min(r[a.k],a.n),rw=rewardOf(a.id);
