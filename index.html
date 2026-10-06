@@ -493,6 +493,7 @@ body.nocursor,body.nocursor *{cursor:none!important}
     <div class="keys">
       <div class="key"><b>Chrome hunters</b><span>A shiny loot car shows up now and then. It runs and hides, and gets away after a minute. Follow the silver arrow and the live camera in the corner, and wreck it for a supply crate and bolts.</span></div>
       <div class="key"><b>Juggernauts</b><span>A mini boss rolls in every 3 minutes. Wreck enough of them and the level boss comes for you.</span></div>
+      <div class="key"><b>RC minions</b><span>Some level-ups are little remote-control cars with antennas. They take a weapon slot and work on their own: Medic patches you up, Rammer rams cars, Bomb drives into crowds and blows up, Scavenger fetches scrap and digs up bolts, Jammer slows cars and stops gunners firing. Signal Booster makes them all stronger.</span></div>
       <div class="key"><b>Weather</b><span>Every run rolls its own weather, shown as the forecast on the track card. Rain and snow cost grip, blizzards shove you around, thunderstorms drop marked lightning strikes, and dust storms send tornadoes across the track.</span></div>
       <div class="key"><b>Exit portal</b><span>Beat the level boss and a portal opens in a far corner. Drive in to end the run and bank it. Stay longer and Overdrive kicks in: tougher, faster cars every 40 seconds. Get wrecked before you escape and the run doesn't count.</span></div>
       <div class="key"><b>Traders</b><span>From about 2:00, a trader truck parks nearby every couple of minutes. Follow the light beam or the HUD arrow, drive into its ring and press F to buy items with bolts.</span></div>
@@ -908,6 +909,11 @@ const WDEF={
   scatter:{name:'Scattergun',unlock:'thousand',desc:['Blasts a cone of pellets at the nearest car and shoves it back.','More pellets.','Harder-hitting pellets.','Pellets punch through one car.','A wider blast and a faster pump.']},
   disc:{name:'Ricochet Disc',unlock:'longhaul',desc:['Throws a spinning disc that slices through cars and flies back to you.','Flies faster and farther.','Throws two discs.','Bigger discs.','Throws three discs.']},
   trail:{name:'Burnout Trail',unlock:'vandal',desc:['Your tires leave a strip of fire behind you while you drive.','Hotter flames.','Wider strip.','Burns longer.','A roaring blaze.']},
+  rc_medic:{name:'Medic RC',rc:1,desc:['A little medic RC car tags along and patches you up for a few HP every 8 seconds.','Bigger patches.','Patches more often.','A second medic car joins the convoy.','Each patch also makes you untouchable for a moment.']},
+  rc_ram:{name:'Rammer RC',rc:1,desc:['A souped-up RC car rams the nearest car over and over, leaving it dazed for a moment.','Harder hits.','A second rammer.','Faster, and hits harder still.','A third rammer.']},
+  rc_bomb:{name:'Bomb RC',rc:1,desc:['A rigged RC car drives into the thickest crowd and blows up. A new one is built a few seconds later.','Bigger blast.','Rebuilt faster.','Heavier charge.','Two bomb cars at a time.']},
+  rc_scav:{name:'Scavenger RC',rc:1,desc:['A scavenger RC car hoovers up scrap and bolts lying around and sends them your way.','Drives faster, and digs up a few bolts now and then.','Wider vacuum.','A second scavenger.','Digs up bolts twice as often.']},
+  rc_jam:{name:'Jammer RC',rc:1,desc:['A jammer RC car circles you, scrambling every car in its field: they slow down and gunners can\'t fire.','Bigger field.','Fries enemy bullets that fly into the field.','The field burns cars inside it.','A second jammer.']},
   hydro:{name:'Hydro Cannon',only:'hydro',desc:['Roof cannon blasts the nearest car with a high-pressure jet, shoving it back and soaking it (soaked cars slow down).','Longer, harder-hitting jet.','A second jet locks on to another car.','Soaked cars take 25% more damage from everything.','Every 5 seconds a tidal wave bursts out around the van.']},
   drone:{name:'Attack Drone',unlock:'escapee',desc:['A drone circles your car and shoots the nearest car.','Faster fire.','A second drone.','Harder-hitting rounds.','A third drone, and rounds punch through.']},
 };
@@ -923,6 +929,7 @@ const PDEF={
   shield:{name:'Bumper Shield',unlock:'fumes',desc:'Blocks one hit, then recharges. Faster recharge per level.'},
   thorns:{name:'Razor Wire',unlock:'ram',desc:'Cars that hit you take damage back.'},
   crit:{name:'Lucky Lug Nuts',unlock:'stocked',desc:'+6% chance for any hit to deal triple damage.'},
+  uplink:{name:'Signal Booster',rcOnly:1,desc:'RC minions hit and heal 15% harder, drive 10% faster and recharge 8% faster per level.'},
   crumple:{name:'Crumple Zone',unlock:'punching',desc:'Taking a hit sets off a shockwave that hurts and shoves nearby cars. Bigger and more often per level.'},
   recycle:{name:'Scrap Recycler',unlock:'fatwallet',desc:'Every level up repairs 4 HP.'},
 };
@@ -1444,6 +1451,7 @@ function drawRig(x,y,a,C,W,Pa,blink,t,flameOn){const len=C.len,wid=C.wid,st=C.st
     if(lv('trail')){ctx.fillStyle='#55525d';ctx.fillRect(-len/2-5,wid*.16,6,4);ctx.fillRect(-len/2-5,-wid*.16-4,6,4);if(Math.random()<.7){ctx.fillStyle='#ff7a1f';ctx.fillRect(-len/2-9-Math.random()*4,wid*.16,4,4);ctx.fillRect(-len/2-9-Math.random()*4,-wid*.16-4,4,4)}}
     if(lv('hydro')){ctx.fillStyle='#9fb8cc';rr(-len*.42,-wid*.3,len*.5,wid*.6,wid*.3);ctx.fill();ctx.fillStyle='#5f7a90';for(const xx of[-.32,-.16,0])ctx.fillRect(len*xx,-wid*.3,2,wid*.6);
       ctx.save();ctx.translate(len*.16,0);ctx.rotate((W.hydro.aim??a)-a);ctx.fillStyle='#2b2930';ctx.beginPath();ctx.arc(0,0,6,0,TAU);ctx.fill();ctx.fillStyle='#8f8a9c';ctx.fillRect(0,-2.5,15+lv('hydro'),5);ctx.fillStyle='#6fd0ff';ctx.fillRect(13+lv('hydro'),-2,3,4);ctx.restore()}
+    if(lv('rc_medic')||lv('rc_ram')||lv('rc_bomb')||lv('rc_scav')||lv('rc_jam')){ctx.strokeStyle='#d9d6e0';ctx.lineWidth=1.3;ctx.beginPath();ctx.moveTo(-len*.36,wid*.3);ctx.lineTo(-len*.5-9,wid*.3+3);ctx.stroke();ctx.fillStyle='#ff3b4e';ctx.beginPath();ctx.arc(-len*.5-9,wid*.3+3,2,0,TAU);ctx.fill()}
     if(lv('drone')){ctx.strokeStyle='#3fe0d0';ctx.lineWidth=1.5;ctx.strokeRect(-len*.34,wid*.04,9,9)}
     if(pv('crit')){ctx.fillStyle='#ffd65a';for(const [xx,yy] of[[len*.3,-wid/2+1],[len*.3,wid/2-3],[-len*.3,-wid/2+1],[-len*.3,wid/2-3]])ctx.fillRect(xx-1.5,yy,3,2)}
     if(pv('crumple')){ctx.fillStyle='#ffc21a';for(let i=0;i<3;i++)ctx.fillRect(len/2-5,-wid/2+3+i*(wid-6)/3,3,(wid-6)/6)}
@@ -1464,7 +1472,7 @@ function newGame(li){const L=LEVELS[li];curLevel=li;const wk=FORECAST[L.id]||rol
     miniKills:0,minisSpawned:0,eliteKills:0,ramKills:0,barrelBooms:0,lowAt:-1,newAch:[],achT:0,
     bolts:0,tk:{},bought:0,trader:null,lastTrader:-1,near:false,nextTrader:100+rand(0,40),
     bossDue:-1,lboss:null,mini:null,cleared:false,clearT:-1,portalT:-1,portal:null,odStart:-1,odTier:0,exitT:-1,escaped:false,forfeit:false,dmgBy:{},dmgTaken:0,dist:0,boltsGot:0,shieldT:0,gain:0,car:C,scrapRaw:0,sack:0,scrapGain:0,propsBroken:0,powerups:0,flashT:0,
-    buffs:{nitro:0,fury:0,freeze:0,bubble:0},discs:[],trail:[],drones:[],glove:[],tumbles:[],flowT:0,frame:0,leashT:1,recycled:0,revives:gl('revive'),obs:Wd.obs,props:Wd.props,zones:Wd.zones,pylons:Wd.pylons,deco:Wd.deco,
+    buffs:{nitro:0,fury:0,freeze:0,bubble:0},discs:[],trail:[],drones:[],rcs:[],rcfx:[],glove:[],tumbles:[],flowT:0,frame:0,leashT:1,recycled:0,revives:gl('revive'),obs:Wd.obs,props:Wd.props,zones:Wd.zones,pylons:Wd.pylons,deco:Wd.deco,
     p:{x:ARENA/2,y:ARENA/2+200,a:-Math.PI/2,vx:0,vy:0,hp:100,maxhp:100,r:Math.max(C.len,C.wid)*.43,inv:0},
     stats:{},weapons:start,passives:Object.assign({},C.start.p),
     enemies:[],bullets:[],ebullets:[],missiles:[],mines:[],gems:[],pickups:[],parts:[],texts:[],rings:[],booms:[],barrels:Wd.barrels,decals:[],arcs:[],beams:[],shells:[],
@@ -1687,6 +1695,63 @@ function updateWeatherSound(){if(!AC||!master)return;const X=G&&G.wx,W=X&&X.W,on
   if(on){wxAmb.f.type=W.wind||W.dust?'bandpass':'highpass';wxAmb.f.frequency.setTargetAtTime(W.wind||W.dust?380+300*X.gust:W.snow?3000:1600,AC.currentTime,.3);wxAmb.f.Q.value=W.wind||W.dust?1.2:.5}}
 
 
+/* ---------- RC minions: tiny remote-control cars with antennas, each with its own job ---------- */
+const RC_COL={rc_medic:'#5cf08a',rc_ram:'#ff5a3a',rc_bomb:'#ffc21a',rc_scav:'#c9a46a',rc_jam:'#b07aff'};
+const rcCount=(k,lv)=>k==='rc_medic'?(lv>=4?2:1):k==='rc_ram'?[0,1,1,2,2,3][lv]:k==='rc_bomb'?(lv>=5?2:1):k==='rc_scav'?(lv>=4?2:1):(lv>=5?2:1);
+function rcDrive(m,tx,ty,spd,dt,charge){const dx=tx-m.x,dy=ty-m.y,d=Math.hypot(dx,dy);
+  if(d>4){const tr=charge?(d<90?40:16):10;m.a+=clamp(angDiff(m.a,Math.atan2(dy,dx)),-tr*dt,tr*dt)}const tgt=charge?spd:d<10?0:Math.min(spd,d*6);m.v+=(tgt-m.v)*Math.min(1,7*dt);
+  m.x+=Math.cos(m.a)*m.v*dt;m.y+=Math.sin(m.a)*m.v*dt;collideObs(m,7);m.x=clamp(m.x,20,ARENA-20);m.y=clamp(m.y,20,ARENA-20);return d}
+function rcFx(x1,y1,x2,y2,col){G.rcfx.push({x1,y1,x2,y2,col,life:.3})}
+function updateRC(dt,wdt){const p=G.p,s=G.stats,W=G.weapons,up=G.passives.uplink||0,mb=1+.15*up,ms=1+.1*up,mc=1/(1+.087*up);
+  // keep the right number of each kind on the road
+  for(const k in RC_COL){const n=W[k]?rcCount(k,W[k].lvl):0,have=G.rcs.filter(m=>m.k===k);
+    for(let i=have.length;i<n;i++)G.rcs.push({k,x:p.x+rand(-30,30),y:p.y+rand(-30,30),a:p.a,v:0,cd:rand(.5,2),st:0,tg:null,t:0,dig:0,sway:rand(0,TAU)});
+    if(have.length>n){let extra=have.length-n;prune(G.rcs,m=>!(m.k===k&&extra-->0))}}
+  const N=G.rcs.length,psp=Math.hypot(p.vx,p.vy),follow=Math.max(340,psp*1.25)*ms;
+  G.rcs.forEach((m,j)=>{const lv=W[m.k].lvl,sa=G.t*.7+j/N*TAU,hx=p.x+Math.cos(sa)*(62+N*4),hy=p.y+Math.sin(sa)*(62+N*4);m.sway+=dt*(4+m.v/60);
+    // left behind or stuck somewhere: hop back to the convoy
+    if(d2(m.x,m.y,p.x,p.y)>900*900){m.x=p.x-Math.cos(p.a)*30;m.y=p.y-Math.sin(p.a)*30;m.v=0;m.tg=null;if(m.k==='rc_bomb')m.st=0}
+    if(m.k==='rc_medic'){rcDrive(m,hx,hy,follow,dt);m.cd-=wdt;
+      if(m.cd<=0&&p.hp<p.maxhp){const h=Math.round((3+1.5*lv)*mb*10)/10;p.hp=Math.min(p.maxhp,p.hp+h);m.cd=(9-.6*lv)*mc;if(lv>=5)p.inv=Math.max(p.inv,1.2);
+        rcFx(m.x,m.y,p.x,p.y,'92,240,138');addText(p.x,p.y-30,'+'+Math.round(h)+' HP','#5cf08a');tone(880,.12,'triangle',.04,1320);G.rcHeal=(G.rcHeal||0)+h}}
+    else if(m.k==='rc_ram'){DSRC='rc_ram';m.cd-=wdt;
+      if(m.cd>0||!m.tg||m.tg.dead||d2(m.tg.x,m.tg.y,p.x,p.y)>520*520||(m.t+=dt)>3){if(m.cd<=0){m.t=0;m.tg=null;let bd=420*420;
+          for(const e of near(p.x,p.y,490)){if(e.dead||G.rcs.some(o=>o!==m&&o.tg===e))continue;const q=d2(e.x,e.y,p.x,p.y);if(q<bd){bd=q;m.tg=e}}}
+        // after a hit it skids back and brakes, then picks the next car from where it is
+        if(m.cd>0){m.v*=Math.exp(-5*dt);m.x+=Math.cos(m.a)*m.v*dt;m.y+=Math.sin(m.a)*m.v*dt;collideObs(m,7)}else if(!m.tg)rcDrive(m,hx,hy,follow,dt)}
+      if(m.tg&&m.cd<=0){const e=m.tg;rcDrive(m,e.x,e.y,(lv>=4?640:540)*ms,dt,1);
+        if(d2(m.x,m.y,e.x,e.y)<(e.r+12)**2){const dx=e.x-m.x,dy=e.y-m.y,dd=Math.hypot(dx,dy)||1;damageEnemy(e,(24+10*lv+(lv>=4?14:0))*mb*s.dmg);if(!e.big){e.kx+=dx/dd*320;e.ky+=dy/dd*320;e.ice=Math.max(e.ice||0,.5)}
+          for(let i=0;i<5;i++)part(m.x,m.y,rand(-220,220),rand(-220,220),rand(.1,.25),2,'#ffe7a0','spark');sfx('crash');m.a+=Math.PI+rand(-.6,.6);m.v=220;m.cd=(.5-.03*lv)*mc*s.cd;m.tg=null}}}
+    else if(m.k==='rc_bomb'){DSRC='rc_bomb';
+      if(m.st===0){m.cd-=wdt;m.x=p.x;m.y=p.y;m.a=p.a;m.v=0;if(m.cd<=0&&G.enemies.length){m.st=1;m.t=0;m.tg=null}}
+      else{m.t+=dt;if(!m.tg||m.tg.dead){const pool=near(p.x,p.y,560).filter(e=>!e.dead);let bn=-1;for(let k=0;k<6&&pool.length;k++){const c=pool[Math.floor(Math.random()*pool.length)],cnt=near(c.x,c.y,90).length;if(cnt>bn){bn=cnt;m.tg=c}}}
+        if(m.tg)rcDrive(m,m.tg.x,m.tg.y,500*ms,dt,1);else rcDrive(m,hx,hy,follow,dt);
+        let boom=m.t>4.5;if(!boom)for(const e of near(m.x,m.y,80))if(!e.dead&&d2(m.x,m.y,e.x,e.y)<(e.r+10)**2){boom=true;break}
+        if(boom){explode(m.x,m.y,(80+12*lv+(lv>=2?15:0))*s.blast,(50+18*lv+(lv>=4?25:0))*mb*s.dmg,0);boomFx(m.x,m.y,70);m.st=0;m.tg=null;m.cd=Math.max(2,(lv>=3?5:6.5)-.3*lv)*mc*s.cd}}}
+    else if(m.k==='rc_scav'){const vac=lv>=3?70:34;m.cd-=dt;
+      if(m.cd<=0||!m.tg||m.tg.got||m.tg.pull){m.cd=.3;m.tg=null;let bd=650*650;for(const g of G.gems){if(g.pull||G.rcs.some(o=>o!==m&&o.tg===g))continue;const q=d2(g.x,g.y,p.x,p.y);if(q<bd){bd=q;m.tg=g}}}
+      if(m.tg)rcDrive(m,m.tg.x,m.tg.y,(lv>=2?520:430)*ms,dt);else rcDrive(m,hx,hy,follow,dt);
+      for(const g of G.gems)if(!g.pull&&Math.abs(g.x-m.x)<vac&&Math.abs(g.y-m.y)<vac){g.pull=true;if(Math.random()<.3)part(g.x,g.y,0,0,.25,4,'#c9a46a','spark')}
+      if(lv>=2){m.dig+=dt*(lv>=5?2:1);if(m.dig>=20){m.dig=0;dropBolts(m.x,m.y,3+lv);for(let i=0;i<8;i++)part(m.x,m.y,rand(-120,120),rand(-120,120),rand(.3,.6),rand(3,6),'#8a7350','debris');tone(300,.1,'square',.04,600)}}}
+    else if(m.k==='rc_jam'){const R=110+18*lv;rcDrive(m,p.x+Math.cos(G.t*1.1+j)*120,p.y+Math.sin(G.t*1.1+j)*120,follow,dt);m.R=R;
+      for(const e of near(m.x,m.y,R+60)){if(e.dead||d2(e.x,e.y,m.x,m.y)>(R+e.r)**2)continue;e.jam=.3;if(lv>=4){DSRC='rc_jam';damageEnemy(e,10*mb*s.dmg*dt,false)}}
+      if(lv>=3)for(const b of G.ebullets)if(b.life>0&&d2(b.x,b.y,m.x,m.y)<R*R){b.life=0;for(let i=0;i<3;i++)part(b.x,b.y,rand(-90,90),rand(-90,90),.15,2,'#b07aff','spark')}}
+  });
+  for(const f of G.rcfx)f.life-=dt;prune(G.rcfx,f=>f.life>0)}
+function drawRC(vis){
+  for(const m of G.rcs){if(m.k==='rc_jam'&&m.R){ctx.strokeStyle=`rgba(176,122,255,${.18+.08*Math.sin(G.t*6)})`;ctx.lineWidth=2;ctx.setLineDash([6,8]);ctx.beginPath();ctx.arc(m.x,m.y,m.R,0,TAU);ctx.stroke();ctx.setLineDash([])}}
+  for(const f of G.rcfx){ctx.strokeStyle=`rgba(${f.col},${f.life/.3})`;ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(f.x1,f.y1);ctx.lineTo(f.x2,f.y2);ctx.stroke()}
+  for(const m of G.rcs){if(m.k==='rc_bomb'&&m.st===0)continue;if(!vis(m.x,m.y,30))continue;const col=RC_COL[m.k],L=21,Wd=12;
+    drawCar(m.x,m.y,m.a,L,Wd,col,false,()=>{
+      if(m.k==='rc_medic'){ctx.fillStyle='#fff';ctx.fillRect(-3,-1,6,2);ctx.fillRect(-1,-3,2,6)}
+      else if(m.k==='rc_ram'){ctx.fillStyle='#c9c6d0';ctx.fillRect(L/2-1,-Wd/2-1,3,Wd+2)}
+      else if(m.k==='rc_bomb'){ctx.fillStyle='#141318';ctx.beginPath();ctx.arc(-1,0,3.2,0,TAU);ctx.fill();ctx.fillStyle=Math.sin(G.t*14)>0?'#ff3b2a':'#5a1a1a';ctx.fillRect(-2,-1,2,2)}
+      else if(m.k==='rc_scav'){ctx.fillStyle='#55525d';ctx.fillRect(L/2-1,-Wd/2,4,Wd)}
+      else{ctx.strokeStyle='#e8d8ff';ctx.lineWidth=1;ctx.beginPath();ctx.arc(-1,0,3,0,TAU);ctx.stroke()}
+      // the antenna: a whip off the back corner with a coloured tip, swaying as it drives
+      const sw=Math.sin(m.sway)*3.5,bx=-L*.32,by=-Wd*.28,tx=bx-11,ty=by-4+sw;ctx.strokeStyle='#d9d6e0';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(bx,by);ctx.quadraticCurveTo(bx-6,by-1+sw*.4,tx,ty);ctx.stroke();
+      ctx.fillStyle=col;ctx.beginPath();ctx.arc(tx,ty,2.3,0,TAU);ctx.fill()})}}
+
 /* ---------- chrome hunters: loot piñatas that run, hide, and get away after a minute ---------- */
 const HUNT_LIFE=60;
 function spawnHunter(){const e=spawnEnemy(Math.random()<.5?'truck':'sedan',{elite:true,hpMul:9,scale:1.3,xpMul:5,col:'#e8e4ee',spdMul:1.1});e.born=G.t;e.want=Math.atan2(e.y-G.p.y,e.x-G.p.x);
@@ -1880,13 +1945,14 @@ function updateEnemies(dt){
     if((G.frame+e.id)%6===0)e.los=d<1100&&losClear(e.x,e.y,p.x,p.y);
     const fz=fr||e.ice>0;if(e.ice>0)e.ice-=dt;
     if(!fz){
-    if(e.shoots){e.scd-=dt;
+    if(e.shoots&&!(e.jam>0)){e.scd-=dt;
       if(e.scd<=0&&d<560&&(e.los||d<170)){e.scd=rand(1.8,2.6);const a=Math.atan2(dy+p.vy*.25,dx+p.vx*.25);G.ebullets.push({x:e.x,y:e.y,vx:Math.cos(a)*340,vy:Math.sin(a)*340,life:2.5,dmg:9*(1+G.t/400)*(0.7+0.3*G.L.diff)})}}
     if(e.ab)target=bossMoves(e,dt,d,dx,dy);
     let want;[want,target]=shamble(e,dt,d,dx,dy,target);if(e.orbit)target=e.spd*.65;
     const da=angDiff(e.a,want),turn=e.charge>0?0.3:e.turn;
     e.a+=clamp(da,-turn*dt,turn*dt);
     if(!e.orbit)target*=0.45+0.55*Math.max(0,Math.cos(da));
+    if(e.jam>0){e.jam-=dt;target*=e.big?.85:.6}
     if(e.wet>0){e.wet-=dt;target*=e.big?.85:.7;if(Math.random()<dt*5)part(e.x+rand(-e.r,e.r)*.7,e.y+rand(-e.r,e.r)*.7,0,0,.35,2.5,'#8fd4ff','spark')}
     e.v+=(target-e.v)*Math.min(1,2.2*dt);
     }else e.v*=Math.exp(-6*dt);
@@ -1993,6 +2059,7 @@ function updateWeapons(dt){
     for(const b of G.barrels)if(b.alive&&b.fuse<0&&cand.length&&d2(b.x,b.y,cand[0].x,cand[0].y)<(b.r+20)**2)b.fuse=0.3;
     if(cand.length&&(w.snd=(w.snd||0)-dt)<=0){w.snd=.13;noise(.16,.03,2800)}
     if(lv>=5){w.wave=(w.wave??5)-wdt;if(w.wave<=0&&nearestEnemy(p.x,p.y,300)){w.wave=5*s.cd;G.rings.push({src:'hydro',x:p.x,y:p.y,r:20,max:320,dmg:50*s.dmg,hit:new Set(),col:'90,180,255',soak:1});noise(.6,.12,900);tone(160,.5,'sine',.08,60)}}}
+  updateRC(dt,wdt);
   if(W.drone){DSRC='drone';const w=W.drone,lv=w.lvl,n=lv>=5?3:lv>=3?2:1;G.drones.length=Math.min(G.drones.length,n);
     for(let i=0;i<n;i++){const d=G.drones[i]||(G.drones[i]={x:p.x,y:p.y,cd:rand(0,.5),aim:0});const a=G.t*1.4+i*TAU/n,tx=p.x+Math.cos(a)*64,ty=p.y+Math.sin(a)*64;d.x+=(tx-d.x)*Math.min(1,6*dt);d.y+=(ty-d.y)*Math.min(1,6*dt);
       d.cd-=wdt;if(d.cd<=0){const t=nearestVisible(d.x,d.y,520);if(t){d.cd=Math.max(.2,(lv>=2?.45:.55)-.05*lv)*s.cd;const a2=Math.atan2(t.y-d.y,t.x-d.x);d.aim=a2;
@@ -2207,6 +2274,7 @@ function draw(){
   ctx.fillStyle='#ff3b4e';for(const e of G.enemies)if(!e.big&&e.hp<e.maxhp&&(e.maxhp>60||e.elite)&&vis(e.x,e.y,e.len))ctx.fillRect(e.x-e.len/2,e.y-e.r-14,e.len*Math.max(0,e.hp/e.maxhp),5);
   drawPlayer();
   for(const d of G.discs){if(!vis(d.x,d.y,20))continue;ctx.save();ctx.translate(d.x,d.y);ctx.rotate(d.spin);ctx.fillStyle='#d9d6e0';ctx.beginPath();for(let i=0;i<12;i++){const a=i/12*TAU,r=i%2?d.r*.7:d.r;ctx.lineTo(Math.cos(a)*r,Math.sin(a)*r)}ctx.closePath();ctx.fill();ctx.fillStyle='#2b2930';ctx.beginPath();ctx.arc(0,0,d.r*.3,0,TAU);ctx.fill();ctx.restore()}
+  drawRC(vis);
   for(const d of G.drones){ctx.save();ctx.translate(d.x,d.y);ctx.fillStyle='rgba(0,0,0,.3)';ctx.beginPath();ctx.arc(4,6,8,0,TAU);ctx.fill();ctx.strokeStyle='#55525d';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(-8,-8);ctx.lineTo(8,8);ctx.moveTo(8,-8);ctx.lineTo(-8,8);ctx.stroke();
     ctx.fillStyle='rgba(200,240,255,.35)';for(const [rx,ry] of[[-8,-8],[8,-8],[-8,8],[8,8]]){ctx.beginPath();ctx.arc(rx,ry,4.5,0,TAU);ctx.fill()}ctx.fillStyle='#2b2930';ctx.beginPath();ctx.arc(0,0,5,0,TAU);ctx.fill();ctx.fillStyle='#3fe0d0';ctx.fillRect(Math.cos(d.aim)*4-1.5,Math.sin(d.aim)*4-1.5,3,3);ctx.restore()}
   // saws
@@ -2514,7 +2582,7 @@ let resetArm=0;
 function buildChoices(){
   const pool=[],nW=Object.keys(G.weapons).length,nP=Object.keys(G.passives).length;
   for(const k in WDEF){if(!unlocked(WDEF[k])&&!G.weapons[k])continue;const l=G.weapons[k]?G.weapons[k].lvl:0;if(l>=5)continue;if(!l&&nW>=slotsW())continue;pool.push({kind:'w',k,next:l+1})}
-  for(const k in PDEF){if(!unlocked(PDEF[k])&&!G.passives[k])continue;const l=G.passives[k]||0;if(l>=5)continue;if(!l&&nP>=slotsP())continue;pool.push({kind:'p',k,next:l+1})}
+  for(const k in PDEF){if(!unlocked(PDEF[k])&&!G.passives[k])continue;if(PDEF[k].rcOnly&&!G.passives[k]&&!Object.keys(G.weapons).some(w=>WDEF[w].rc))continue;const l=G.passives[k]||0;if(l>=5)continue;if(!l&&nP>=slotsP())continue;pool.push({kind:'p',k,next:l+1})}
   shuffle(pool);const out=pool.slice(0,3),canRoll=rollPool().length>0;
   // nothing left to bolt on and nothing left to roll: no screen at all (see maxedOut)
   if(!out.length&&!canRoll)return out;
@@ -2537,7 +2605,7 @@ function renderLevelup(){
   $('cards').innerHTML=choices.map((c,i)=>{
     if(c.kind==='heal')return`<button class="card" id="choice${i}" data-i="${i}"><span class="num">${i+1}</span><span class="kind">Pit stop</span><h3>Full patch-up</h3><p>Repair 50 HP. Your rig is maxed out.</p></button>`;
     if(c.kind==='roll')return`<button class="card roll" id="choice${i}" data-i="${i}"><span class="num">${i+1}</span><span class="kind">Skip · Trader's Roll</span><h3>Roll an item</h3><p>Skip the bolt-on and take a random item from the traders' stock instead.</p><span class="odds"><b style="color:${RAR.common.col}">Common 60%</b> · <b style="color:${RAR.rare.col}">Rare 30%</b> · <b style="color:${RAR.epic.col}">Epic 10%</b></span></button>`;
-    const d=c.kind==='w'?WDEF[c.k]:PDEF[c.k];const kind=c.kind==='w'?(c.next===1?'New weapon':'Weapon · Lv '+c.next):(c.next===1?'New upgrade':'Upgrade · Lv '+c.next);
+    const d=c.kind==='w'?WDEF[c.k]:PDEF[c.k];const kind=c.kind==='w'?(WDEF[c.k].rc?(c.next===1?'New minion':'Minion · Lv '+c.next):c.next===1?'New weapon':'Weapon · Lv '+c.next):(c.next===1?'New upgrade':'Upgrade · Lv '+c.next);
     const desc=c.kind==='w'?d.desc[c.next-1]:d.desc;
     return`<button class="card ${c.kind}" id="choice${i}" data-i="${i}"><span class="num">${i+1}</span><span class="kind">${kind}${d.unlock?' · Unlocked':''}</span><h3>${d.name}</h3><p>${desc}</p></button>`}).join('');
   const rc=rerollCost(),rb=$('lvReroll');rb.innerHTML=rc?`Reroll · <span class="nut"></span>${rc} <kbd>R</kbd>`:`Reroll · free <kbd>R</kbd>`;rb.disabled=G.bolts<rc;
