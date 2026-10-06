@@ -430,6 +430,8 @@ body.nocursor,body.nocursor *{cursor:none!important}
       <div class="set-row"><label for="volRange"><b>Volume</b><span class="d">Master level for every sound effect</span></label><div class="range"><input type="range" id="volRange" min="0" max="100" step="5"><output id="volOut" for="volRange">80%</output></div></div>
       <div class="set-row"><div><b>Music</b><span class="d">Synthesized chiptune soundtrack</span></div><button class="switch" role="switch" data-set="music" aria-label="Music"></button></div>
       <div class="set-row"><label for="musRange"><b>Music volume</b><span class="d">Level of the soundtrack</span></label><div class="range"><input type="range" id="musRange" min="0" max="100" step="5"><output id="musOut" for="musRange">60%</output></div></div>
+      <div class="set-row"><label for="wxRange"><b>Weather effects</b><span class="d">Thunder and lightning strikes</span></label><div class="range"><input type="range" id="wxRange" min="0" max="100" step="5"><output id="wxOut" for="wxRange">100%</output></div></div>
+      <div class="set-row"><label for="ambRange"><b>Ambient noise</b><span class="d">Rain, wind and dust in the background</span></label><div class="range"><input type="range" id="ambRange" min="0" max="100" step="5"><output id="ambOut" for="ambRange">100%</output></div></div>
       <div class="set-row"><label for="shakeRange"><b>Screen shake</b><span class="d">How hard crashes and blasts rattle the camera</span></label><div class="range"><input type="range" id="shakeRange" min="0" max="100" step="10"><output id="shakeOut" for="shakeRange">100%</output></div></div>
       <div class="set-row"><div><b>Damage numbers</b><span class="d">Pop-up numbers when you hit a car</span></div><button class="switch" role="switch" data-set="dmgNums" aria-label="Damage numbers"></button></div>
       <div class="set-row"><div><b>Damage flash</b><span class="d">Red screen edge when hit or low on HP</span></div><button class="switch" role="switch" data-set="flash" aria-label="Damage flash"></button></div>
@@ -565,7 +567,7 @@ function prune(a,keep){let j=0;for(let i=0;i<a.length;i++){const v=a[i];if(keep(
 /* ---------- saved settings + profile ---------- */
 function load(key,def){try{const v=JSON.parse(localStorage.getItem(key));if(v&&typeof v==='object')return Object.assign({},def,v)}catch(e){}return Object.assign({},def)}
 function save(key,v){try{localStorage.setItem(key,JSON.stringify(v))}catch(e){}}
-const S0={sound:true,vol:80,music:true,musVol:60,shake:100,dmgNums:true,flash:true,lowFx:false,autoPause:true};
+const S0={sound:true,vol:80,music:true,musVol:60,wxVol:100,ambVol:100,shake:100,dmgNums:true,flash:true,lowFx:false,autoPause:true};
 const P0={runs:0,kills:0,bossKills:0,eliteKills:0,time:0,best:0,bestKills:0,bestLevel:0,bestRam:0,bestBarrels:0,bestWeapons:0,bestWlvl:0,bestBrink:0,
   acctXp:0,bought:0,lastLevel:0,ach:{},tracks:{},scrap:0,garage:{},cars:{interceptor:1},car:'interceptor',bestProps:0,powerups:0};
 const S=load('carnageSettings',S0);
@@ -584,13 +586,14 @@ function resize(){DPR=S.lowFx?1:Math.min(2,window.devicePixelRatio||1);VW=innerW
 addEventListener('resize',resize);
 
 /* ---------- audio ---------- */
-let AC=null,master=null;const sfxLast={};
-function initAudio(){try{if(!AC){AC=new (window.AudioContext||window.webkitAudioContext)();master=AC.createGain();master.connect(AC.destination)}AC.resume();applyVolume()}catch(e){AC=null}}
-function applyVolume(){if(master)master.gain.value=S.sound?S.vol/80:0}
+// weather hazards (thunder, strikes) and the ambient rain/wind bed get their own buses so each has a volume slider
+let AC=null,master=null,wxBus=null,ambBus=null,OUT=null;const sfxLast={};
+function initAudio(){try{if(!AC){AC=new (window.AudioContext||window.webkitAudioContext)();master=AC.createGain();master.connect(AC.destination);wxBus=AC.createGain();wxBus.connect(master);ambBus=AC.createGain();ambBus.connect(master)}AC.resume();applyVolume()}catch(e){AC=null}}
+function applyVolume(){if(master)master.gain.value=S.sound?S.vol/80:0;if(wxBus)wxBus.gain.value=S.wxVol/100;if(ambBus)ambBus.gain.value=S.ambVol/100}
 const muted=()=>!AC||!S.sound||S.vol<=0;
-function tone(f,dur,type,vol,slide,delay=0){if(muted())return;const t=AC.currentTime+delay;const o=AC.createOscillator(),g=AC.createGain();o.type=type;o.frequency.setValueAtTime(f,t);if(slide)o.frequency.exponentialRampToValueAtTime(slide,t+dur);g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(0.0001,t+dur);o.connect(g).connect(master);o.start(t);o.stop(t+dur+0.02)}
+function tone(f,dur,type,vol,slide,delay=0){if(muted())return;const t=AC.currentTime+delay;const o=AC.createOscillator(),g=AC.createGain();o.type=type;o.frequency.setValueAtTime(f,t);if(slide)o.frequency.exponentialRampToValueAtTime(slide,t+dur);g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(0.0001,t+dur);o.connect(g).connect(OUT||master);o.start(t);o.stop(t+dur+0.02)}
 let nbuf=null;
-function noise(dur,vol,freq){if(muted())return;if(!nbuf){nbuf=AC.createBuffer(1,AC.sampleRate,AC.sampleRate);const d=nbuf.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1}const s=AC.createBufferSource();s.buffer=nbuf;const f=AC.createBiquadFilter();f.type='lowpass';f.frequency.value=freq;const g=AC.createGain();const t=AC.currentTime;g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(0.0001,t+dur);s.connect(f).connect(g).connect(master);s.start(t);s.stop(t+dur)}
+function noise(dur,vol,freq){if(muted())return;if(!nbuf){nbuf=AC.createBuffer(1,AC.sampleRate,AC.sampleRate);const d=nbuf.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1}const s=AC.createBufferSource();s.buffer=nbuf;const f=AC.createBiquadFilter();f.type='lowpass';f.frequency.value=freq;const g=AC.createGain();const t=AC.currentTime;g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(0.0001,t+dur);s.connect(f).connect(g).connect(OUT||master);s.start(t);s.stop(t+dur)}
 function sfx(n){if(muted())return;const now=performance.now();const gap={shoot:70,boom:60,pick:35,hurt:120,crash:90,rocket:120,saw:90,zap:80,laser:120,bolt:40}[n]||0;if(sfxLast[n]&&now-sfxLast[n]<gap)return;sfxLast[n]=now;
   switch(n){case'shoot':tone(260,0.05,'square',0.025,120);break;case'boom':noise(0.55,0.22,500);tone(90,0.4,'sine',0.15,35);break;case'pick':tone(900+Math.random()*200,0.06,'sine',0.035,1500);break;
   case'hurt':tone(150,0.22,'sawtooth',0.07,55);break;case'crash':noise(0.18,0.14,1400);break;case'rocket':noise(0.3,0.05,2500);break;case'saw':tone(1300,0.05,'sawtooth',0.015,900);break;
@@ -598,7 +601,7 @@ function sfx(n){if(muted())return;const now=performance.now();const gap={shoot:7
   case'buy':[660,880,1320].forEach((f,i)=>tone(f,0.1,'square',0.04,null,i*0.05));break;case'horn':tone(330,0.35,'square',0.06);tone(415,0.35,'square',0.05);break;
   case'level':[523,659,784,1046].forEach((f,i)=>tone(f,0.16,'square',0.04,null,i*0.07));break;case'boss':tone(70,1.2,'sawtooth',0.12,45);break;
   case'ach':[784,988,1175,1568].forEach((f,i)=>tone(f,0.2,'triangle',0.05,null,i*0.08));break;
-  case'thunder':noise(1.6,0.3,320);noise(0.25,0.22,2400);tone(55,1.2,'sine',0.14,30);break}}
+  case'thunder':OUT=wxBus;noise(1.6,0.3,320);noise(0.25,0.22,2400);tone(55,1.2,'sine',0.14,30);OUT=null;break}}
 
 /* ---------- music: an in-car radio of original chiptune/techno tracks, synthesized live (no audio files) ---------- */
 // Each track is note data: tempo, key and mode, a 16-bar chord progression, a lead line (hand-written for track 1,
@@ -1601,7 +1604,7 @@ function updateWeather(dt){const X=G.wx,W=X.W,p=G.p;X.int=0.8+0.45*Math.sin(G.t*
   prune(X.twisters,tw=>tw.life>0)}
 function lightning(st){const X=G.wx,p=G.p;X.flash=1;sfx('thunder');G.shake=Math.max(G.shake,9);
   const pts=[[st.x+rand(-60,60),st.y-700]];for(let i=1;i<9;i++)pts.push([st.x+rand(-40,40)*(1-i/9),st.y-700+700*i/9]);pts.push([st.x,st.y]);X.bolts.push({pts,life:.28});
-  boomFx(st.x,st.y,60);G.decals.push({x:st.x,y:st.y,r:st.R*.6,rot:rand(0,TAU),k:'scorch'});DSRC='weather';
+  OUT=wxBus;boomFx(st.x,st.y,60);OUT=null;G.decals.push({x:st.x,y:st.y,r:st.R*.6,rot:rand(0,TAU),k:'scorch'});DSRC='weather';
   for(const e of near(st.x,st.y,st.R+70,[]))if(!e.dead&&d2(e.x,e.y,st.x,st.y)<(st.R+e.r)**2)damageEnemy(e,e.big?e.maxhp*0.05:e.maxhp*0.8+40);
   for(const b of G.barrels)if(b.alive&&b.fuse<0&&d2(b.x,b.y,st.x,st.y)<(st.R+b.r)**2)b.fuse=0.05;
   if(d2(p.x,p.y,st.x,st.y)<(st.R+p.r)**2)hurt(22*(0.7+0.3*G.L.diff)*(G.tk.runflat?0.5:1))}
@@ -1639,7 +1642,7 @@ function drawWeatherScreen(dt){const X=G.wx;if(!X)return;const W=X.W,c=G.cam,lo=
 // steady rain hiss or wind howl, made from the shared noise buffer
 let wxAmb=null;
 function updateWeatherSound(){if(!AC||!master)return;const X=G&&G.wx,W=X&&X.W,on=W&&W.amb&&!muted()&&(state==='play'||state==='menu');
-  if(!wxAmb){if(!on)return;const src=AC.createBufferSource();src.buffer=nbufGet();src.loop=true;const f=AC.createBiquadFilter(),g=AC.createGain();g.gain.value=0;src.connect(f);f.connect(g);g.connect(master);src.start();wxAmb={src,f,g}}
+  if(!wxAmb){if(!on)return;const src=AC.createBufferSource();src.buffer=nbufGet();src.loop=true;const f=AC.createBiquadFilter(),g=AC.createGain();g.gain.value=0;src.connect(f);f.connect(g);g.connect(ambBus);src.start();wxAmb={src,f,g}}
   const tgt=on?W.amb*(state==='menu'?.04:.07)*(W.wind?.7+.5*X.gust:X.int):0;wxAmb.g.gain.setTargetAtTime(tgt,AC.currentTime,.4);
   if(on){wxAmb.f.type=W.wind||W.dust?'bandpass':'highpass';wxAmb.f.frequency.setTargetAtTime(W.wind||W.dust?380+300*X.gust:W.snow?3000:1600,AC.currentTime,.3);wxAmb.f.Q.value=W.wind||W.dust?1.2:.5}}
 
@@ -2447,7 +2450,7 @@ function renderAch(){const r=rec(),n=Object.keys(P.ach).length;
       :`<div class="prog"><i style="width:${(v/a.n*100).toFixed(1)}%"></i></div><span class="pt">${val(a,v)} / ${val(a,a.n)}</span>`;
     return`<div class="ach${on?' on':''}">${badge(a.ic,on)}<div class="info"><b>${a.name}</b><p>${a.desc}</p>${rw?`<span class="reward">Unlocks ${rw}</span>`:''}${foot}</div></div>`}).join('')}
 function renderSettings(){for(const b of document.querySelectorAll('.switch'))b.setAttribute('aria-checked',String(!!S[b.dataset.set]));
-  $('volRange').value=S.vol;$('volOut').textContent=S.vol+'%';$('musRange').value=S.musVol;$('musOut').textContent=S.musVol+'%';$('shakeRange').value=S.shake;$('shakeOut').textContent=S.shake+'%';
+  $('volRange').value=S.vol;$('volOut').textContent=S.vol+'%';$('musRange').value=S.musVol;$('musOut').textContent=S.musVol+'%';$('wxRange').value=S.wxVol;$('wxOut').textContent=S.wxVol+'%';$('ambRange').value=S.ambVol;$('ambOut').textContent=S.ambVol+'%';$('shakeRange').value=S.shake;$('shakeOut').textContent=S.shake+'%';
   clearTimeout(resetArm);resetArm=0;$('resetBtn').textContent='Reset'}
 let resetArm=0;
 function buildChoices(){
@@ -2507,6 +2510,7 @@ for(const b of document.querySelectorAll('.switch'))b.onclick=()=>{const k=b.dat
   if(k==='sound'){initAudio();applyVolume();sfx('pick')}if(k==='music')initAudio();if(k==='lowFx')resize()};
 $('volRange').oninput=e=>{S.vol=+e.target.value;$('volOut').textContent=S.vol+'%';applyVolume()};
 $('volRange').onchange=()=>{saveSettings();initAudio();sfx('pick')};
+for(const [id,k] of [['wx','wxVol'],['amb','ambVol']]){$(id+'Range').oninput=e=>{S[k]=+e.target.value;$(id+'Out').textContent=S[k]+'%';applyVolume()};$(id+'Range').onchange=()=>{saveSettings();initAudio()}}
 $('musRange').oninput=e=>{S.musVol=+e.target.value;$('musOut').textContent=S.musVol+'%'};$('musRange').onchange=()=>{saveSettings();initAudio()};
 $('shakeRange').oninput=e=>{S.shake=+e.target.value;$('shakeOut').textContent=S.shake+'%'};
 $('shakeRange').onchange=saveSettings;
