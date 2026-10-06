@@ -25,7 +25,7 @@ const CREDS = findCreds(process.env);
 const URL_ = CREDS && CREDS.url.replace(/\/+$/, '');
 const TOKEN = CREDS && CREDS.token;
 const TRACKS = ['yard', 'dust', 'neon', 'frost', 'inferno'];
-const CARS = ['interceptor', 'dozer', 'hornet', 'pyro', 'volt', 'junker'];
+const CARS = ['interceptor', 'dozer', 'hornet', 'pyro', 'volt', 'junker', 'hydro'];
 const MAX_T = 4 * 3600;
 
 async function redis(cmds) {
