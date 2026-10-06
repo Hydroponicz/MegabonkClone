@@ -34,6 +34,27 @@ html,body{height:100%;margin:0;overflow:hidden;background:var(--asphalt);color:v
 .bossbar{width:min(520px,90vw);height:12px;background:rgba(0,0,0,.65);border:2px solid var(--ink)}
 #bossfill{height:100%;background:linear-gradient(90deg,var(--hp),var(--ember));width:100%}
 #loadout{display:flex;flex-wrap:wrap;gap:6px;max-width:calc(100% - 190px)}
+#loadout .lh,#loadPill{display:none}
+/* phones: the loadout folds into a pill; tapping it opens a compact grid that closes itself after 5s */
+@media (pointer:coarse){
+  #loadPill{display:flex;align-items:center;gap:6px;position:absolute;left:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 14px);pointer-events:auto;background:rgba(10,9,12,.88);border:1px solid var(--line);color:var(--fg);font:700 11px var(--body);letter-spacing:.08em;padding:9px 12px;touch-action:none;-webkit-tap-highlight-color:transparent;user-select:none}
+  #loadPill b{color:var(--hazard)}#loadPill .lp{color:var(--dim)}#loadPill i{font-style:normal;color:var(--dim);transition:transform .2s}
+  #loadPill.pulse{animation:lpulse .5s ease-in-out 3 alternate}@keyframes lpulse{to{border-color:var(--hazard);box-shadow:0 0 12px rgba(255,194,26,.5)}}
+  #hud.loadOpen #loadPill i{transform:rotate(90deg)}
+  #loadout{display:none}
+  #hud.loadOpen #loadout{display:grid;grid-template-columns:repeat(auto-fill,minmax(74px,1fr));gap:4px;position:absolute;left:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 60px);width:min(370px,calc(100vw - 24px));max-width:none;max-height:min(45vh,380px);overflow:auto;background:rgba(10,9,12,.94);border:1px solid var(--line);padding:8px;pointer-events:auto;touch-action:pan-y}
+  #hud.loadOpen #loadout .lh{display:block;grid-column:1/-1;font-size:9px;font-weight:700;letter-spacing:.16em;color:var(--dim);margin-top:2px}
+  #hud.loadOpen #loadout .chip{flex-direction:column;align-items:flex-start;gap:3px;padding:4px 5px;font-size:8.5px;letter-spacing:.02em;line-height:1.12;min-height:30px;justify-content:space-between}
+  #hud.loadOpen #loadout .chip.sel{border-color:var(--hazard)}
+}
+/* pause menu: the whole build, readable, with details on tap or hover */
+.pload{display:flex;flex-direction:column;gap:8px;max-width:640px;margin:4px auto 10px;text-align:left;max-height:min(42vh,420px);overflow:auto}
+body.loadOpen #toasts{opacity:0;transition:opacity .2s}
+@media (max-height:500px){#scrPause h2.big{font-size:34px;margin:0}#scrPause .sub{margin:2px 0 4px}.pload{max-height:30vh;gap:4px;margin-bottom:4px}.pload .chip{padding:3px 7px}#pauseTip{min-height:0;margin-bottom:6px;font-size:12px}}
+.pload .lh{font-size:10px;font-weight:700;letter-spacing:.16em;color:var(--dim)}
+.pload .row{display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-start}
+.pload .chip{cursor:pointer}.pload .chip.sel{border-color:var(--hazard)}
+#pauseTip{min-height:2.6em;max-width:640px;margin:0 auto 12px;color:var(--dim);font-size:13px;line-height:1.4;text-align:left}#pauseTip b{color:var(--fg)}
 #glove{position:absolute;right:16px;bottom:calc(env(safe-area-inset-bottom,0px) + 16px);display:flex;gap:6px;pointer-events:auto}
 #glove .gslot{width:52px;height:46px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;background:rgba(10,9,12,.85);border:2px solid var(--line);color:var(--fg);font:700 13px var(--body);letter-spacing:.06em;padding:0;cursor:pointer}
 #glove .gslot:first-child:not(.empty){border-color:var(--hazard)}#glove .gslot small{font-size:9px;color:var(--hazard);letter-spacing:.14em;min-height:10px}
@@ -49,7 +70,7 @@ html,body{height:100%;margin:0;overflow:hidden;background:var(--asphalt);color:v
 #banner small{display:block;font-family:var(--body);font-weight:700;font-size:14px;letter-spacing:.2em;color:var(--fg);margin-top:8px}
 #banner.show{opacity:1;transform:scale(1)}
 
-#overlay{position:fixed;inset:0;display:grid;place-items:center;padding:24px 16px;background:rgba(9,8,11,.84);overflow:auto}
+#overlay{position:fixed;inset:0;display:grid;place-items:center;place-items:safe center;padding:24px 16px;background:rgba(9,8,11,.84);overflow:auto}
 .panel{width:min(780px,100%);display:flex;flex-direction:column;gap:18px;align-items:center;text-align:center}
 .hazard-stripe{height:10px;width:100%;background:repeating-linear-gradient(135deg,var(--hazard) 0 14px,var(--ink) 14px 28px)}
 .logo{font-family:var(--display);font-weight:400;font-size:clamp(46px,12vw,104px);line-height:.88;color:var(--hazard);text-shadow:5px 5px 0 var(--ink),0 0 50px rgba(255,90,31,.35);margin:0;text-wrap:balance}
@@ -375,6 +396,7 @@ body.nocursor,body.nocursor *{cursor:none!important}
     <div id="bossWrap" hidden data-tip="Boss health|Boss|Bosses smash straight through props and most walls. Downtown, even they have to drive around the buildings."><div id="bossName">JUGGERNAUT</div><div class="bossbar"><div id="bossfill"></div></div></div>
   </div>
   <div id="loadout"></div>
+  <button id="loadPill" aria-expanded="false" aria-label="Show your build"></button>
   <div id="glove" aria-label="Glovebox"></div>
 </div>
 <div id="banner"></div>
@@ -557,6 +579,7 @@ body.nocursor,body.nocursor *{cursor:none!important}
   <section id="scrPause" class="panel" hidden>
     <h2 class="big">Paused</h2>
     <p class="sub" id="pauseLevel"></p>
+    <div id="pauseLoad" class="pload"></div><p id="pauseTip"></p>
     <div class="btns">
       <button class="btn" id="resumeBtn">Resume</button>
       <button class="btn alt" id="pSetBtn">Settings</button>
@@ -2504,13 +2527,36 @@ function updateHud(){
     tip.style.left=clamp(tr.x+G.view.ox,90,VW-90)+'px';tip.style.top=clamp(tr.y+G.view.oy-78,40,VH-20)+'px'}else if(!tip.hidden)tip.hidden=true;
 }
 const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-function updateLoadout(){
+function loadoutGroups(){
   const pips=l=>'<span class="pips">'+[1,2,3,4,5].map(i=>`<i class="${i<=l?'on':''}"></i>`).join('')+'</span>';
-  let h='';for(const k in G.weapons){const l=G.weapons[k].lvl,d=WDEF[k].desc;h+=`<div class="chip" data-tip="${esc(WDEF[k].name)}|Weapon · level ${l} of 5|${esc(d[0]+(l>1?' Upgrades so far: '+d.slice(1,l).join(' '):'')+(l<5?' Next: '+d[l]:' Maxed out.'))}">${WDEF[k].name.toUpperCase()}${pips(l)}</div>`}
+  let h='';const out=[];for(const k in G.weapons){const l=G.weapons[k].lvl,d=WDEF[k].desc;h+=`<div class="chip" data-tip="${esc(WDEF[k].name)}|Weapon · level ${l} of 5|${esc(d[0]+(l>1?' Upgrades so far: '+d.slice(1,l).join(' '):'')+(l<5?' Next: '+d[l]:' Maxed out.'))}">${WDEF[k].name.toUpperCase()}${pips(l)}</div>`}
+  out.push(['Weapons',h]);h='';
   for(const k in G.passives)h+=`<div class="chip p" data-tip="${esc(PDEF[k].name)}|Upgrade · level ${G.passives[k]} of 5|${esc(PDEF[k].desc)} Stacks each level.">${PDEF[k].name.toUpperCase()}${pips(G.passives[k])}</div>`;
+  out.push(['Upgrades',h]);h='';
   for(const k in G.tk)if(G.tk[k])h+=`<div class="chip t" data-tip="${esc(TRINKETS[k].name)}|Trinket · owned ×${G.tk[k]}|${esc(TRINKETS[k].desc)} Lasts until this run ends.">${TRINKETS[k].name.toUpperCase()}${G.tk[k]>1?' ×'+G.tk[k]:''}</div>`;
-  $('loadout').innerHTML=h;
-}
+  out.push(['Trinkets',h]);return out}
+let loadSig='',pulseT=0;
+function updateLoadout(){const g=loadoutGroups();
+  $('loadout').innerHTML=g.map(([t,h])=>h?`<div class="lh">${t.toUpperCase()}</div>${h}`:'').join('');
+  const nW=Object.keys(G.weapons).length,nP=Object.keys(G.passives).length,nT=Object.values(G.tk).filter(Boolean).length,sig=JSON.stringify([G.weapons,G.passives,G.tk]);
+  $('loadPill').innerHTML=`<span class="lp">BUILD</span><b>${nW}</b>W <b>${nP}</b>U <b>${nT}</b>T<i>›</i>`;
+  // the pill pulses when the build changes (not on the first draw of a run)
+  if(loadSig&&sig!==loadSig&&G.t>0.5){const pl=$('loadPill');pl.classList.remove('pulse');void pl.offsetWidth;pl.classList.add('pulse');clearTimeout(pulseT);pulseT=setTimeout(()=>pl.classList.remove('pulse'),1600)}
+  loadSig=sig}
+// phones: tap the pill to peek at the build; it folds itself away after 5s, on another tap, or as soon as you steer
+let loadT=0,tapTipT=0;
+function setLoadOpen(o){$('hud').classList.toggle('loadOpen',o);document.body.classList.toggle('loadOpen',o);$('loadPill').setAttribute('aria-expanded',String(o));clearTimeout(loadT);if(o)loadT=setTimeout(()=>setLoadOpen(false),5000);else hideTapTip()}
+function hideTapTip(){if(tapTipT){tapTipT=0;$('hoverTip').hidden=true;tipKey=''}for(const c of document.querySelectorAll('#loadout .chip.sel'))c.classList.remove('sel')}
+function showTapTip(el){const [t,k,d]=el.dataset.tip.split('|'),c=card(t,k,d,null,null),tip=$('hoverTip');hideTapTip();el.classList.add('sel');tip.innerHTML=c.html;tip.style.setProperty('--c','var(--hazard)');tip.hidden=false;tipKey=c.html;
+  const r=el.getBoundingClientRect(),w=tip.offsetWidth,h=tip.offsetHeight;let y=r.top-h-8;if(y<8)y=r.bottom+8;tip.style.transform=`translate(${clamp(r.left,8,VW-w-8)}px,${Math.max(8,y)}px)`;tapTipT=performance.now()+3500}
+$('loadPill').addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();if(state==='play')setLoadOpen(!$('hud').classList.contains('loadOpen'))});
+$('loadout').addEventListener('pointerdown',e=>{if(!$('hud').classList.contains('loadOpen'))return;e.stopPropagation();setLoadOpen(true);const c=e.target.closest('.chip');if(c)showTapTip(c)});
+document.addEventListener('pointerdown',e=>{if($('hud').classList.contains('loadOpen')&&!e.target.closest('#loadout,#loadPill'))setLoadOpen(false)},true);
+// pause menu: the full build with details on tap or hover
+function renderPauseLoad(){const g=loadoutGroups().filter(([,h])=>h);$('pauseLoad').innerHTML=g.map(([t,h])=>`<div class="lh">${t.toUpperCase()}</div><div class="row">${h}</div>`).join('');$('pauseTip').innerHTML=g.length?'Tap or point at anything to see what it does.':''}
+function pauseTipFor(c){if(!c)return;for(const x of document.querySelectorAll('#pauseLoad .chip.sel'))x.classList.remove('sel');c.classList.add('sel');const [t,k,d]=c.dataset.tip.split('|');$('pauseTip').innerHTML=`<b>${esc(t)}</b> · ${esc(k)}<br>${esc(d)}`}
+$('pauseLoad').addEventListener('click',e=>pauseTipFor(e.target.closest('.chip')));
+$('pauseLoad').addEventListener('mouseover',e=>pauseTipFor(e.target.closest('.chip')));
 
 
 /* ---------- hover cards: name, type and stats for whatever the cursor is over ---------- */
@@ -2570,7 +2616,7 @@ function pickHover(wx,wy){const p=G.p,in2=(x,y,r)=>d2(wx,wy,x,y)<r*r;
     return card(n,'Hazard',d,rows,z.k==='lava'?'#ff7a14':z.k==='acid'?'#7ad13a':z.k==='ice'?'#9fe4ff':z.k==='spikes'?'#c9c6d0':'#786ac8')}
   return null}
 let tipKey='';
-function updateHover(){const tip=$('hoverTip');const idle=performance.now()-mouse.last>5000;
+function updateHover(){const tip=$('hoverTip');if(tapTipT){if(performance.now()<tapTipT)return;hideTapTip()}const idle=performance.now()-mouse.last>5000;
   // the cursor fades out after 5s without mouse movement while driving
   if(state==='play'&&idle&&mouse.inWin)document.body.classList.add('nocursor');else if(state!=='play')document.body.classList.remove('nocursor');
   let c=null;if(state==='play'&&!idle&&mouse.inWin){if(domTip&&domTip.isConnected){const [t,k,d]=domTip.dataset.tip.split('|');c=card(t,k,d,null,getComputedStyle(domTip).getPropertyValue('--c').trim()||null)}
@@ -2582,7 +2628,7 @@ function updateHover(){const tip=$('hoverTip');const idle=performance.now()-mous
 /* ---------- screens ---------- */
 const SCREENS=['scrMenu','scrGarage','scrLevels','scrLevel','scrShop','scrPause','scrOver','scrAch','scrSet','scrHow','scrBoard','scrXfer'],SUBS=['scrLevels','scrGarage','scrAch','scrSet','scrHow','scrBoard','scrXfer'];
 let cur='scrMenu';const navStack=[];
-function show(id){if(codeOpen){codeOpen=false;$('codeBox').hidden=true}cur=id;for(const s of SCREENS)$(s).hidden=s!==id;$('overlay').hidden=!id;$('overlay').classList.toggle('attract',state==='menu');if(id){$('tip').hidden=true;$('banner').classList.remove('show')}}
+function show(id){if(id&&$('hud').classList.contains('loadOpen'))setLoadOpen(false);if(codeOpen){codeOpen=false;$('codeBox').hidden=true}cur=id;for(const s of SCREENS)$(s).hidden=s!==id;$('overlay').hidden=!id;$('overlay').classList.toggle('attract',state==='menu');if(id){$('tip').hidden=true;$('banner').classList.remove('show')}}
 function openSub(id,opener){navStack.push({id:cur||'scrMenu',focus:opener});if(id==='scrXfer')renderXfer();if(id==='scrLevels')rollForecasts();if(id==='scrAch')renderAch();if(id==='scrBoard')renderBoard();if(id==='scrSet')renderSettings();if(id==='scrLevels')renderLevels();if(id==='scrGarage')renderGarage();show(id);
   const f=id==='scrLevels'?$('lv'+curLevel):null;(f&&!f.disabled?f:$(id).querySelector('.back')).focus()}
 function goBack(){const top=navStack.pop()||{id:'scrMenu',focus:null},id=top.id;if(id==='scrLevels')renderLevels();if(id==='scrGarage')renderGarage();show(id);if(id==='scrMenu')refreshMenu();
@@ -2617,7 +2663,7 @@ function startGame(li=curLevel){if(G&&G.live)commitRun();navStack.length=0;initA
   startBanner();checkAch()}
 const startBanner=()=>showBanner(G.L.name,`${G.wx.k==='clear'?'':G.wx.W.name+' · '}Wreck ${G.L.minis} Juggernauts to draw out ${G.L.boss.name}`);
 function toMenu(){if(G&&G.live)commitRun();navStack.length=0;state='menu';newGame(curLevel);$('hud').hidden=true;$('tip').hidden=true;show('scrMenu');refreshMenu();$('startBtn').focus()}
-function togglePause(){if(state==='play'&&G.exitT>=0)return;if(state==='play'){state='paused';$('pauseLevel').textContent=G.L.name+' · '+G.car.name+' · '+fmt(G.t);show('scrPause');$('resumeBtn').focus()}else if(state==='paused'){state='play';show(null);last=performance.now()}}
+function togglePause(){if(state==='play'&&G.exitT>=0)return;if(state==='play'){state='paused';$('pauseLevel').textContent=G.L.name+' · '+G.car.name+' · '+fmt(G.t);renderPauseLoad();show('scrPause');$('resumeBtn').focus()}else if(state==='paused'){state='play';show(null);last=performance.now()}}
 /* ---------- save transfer: export the profile as text (CL1 = deflated, CL0 = plain), move it by code, file or paste ---------- */
 const b64u={enc:u=>{let s='';for(let i=0;i<u.length;i+=0x8000)s+=String.fromCharCode.apply(null,u.subarray(i,i+0x8000));return btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')},
   dec:t=>{t=t.replace(/-/g,'+').replace(/_/g,'/');while(t.length%4)t+='=';const s=atob(t),u=new Uint8Array(s.length);for(let i=0;i<s.length;i++)u[i]=s.charCodeAt(i);return u}};
@@ -2810,7 +2856,7 @@ function openLevelup(){const ch=buildChoices();if(!ch.length){maxedOut();return}
   const first=$('choice0');if(first)setTimeout(()=>first.focus(),50);
 }
 function renderLevelup(){
-  $('lvlSub').textContent=`Pick a bolt-on or roll an item · keys 1 to ${choices.length} · Weapons ${Object.keys(G.weapons).length}/${slotsW()} · Upgrades ${Object.keys(G.passives).length}/${slotsP()} · Trinkets ${tkCount()}/${slotsT()}`;
+  {const nW=Object.keys(G.weapons).length,nP=Object.keys(G.passives).length;$('lvlSub').textContent=coarse()?`Pick one · Weapons ${nW}/${slotsW()} · Upgrades ${nP}/${slotsP()} · Trinkets ${tkCount()}/${slotsT()}`:`Pick a bolt-on or roll an item · keys 1 to ${choices.length} · Weapons ${nW}/${slotsW()} · Upgrades ${nP}/${slotsP()} · Trinkets ${tkCount()}/${slotsT()}`}
   $('cards').innerHTML=choices.map((c,i)=>{
     if(c.kind==='heal')return`<button class="card" id="choice${i}" data-i="${i}"><span class="num">${i+1}</span><span class="kind">Pit stop</span><h3>Patch-up</h3><p>Repair 50 HP. Your rig is maxed out.</p></button>`;
     if(c.kind==='roll')return`<button class="card roll" id="choice${i}" data-i="${i}"><span class="num">${i+1}</span><span class="kind">Skip · Trader's Roll</span><h3>Roll an item</h3><p>Skip the bolt-on and take a random item from the traders' stock instead.</p><span class="odds"><b style="color:${RAR.common.col}">Common 60%</b> · <b style="color:${RAR.rare.col}">Rare 30%</b> · <b style="color:${RAR.epic.col}">Epic 10%</b></span></button>`;
