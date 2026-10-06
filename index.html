@@ -279,6 +279,14 @@ body.nocursor,body.nocursor *{cursor:none!important}
 #radio #rSeek:active{transform:translateY(2px);box-shadow:inset 0 1px 0 rgba(255,255,255,.08)}
 #radio #rSeek:focus-visible{outline:2px solid var(--hazard);outline-offset:2px}
 @media (max-width:720px){#radio.inrun{display:none}#radio{transform:scale(.85);transform-origin:top right}}
+#dbg{position:fixed;left:16px;top:200px;z-index:7;width:330px;max-height:calc(100vh - 290px);overflow:auto;background:rgba(6,6,10,.86);border:1px solid #3fe0d0;box-shadow:0 0 0 1px #000,0 6px 18px rgba(0,0,0,.5);
+  padding:8px 10px;font:12px/1.35 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:#cfe;pointer-events:none}
+#dbg .dh{font-weight:700;color:#3fe0d0;letter-spacing:.12em;margin-bottom:4px;display:flex;justify-content:space-between}#dbg .dh span{color:#7a8;font-weight:400;letter-spacing:0}
+#dbg .dl{display:grid;grid-template-columns:62px 1fr;gap:6px}#dbg .dl span{color:#7a8}#dbg .dl b{font-weight:400;color:#eef}#dbg b.on{color:#5cf08a;font-weight:700}
+#dbg .dk{display:grid;grid-template-columns:1fr 1fr;gap:2px 8px;margin-top:6px;padding-top:6px;border-top:1px solid #234;font-size:11px;color:#bcd}
+#dbg kbd{font:700 10px ui-monospace,monospace;background:#1a2a2a;border:1px solid #3a5a5a;border-bottom-width:2px;color:#3fe0d0;padding:0 3px;margin-right:4px}
+#dbg .dm{margin-top:6px;padding:4px 6px;background:#3fe0d0;color:#06170f;font-weight:700}
+@media (max-width:720px){#dbg{top:auto;bottom:80px;width:calc(100vw - 32px);max-height:40vh}}
 #wxHud{align-self:flex-start;display:flex;align-items:center;gap:7px;background:rgba(10,9,12,.85);border:1px solid var(--line);padding:4px 10px;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);pointer-events:auto}
 #wxHud i{width:8px;height:8px;border-radius:50%;background:var(--c)}#wxHud b{color:var(--fg)}
 .lv .wx{display:inline-flex;align-items:center;gap:5px}.lv .wx i{width:7px;height:7px;border-radius:50%;background:var(--wc);display:inline-block}
@@ -313,6 +321,7 @@ body.nocursor,body.nocursor *{cursor:none!important}
   <div id="glove" aria-label="Glovebox"></div>
 </div>
 <div id="banner"></div>
+<div id="dbg" hidden></div>
 <div id="radio" hidden data-tip="Car radio|Music|Shuffles through the station's tracks. Hit SEEK or press N to skip to the next one.">
   <div class="rlcd">
     <div class="r1"><span class="rcall" id="rCall">KRSH</span><span class="rtrk">TRK <b id="rTrk">01</b></span><span class="rfm"><b id="rFreq">98.6</b><small>FM</small></span></div>
@@ -403,6 +412,7 @@ body.nocursor,body.nocursor *{cursor:none!important}
       <div class="key"><b>Drive</b><span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> or arrows</span></div>
       <div class="key"><b>Handbrake drift</b><span><kbd>Space</kbd></span></div>
       <div class="key"><b>Trade</b><span><kbd>F</kbd> next to a parked trader</span></div>
+      <div class="key"><b>Developer console</b><span><kbd>`</kbd> toggles it · F1–F10 and Shift+F1–F10 for test cheats. Debug runs don't post to the leaderboard</span></div>
       <div class="key"><b>Use glovebox item</b><span><kbd>Q</kbd> or tap a glovebox slot (bottom right)</span></div>
       <div class="key"><b>Next radio track</b><span><kbd>N</kbd> or the SEEK button</span></div>
       <div class="key"><b>Pause</b><span><kbd>P</kbd> or <kbd>Esc</kbd></span></div>
@@ -677,9 +687,92 @@ function renderRadio(force){const el=$('radio');if(!el)return;const on=MUS.on&&S
   if(mus){mus.an.getByteFrequencyData(mus.bins);const bars=el.querySelectorAll('.eq i');for(let i=0;i<bars.length;i++){const v=mus.bins[1+i*2]/255;bars[i].style.transform=`scaleY(${Math.max(.08,v*v*1.3).toFixed(2)})`}}}
 // browsers only allow audio after a gesture: start the menu music on the first click or key
 for(const ev of['pointerdown','keydown'])addEventListener(ev,()=>{if(!AC||AC.state!=='running')initAudio()},{capture:true});
+
+/* ---------- developer console: ` toggles it; F1-F10 and Shift+F1-F10 are cheats and test triggers ---------- */
+// (F11/F12 are left to the browser and Alt is never used, so Alt+F4 can't be hit by accident)
+// any run where the console was switched on is marked as a debug run and never posted to the online leaderboard
+const DBG={on:false,god:false,ohk:false,noSpawn:false,hit:false,scale:1,ft:16,msg:'',msgT:0,infoT:0};
+const DBG_KEYS=[
+  ['F1','God mode','Shift+F1','One-hit kills'],
+  ['F2','Spawn Juggernaut','Shift+F2','Spawn Chrome hunter'],
+  ['F3','Spawn level boss','Shift+F3','Wreck every car'],
+  ['F4','Next weather','Shift+F4','Previous weather'],
+  ['F5','Lightning strike ahead','Shift+F5','Tornado nearby'],
+  ['F6','Level up','Shift+F6','Max out the rig'],
+  ['F7','Call a trader','Shift+F7','Drop every power-up'],
+  ['F8','Open exit portal','Shift+F8','Overdrive +1 tier'],
+  ['F9','Ambush now','Shift+F9','Pause enemy spawns'],
+  ['F10','+500 bolts','Shift+F10','Fill glovebox + item'],
+  ['[ / ]','Slow / speed up time','\\','Hitbox overlay'],
+  ['=','Skip ahead 60s','`','Close console']];
+function dbgSay(m){DBG.msg=m;DBG.msgT=2.5;renderDebug(true)}
+function toggleDebug(){DBG.on=!DBG.on;if(DBG.on&&G&&G.live)G.dbg=true;$('dbg').hidden=!DBG.on;if(!DBG.on){DBG.scale=1}renderDebug(true)}
+function dbgSpawnMini(){G.minisSpawned++;G.mini=spawnEnemy('mini',{hpMul:1+(G.minisSpawned-1)*0.5,ab:{charge:1}});G.mini.num=G.minisSpawned;showBanner('Juggernaut inbound','Spawned from the console');sfx('boss')}
+function dbgSpawnBoss(){if(G.lboss&&!G.lboss.dead)return dbgSay('The level boss is already out');const B=G.L.boss;G.bossDue=-1;
+  G.lboss=spawnEnemy('lboss',{hp:B.hp*(1+G.t/400),col:B.col,spdMul:B.spd||1,ab:B.abil,dmgMul:1.2});showBanner(B.name,'Level boss · spawned from the console');sfx('boss');G.shake=14}
+function dbgWeather(step){const ks=Object.keys(WEATHER),i=(ks.indexOf(G.wx.k)+step+ks.length)%ks.length;G.wx=makeWeather(ks[i]);delete hudCache.wx;dbgSay('Weather: '+WEATHER[ks[i]].name)}
+function dbgMaxRig(){const W=Object.keys(WDEF).filter(k=>unlocked(WDEF[k])||G.weapons[k]),Pa=Object.keys(PDEF).filter(k=>unlocked(PDEF[k])||G.passives[k]);
+  for(const k of Object.keys(G.weapons))G.weapons[k].lvl=5;for(const k of W){if(Object.keys(G.weapons).length>=Math.max(5,slotsW()))break;if(!G.weapons[k])G.weapons[k]={lvl:5,cd:0.3,aim:G.p.a}}
+  for(const k of Object.keys(G.passives))G.passives[k]=5;for(const k of Pa){if(Object.keys(G.passives).length>=Math.max(5,slotsP()))break;if(!G.passives[k])G.passives[k]=5}recalc();updateLoadout();dbgSay('Rig maxed: 5 weapons and 5 upgrades at level 5 (ignores garage slots)')}
+function debugKey(code,shift){const inRun=state==='play'&&G&&G.live,p=G&&G.p;
+  if(code==='F10'&&!inRun){if(shift){for(const a of ACH)P.ach[a.id]=P.ach[a.id]||Date.now();for(const c in CARS)P.cars[c]=1;P.acctXp=Math.max(P.acctXp,1e6);saveProfile();refreshMenu&&refreshMenu();dbgSay('Unlocked every achievement, car and track')}
+    else{P.scrap+=5000;saveProfile();refreshMenu&&refreshMenu();dbgSay('+5,000 garage scrap')}return}
+  if(!inRun)return dbgSay('Start a run first (F10 / Shift+F10 work on the menu)');
+  G.dbg=true;const ahead=d=>[clamp(p.x+Math.cos(p.a)*d,60,ARENA-60),clamp(p.y+Math.sin(p.a)*d,60,ARENA-60)];
+  switch(code+(shift?'S':'')){
+    case'F1':DBG.god=!DBG.god;dbgSay('God mode '+(DBG.god?'ON':'off'));break;
+    case'F1S':DBG.ohk=!DBG.ohk;dbgSay('One-hit kills '+(DBG.ohk?'ON':'off'));break;
+    case'F2':dbgSpawnMini();break;
+    case'F2S':spawnEnemy(Math.random()<.5?'truck':'sedan',{elite:true,hpMul:7,scale:1.3,xpMul:5,col:'#e8e4ee',spdMul:1.1});dbgSay('Chrome hunter spawned');break;
+    case'F3':dbgSpawnBoss();break;
+    case'F3S':{DSRC='debug';let n=0;for(const e of [...G.enemies])if(!e.dead){damageEnemy(e,1e12,false);n++}dbgSay('Wrecked '+n+' cars');break}
+    case'F4':dbgWeather(1);break;case'F4S':dbgWeather(-1);break;
+    case'F5':{const [x,y]=ahead(220);G.wx.strikes.push({x,y,t:1.1,R:85});dbgSay('Lightning strike incoming');break}
+    case'F5S':{const [x,y]=ahead(320);G.wx.twisters.push({x,y,h:p.a+Math.PI,v:60,life:20,age:0,R:58,pull:190,spin:0,fire:!!G.wx.W.fire});dbgSay('Tornado spawned');break}
+    case'F6':G.pending++;dbgSay('Level up queued');break;case'F6S':dbgMaxRig();break;
+    case'F7':if(G.trader)dbgSay('A trader is already in town');else{spawnTrader();dbgSay(G.trader?'Trader on the way':'No route for a trader right now')}break;
+    case'F7S':{const ks=Object.keys(DROPS);ks.forEach((k,i)=>{const a=i/ks.length*TAU;dropPickup(p.x+Math.cos(a)*90,p.y+Math.sin(a)*90,k)});dbgSay('Every power-up dropped around you');break}
+    case'F8':if(G.portal)dbgSay('The portal is already open');else{G.cleared=true;G.clearT=G.t;if(G.lboss){G.lboss.dead=true;G.lboss=null}openPortal();dbgSay('Exit portal opened · Overdrive started')}break;
+    case'F8S':if(G.odStart<0)dbgSay('Open the portal first (F8)');else{G.odStart-=40;dbgSay('Overdrive tier '+odTierOf(odHeat()))}break;
+    case'F9':G.nextAmbush=G.t;dbgSay('Ambush!');break;case'F9S':DBG.noSpawn=!DBG.noSpawn;dbgSay('Enemy spawns '+(DBG.noSpawn?'PAUSED':'resumed'));break;
+    case'F10':G.bolts+=500;dbgSay('+500 bolts');break;
+    case'F10S':{const cons=Object.keys(TRINKETS).filter(k=>TRINKETS[k].glove);while(G.glove.length<GLOVE_MAX)G.glove.push(cons[Math.floor(Math.random()*cons.length)]);updateGlove();const id=rollItem();grantItem(id);dbgSay('Glovebox filled · got '+TRINKETS[id].name);break}}
+  renderDebug(true)}
+function debugAux(code){if(code==='BracketLeft')DBG.scale=Math.max(0.25,DBG.scale/2);else if(code==='BracketRight')DBG.scale=Math.min(4,DBG.scale*2);else if(code==='Backslash')DBG.hit=!DBG.hit;
+  else if(code==='Equal'&&state==='play'&&G.live){G.t+=60;G.dbg=true;dbgSay('Skipped ahead to '+fmt(G.t));return}
+  dbgSay(code==='Backslash'?'Hitboxes '+(DBG.hit?'ON':'off'):'Time ×'+DBG.scale)}
+function renderDebug(force){if(!DBG.on)return;const el=$('dbg');if(!force&&(DBG.infoT-=1)>0)return;DBG.infoT=12;
+  const on=v=>v?'<b class="on">ON</b>':'<b>off</b>',g=G,p=g&&g.p;let h=`<div class="dh">DEV CONSOLE <span>\` to close</span></div>`;
+  if(g){const big=g.enemies.filter(e=>e.big&&!e.dead).length,w=g.wx;
+    h+=`<div class="dl"><span>FPS</span><b>${Math.round(1000/DBG.ft)} · ${DBG.ft.toFixed(1)}ms</b></div>
+<div class="dl"><span>State</span><b>${state}${g.dbg?' · debug run':''}</b></div>
+<div class="dl"><span>Track</span><b>${g.L.name} · ${g.car.name}</b></div>
+<div class="dl"><span>Time</span><b>${fmt(g.t)} · lvl ${g.level} · ${g.kills} wrecks</b></div>
+<div class="dl"><span>Player</span><b>${p?Math.ceil(p.hp)+'/'+p.maxhp+' HP · '+Math.round(Math.hypot(p.vx,p.vy))+' spd · ('+Math.round(p.x)+','+Math.round(p.y)+')':'-'}</b></div>
+<div class="dl"><span>Weather</span><b>${w?w.W.name+' · ×'+w.int.toFixed(2):'-'}</b></div>
+<div class="dl"><span>Cars</span><b>${g.enemies.length} (${big} big) · spawns ${DBG.noSpawn?'PAUSED':'on'}</b></div>
+<div class="dl"><span>Objects</span><b>${g.bullets.length} shots · ${g.ebullets.length} enemy · ${g.parts.length} fx · ${g.gems.length} gems</b></div>
+<div class="dl"><span>Next</span><b>jugg ${fmt(Math.max(0,g.nextMini-g.t))} · elite ${fmt(Math.max(0,g.nextElite-g.t))} · ambush ${fmt(Math.max(0,g.nextAmbush-g.t))}</b></div>
+<div class="dl"><span>Boss</span><b>${g.lboss?'out':g.cleared?'down':g.bossDue>0?'due':'-'} · minis ${g.miniKills}/${g.L.minis} · ${g.portal?'Overdrive '+roman(Math.max(1,g.odTier)):'no portal'}</b></div>
+<div class="dl"><span>Radio</span><b>${MUS.on?CUR.title+' · '+CUR.bpm+' BPM':'off'}</b></div>
+<div class="dl"><span>Toggles</span><b>god ${on(DBG.god)} · 1-hit ${on(DBG.ohk)} · hitbox ${on(DBG.hit)} · time ×${DBG.scale}</b></div>`}
+  h+=`<div class="dk">${DBG_KEYS.map(([a,b,c,d])=>`<span><kbd>${a}</kbd>${b}</span><span><kbd>${c}</kbd>${d}</span>`).join('')}</div>`;
+  if(DBG.msgT>0)h+=`<div class="dm">${esc(DBG.msg)}</div>`;el.innerHTML=h}
+function drawDebugWorld(vis){if(!DBG.on||!DBG.hit)return;const p=G.p;ctx.lineWidth=1.5;
+  ctx.strokeStyle='rgba(255,80,80,.8)';ctx.beginPath();for(const e of G.enemies){if(e.dead||!vis(e.x,e.y,e.r))continue;ctx.moveTo(e.x+e.r,e.y);ctx.arc(e.x,e.y,e.r,0,TAU)}ctx.stroke();
+  ctx.strokeStyle='rgba(80,255,160,.9)';ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,TAU);ctx.stroke();
+  ctx.strokeStyle='rgba(63,224,208,.35)';ctx.setLineDash([6,6]);ctx.beginPath();ctx.arc(p.x,p.y,G.stats.magnet,0,TAU);ctx.stroke();ctx.setLineDash([]);
+  ctx.strokeStyle='rgba(255,214,90,.6)';ctx.beginPath();for(const o of G.obs){if(!o.solid||!vis(o.x,o.y,o.rect?Math.max(o.w,o.h):o.r))continue;if(o.rect)ctx.rect(o.x-o.w/2,o.y-o.h/2,o.w,o.h);else{ctx.moveTo(o.x+o.r,o.y);ctx.arc(o.x,o.y,o.r,0,TAU)}}ctx.stroke();
+  // boss route arrows (downtown) or the regular flow field, a few cells around the camera
+  const c=G.cam,arr=G.L.bossWalls&&G.enemies.some(e=>e.big&&!e.dead)?bDir:fDir;ctx.strokeStyle='rgba(169,139,255,.5)';ctx.beginPath();
+  for(let x=c.x-VW/2;x<c.x+VW/2;x+=FC*2)for(let y=c.y-VH/2;y<c.y+VH/2;y+=FC*2){const cx=clamp(x/FC|0,0,FN-1),cy=clamp(y/FC|0,0,FN-1),a=arr[cx*FN+cy];if(a!==a)continue;const X=cx*FC+FC/2,Y=cy*FC+FC/2;ctx.moveTo(X,Y);ctx.lineTo(X+Math.cos(a)*18,Y+Math.sin(a)*18)}ctx.stroke()}
 /* ---------- input ---------- */
 const keys={};
 addEventListener('keydown',e=>{
+  if(!(e.target&&e.target.tagName==='INPUT')){
+    if(e.code==='Backquote'&&!e.repeat){e.preventDefault();toggleDebug();return}
+    if(DBG.on&&/^F([1-9]|10)$/.test(e.code)){e.preventDefault();if(!e.repeat&&!e.altKey&&!e.ctrlKey&&!e.metaKey)debugKey(e.code,e.shiftKey);return}
+    if(DBG.on&&/^(BracketLeft|BracketRight|Backslash|Equal)$/.test(e.code)&&!e.repeat){e.preventDefault();debugAux(e.code);return}}
   if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space'].includes(e.code)&&state==='play')e.preventDefault();
   keys[e.code]=true;
   // held keys repeat: never let that toggle pause, re-trigger a pick, or click a button that just took focus
@@ -1325,7 +1418,7 @@ function showBanner(t,s){const b=$('banner');b.innerHTML=t+(s?`<small>${s}</smal
 /* ---------- combat ---------- */
 // which weapon, item or hazard is dealing damage right now (for the after-action report)
 let DSRC='other';
-function damageEnemy(e,amt,txt=true){if(e.dead)return;const T=G.tk;let crit=false;
+function damageEnemy(e,amt,txt=true){if(e.dead)return;const T=G.tk;let crit=false;if(DBG.ohk)amt=Math.max(amt,e.hp+1);
   if(G.stats.crit&&Math.random()<G.stats.crit){amt*=3;crit=true}
   G.dmgBy[DSRC]=(G.dmgBy[DSRC]||0)+Math.min(amt,Math.max(0,e.hp));e.hp-=amt;e.flash=0.07;
   // Finishing Move: a regular car left under 15% is wrecked outright (direct hits only, not burns)
@@ -1351,14 +1444,14 @@ function killEnemy(e){
 }
 // Crumple Zone: a hit sets off a shockwave, at most every few seconds
 function crumple(){const lv=G.passives.crumple;if(!lv||G.t<(G.crumpleAt||0))return;G.crumpleAt=G.t+Math.max(1.5,4-0.4*lv);G.rings.push({src:'crumple',x:G.p.x,y:G.p.y,r:20,max:150+15*lv,dmg:(20+12*lv)*G.stats.dmg,hit:new Set()})}
-function hurt(amt){const p=G.p,s=G.stats;if(G.exitT>=0||p.inv>0||state!=='play'||G.buffs.bubble>0)return;
+function hurt(amt){const p=G.p,s=G.stats;if(DBG.god||G.exitT>=0||p.inv>0||state!=='play'||G.buffs.bubble>0)return;
   if(s.shieldCd&&G.shieldT<=0){G.shieldT=s.shieldCd;p.inv=0.4;G.rings.push({x:p.x,y:p.y,r:20,max:90,dmg:0,hit:new Set()});tone(900,0.15,'triangle',0.05,400);return}
   p.hp-=amt*s.taken;G.dmgTaken+=amt*s.taken;p.inv=0.45;crumple();G.shake=Math.min(18,G.shake+6);G.hurtFlash=0.3;sfx('hurt');
   if(p.hp<=0){if(G.tk.tire>0){G.tk.tire--;p.hp=p.maxhp*0.5;p.inv=2;explode(p.x,p.y,180,60*s.dmg,0);showBanner('Spare tire','Back on the road');return}
     if(G.revives>0){G.revives--;p.hp=p.maxhp*0.5;p.inv=2;explode(p.x,p.y,180,60*s.dmg,0);showBanner('Second wind','Back on the road');return}p.hp=0;gameOver()}
   else if(p.hp<p.maxhp*0.1&&G.lowAt<0)G.lowAt=G.t}
 // damage over time from hazards: no i-frames, but bubble and armor still apply
-function chip(amt){const p=G.p;if(G.tk.runflat)amt*=0.5;if(G.exitT>=0||G.buffs.bubble>0||state!=='play')return;p.hp-=amt*G.stats.taken;G.dmgTaken+=amt*G.stats.taken;G.hurtFlash=Math.max(G.hurtFlash,0.12);if(p.hp<=0){p.hp=0.01;p.inv=0;hurt(1)}else if(p.hp<p.maxhp*0.1&&G.lowAt<0)G.lowAt=G.t}
+function chip(amt){const p=G.p;if(DBG.god)return;if(G.tk.runflat)amt*=0.5;if(G.exitT>=0||G.buffs.bubble>0||state!=='play')return;p.hp-=amt*G.stats.taken;G.dmgTaken+=amt*G.stats.taken;G.hurtFlash=Math.max(G.hurtFlash,0.12);if(p.hp<=0){p.hp=0.01;p.inv=0;hurt(1)}else if(p.hp<p.maxhp*0.1&&G.lowAt<0)G.lowAt=G.t}
 // a rocket prefers the nearest car no other rocket is already chasing (bosses can take several)
 function missileTarget(m){let best=null,bd=900*900,any=null,ad=900*900;
   for(const e of G.enemies){if(e.dead)continue;const d=d2(m.x,m.y,e.x,e.y);if(d<ad){ad=d;any=e}if(d<bd&&(e.big||!G.missiles.some(o=>o!==m&&o.t===e))){bd=d;best=e}}return best||any}
@@ -1405,7 +1498,7 @@ function spawnPoint(r,lean){const p=G.p,sp=Math.hypot(p.vx,p.vy),va=Math.atan2(p
 function pickType(t){const w=[['buggy',5],['sedan',t>20?4:1],['truck',t>60?2:0],['gunner',t>90?2:0]];let tot=0;for(const x of w)tot+=x[1];let r=Math.random()*tot;for(const [k,v] of w){if((r-=v)<0)return k}return'buggy'}
 function spawnUpdate(dt){
   const t=G.t,L=G.L,te=t+L.head,od=odHeat(),rate=(0.8+te/22+(te>240?(te-240)/14:0))*L.rate*(od<0?1:1.6+od/40);
-  G.spawnT+=dt*rate;
+  G.spawnT+=DBG.noSpawn?0:dt*rate;
   while(G.spawnT>=1){G.spawnT-=1;if(G.enemies.length<260)spawnEnemy(pickType(te))}
   if(t>=G.nextAmbush){G.nextAmbush+=od<0?45:20;const n=12+Math.floor(te/30);for(let i=0;i<n&&G.enemies.length<ECAP;i++){const a=i/n*TAU,x=G.p.x+Math.cos(a)*460,y=G.p.y+Math.sin(a)*460;if(x<40||y<40||x>ARENA-40||y>ARENA-40||solidAt(x,y,14))continue;spawnEnemy('buggy',{x,y})}showBanner('Ambush!','They’re boxing you in')}
   if(t>=G.nextElite){G.nextElite+=od<0?70:Math.max(8,20-od/15);spawnEnemy(Math.random()<.5?'truck':'sedan',{elite:true,hpMul:7,scale:1.3,xpMul:5,col:'#e8e4ee',spdMul:1.1});showBanner('Chrome hunter','Wreck it for a supply crate and bolts')}
@@ -1987,7 +2080,7 @@ function draw(){
   for(const b of G.beams){const t=b.life/b.max;ctx.save();ctx.translate(b.x,b.y);ctx.rotate(b.a);ctx.fillStyle=`rgba(255,79,216,${t*.55})`;ctx.fillRect(0,-b.w/2,b.len,b.w);ctx.fillStyle=`rgba(255,240,250,${t})`;ctx.fillRect(0,-b.w/6,b.len,b.w/3);ctx.restore()}
   ctx.globalCompositeOperation='source-over';
   for(const t of G.texts){if(!vis(t.x,t.y,40))continue;const sp=textSprite(t.txt,t.col);ctx.globalAlpha=Math.min(1,t.life*2);ctx.drawImage(sp.c,t.x-sp.w/2,t.y-16,sp.w,sp.h)}ctx.globalAlpha=1;
-  drawWeatherWorld(vis);
+  drawWeatherWorld(vis);drawDebugWorld(vis);
   // screen space: weather, then arrows to off-screen crates and traders
   ctx.setTransform(DPR,0,0,DPR,0,0);
   drawWeatherScreen(state==='play'||state==='menu'?wxDt:0);
@@ -2142,7 +2235,7 @@ function renderLevels(){const lv=acctInfo(P.acctXp).lv;$('lvAcct').textContent='
       ${open?`<div class="meta"><span>Threat <b>×${L.diff}</b></span><span class="wx" style="--wc:${WEATHER[FORECAST[L.id]||'clear'].col}"><i></i>Forecast <b>${WEATHER[FORECAST[L.id]||'clear'].name}</b></span><span>Boss <b>${L.boss.name}</b></span><span>Best <b>${fmt(T.best||0)}</b></span></div>`
         :`<span class="lockmsg">Locked · account level ${L.req}</span>`}</div></button>`}).join('')}
 function startGame(li=curLevel){if(G&&G.live)commitRun();navStack.length=0;initAudio();newGame(li);delete FORECAST[LEVELS[li].id];P.lastLevel=li;G.live=true;P.runs++;saveProfile();
-  state='play';show(null);$('hud').hidden=false;updateLoadout();updateGlove();touch.active=false;last=performance.now();for(const k in hudCache)delete hudCache[k];
+  state='play';show(null);$('hud').hidden=false;updateLoadout();updateGlove();if(DBG.on)G.dbg=true;touch.active=false;last=performance.now();for(const k in hudCache)delete hudCache[k];
   startBanner();checkAch()}
 const startBanner=()=>showBanner(G.L.name,`${G.wx.k==='clear'?'':G.wx.W.name+' · '}Wreck ${G.L.minis} Juggernauts to draw out ${G.L.boss.name}`);
 function toMenu(){if(G&&G.live)commitRun();navStack.length=0;state='menu';newGame(curLevel);$('hud').hidden=true;$('tip').hidden=true;show('scrMenu');refreshMenu();$('startBtn').focus()}
@@ -2158,7 +2251,7 @@ const carIdOf=c=>Object.keys(CARS).find(k=>CARS[k]===c)||'interceptor';
 async function lbFetch(q,opts={}){const r=await fetch(LB_API+q,Object.assign({cache:'no-store'},opts));const j=await r.json().catch(()=>({}));
   if(!r.ok)throw Object.assign(new Error('lb'),{code:j.error||r.status,env:j.environment});return j}
 const lbPost=body=>lbFetch('',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(Object.assign({pid:P.pid,name:P.lbName},body))});
-function lbQueueRun(){if(G.t<10||G.forfeit)return null;const id=G.L.id,run={track:id,t:Math.floor(G.t),kills:G.kills,level:G.level,car:carIdOf(G.car),cleared:!!G.cleared,escaped:!!G.escaped};
+function lbQueueRun(){if(G.t<10||G.forfeit||G.dbg)return null;const id=G.L.id,run={track:id,t:Math.floor(G.t),kills:G.kills,level:G.level,car:carIdOf(G.car),cleared:!!G.cleared,escaped:!!G.escaped};
   const q=P.lbQueue[id];if(!q||run.t>q.t||(run.t===q.t&&run.kills>q.kills))P.lbQueue[id]=run;saveProfile();return run}
 let lbBusy=null;
 function lbFlush(){if(!lbOnline)return Promise.resolve({});if(lbBusy)return lbBusy.then(lbFlush);
@@ -2172,7 +2265,7 @@ const lbErrText=(c,env)=>!lbOnline?'Online leaderboards work on the deployed sit
   c===429?'Too many requests. Try again in a minute.':'Can\'t reach the leaderboard right now. Your runs are saved and will post later.';
 // results screen line
 function lbAfterRun(){const el=$('rRank'),g=G,L=G.L;
-  if(!g.lbRun){el.textContent=G.forfeit?'Not posted · you didn\'t make it to the exit portal':G.t<10?'Runs under 10 seconds don\'t go on the leaderboard':'';return}
+  if(!g.lbRun){el.textContent=G.dbg?'Debug run · not posted to the leaderboard':G.forfeit?'Not posted · you didn\'t make it to the exit portal':G.t<10?'Runs under 10 seconds don\'t go on the leaderboard':'';return}
   if(!lbOnline){el.textContent='Leaderboard offline · run saved to post later';return}
   el.textContent='Posting to the leaderboard…';
   g.lbPosting.then(out=>{if(G!==g)return;const j=out[L.id];
@@ -2203,7 +2296,7 @@ $('lbSave').onclick=lbSaveName;// glovebox slots fire on touch-down for any fing
 $('glove').addEventListener('pointerdown',e=>{const b=e.target.closest('.gslot');if(!b||b.dataset.i==null)return;e.preventDefault();e.stopPropagation();useGlove(+b.dataset.i)});
 $('glove').addEventListener('click',e=>{const b=e.target.closest('.gslot');if(b&&b.dataset.i!=null&&e.detail===0)useGlove(+b.dataset.i)});$('rSeek').onclick=e=>{e.currentTarget.blur();initAudio();skipSong()};$('lbName').addEventListener('keydown',e=>{if(e.code==='Enter'||e.code==='NumpadEnter'){e.preventDefault();lbSaveName()}});
 lbFlush();
-const SRCNAME={glovebox:'Glovebox',shrapnel:'Shrapnel Shells',crumple:'Crumple Zone',weather:'Weather',ram:'Ramming',bumpers:'Blast Bumpers',cables:'Jumper Cables',napalm:'Napalm Tank',hazard:'Hazards',barrels:'Barrels',airstrike:'Airstrikes',other:'Other'};
+const SRCNAME={debug:'Console',glovebox:'Glovebox',shrapnel:'Shrapnel Shells',crumple:'Crumple Zone',weather:'Weather',ram:'Ramming',bumpers:'Blast Bumpers',cables:'Jumper Cables',napalm:'Napalm Tank',hazard:'Hazards',barrels:'Barrels',airstrike:'Airstrikes',other:'Other'};
 function renderReport(){const od=G.odStart>=0?(G.escaped||G.forfeit?G.t-G.odStart:0):-1,items=Object.values(G.tk).reduce((a,b)=>a+b,0);
   $('rWhere').textContent=`${G.L.name} · ${G.car.name} · ${G.wx.W.name}`;
   const note=G.escaped?`You made it through the exit portal after ${fmt(od)} of Overdrive (tier ${roman(Math.max(1,G.odTier))}). Run banked · +25% XP and scrap.`:
@@ -2310,11 +2403,12 @@ let last=performance.now();
 let wxDt=0;
 function frame(now){
   const dt=clamp((now-last)/1000,0,0.05);last=now;wxDt=dt;updateWeatherSound();
-  if(state==='play'){update(dt);if(state==='play'||state==='levelup')updateHud()}
+  DBG.ft=DBG.ft*.92+(dt*1000)*.08;if(DBG.msgT>0)DBG.msgT-=dt;
+  if(state==='play'){if(DBG.scale>1){for(let i=0;i<DBG.scale&&state==='play';i++)update(dt)}else update(dt*DBG.scale);if(state==='play'||state==='levelup')updateHud()}
   else if(state==='menu')attract(dt);
   else if(state==='over'){updateWreck(dt);updateFx(dt);G.shake*=Math.exp(-7*dt)}
   const c=G.cam,p=G.p,am=state==='menu',tx=am?ARENA/2:p.x+p.vx*.3,ty=am?ARENA/2:p.y+p.vy*.3,k=1-Math.exp(-6*dt);c.x+=(tx-c.x)*k;c.y+=(ty-c.y)*k;
-  draw();updateHover();renderRadio(false);requestAnimationFrame(frame);
+  draw();updateHover();renderRadio(false);renderDebug(false);requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);
 $('startBtn').focus();
