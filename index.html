@@ -251,6 +251,9 @@ kbd{display:inline-block;font-family:var(--body);font-weight:700;font-size:12px;
 #hoverTip .ts b{font-weight:700;text-align:right}
 #hoverTip .tb{height:5px;background:var(--ink);margin-top:6px}#hoverTip .tb i{display:block;height:100%;background:var(--hp)}
 body.nocursor,body.nocursor *{cursor:none!important}
+#wxHud{align-self:flex-start;display:flex;align-items:center;gap:7px;background:rgba(10,9,12,.85);border:1px solid var(--line);padding:4px 10px;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);pointer-events:auto}
+#wxHud i{width:8px;height:8px;border-radius:50%;background:var(--c)}#wxHud b{color:var(--fg)}
+.lv .wx{display:inline-flex;align-items:center;gap:5px}.lv .wx i{width:7px;height:7px;border-radius:50%;background:var(--wc);display:inline-block}
 #traderHud{align-self:flex-start;display:flex;align-items:center;gap:8px;background:rgba(10,9,12,.85);border:1px solid var(--line);padding:5px 10px;font-size:12px;font-weight:700;letter-spacing:.06em;text-shadow:1px 1px 0 var(--ink);font-variant-numeric:tabular-nums}
 #traderHud .tdot{width:9px;height:9px;border-radius:50%;animation:tpulse 1s ease-in-out infinite alternate}
 #traderHud .tarr{display:inline-block;font-size:11px}
@@ -274,6 +277,7 @@ body.nocursor,body.nocursor *{cursor:none!important}
     </div>
     <div class="row"><div class="hp" data-tip="Health|Your car|Ramming at full speed hurts you less. At zero you're wrecked, unless you have a Spare Tire or Second Wind."><div id="hpfill"></div><div id="hptext">100 / 100</div></div><div id="objective" data-tip="Objective|Track progress|Wreck enough Juggernaut mini bosses and the track's level boss comes for you. Beat it to clear the track."></div></div>
     <div id="traderHud" hidden data-tip="Trader|Shop on wheels|Drive into the dashed ring around the truck and press F (or tap the prompt) to buy items with bolts. Items also come from the Trader's Roll on level up."></div>
+    <div id="wxHud" hidden></div>
     <div id="buffs"></div>
     <div id="bossWrap" hidden data-tip="Boss health|Boss|Bosses ignore walls and smash straight through props."><div id="bossName">JUGGERNAUT</div><div class="bossbar"><div id="bossfill"></div></div></div>
   </div>
@@ -388,6 +392,7 @@ body.nocursor,body.nocursor *{cursor:none!important}
     </div>
     <div class="keys">
       <div class="key"><b>Juggernauts</b><span>A mini boss rolls in every 3 minutes. Wreck enough of them and the level boss comes for you.</span></div>
+      <div class="key"><b>Weather</b><span>Every run rolls its own weather, shown as the forecast on the track card. Rain and snow cost grip, blizzards shove you around, thunderstorms drop marked lightning strikes, and dust storms send tornadoes across the track.</span></div>
       <div class="key"><b>Exit portal</b><span>Beat the level boss and a portal opens in a far corner. Drive in to end the run and bank it. Stay longer and Overdrive kicks in: tougher, faster cars every 40 seconds. Get wrecked before you escape and the run doesn't count.</span></div>
       <div class="key"><b>Traders</b><span>From about 2:00, a trader truck parks nearby every couple of minutes. Follow the light beam or the HUD arrow, drive into its ring and press F to buy items with bolts.</span></div>
       <div class="key"><b>Trader's Roll</b><span>Every level up can skip the bolt-on and roll a random item instead: Common, Rare or Epic, each with its own effect.</span></div>
@@ -501,7 +506,8 @@ function sfx(n){if(muted())return;const now=performance.now();const gap={shoot:7
   case'zap':tone(1800,0.08,'sawtooth',0.03,300);noise(0.08,0.05,6000);break;case'laser':tone(220,0.3,'sawtooth',0.06,1400);break;case'bolt':tone(1400,0.05,'triangle',0.04,2100);break;
   case'buy':[660,880,1320].forEach((f,i)=>tone(f,0.1,'square',0.04,null,i*0.05));break;case'horn':tone(330,0.35,'square',0.06);tone(415,0.35,'square',0.05);break;
   case'level':[523,659,784,1046].forEach((f,i)=>tone(f,0.16,'square',0.04,null,i*0.07));break;case'boss':tone(70,1.2,'sawtooth',0.12,45);break;
-  case'ach':[784,988,1175,1568].forEach((f,i)=>tone(f,0.2,'triangle',0.05,null,i*0.08));break}}
+  case'ach':[784,988,1175,1568].forEach((f,i)=>tone(f,0.2,'triangle',0.05,null,i*0.08));break;
+  case'thunder':noise(1.6,0.3,320);noise(0.25,0.22,2400);tone(55,1.2,'sine',0.14,30);break}}
 
 /* ---------- music: an original chiptune/techno loop, synthesized live (no audio files) ---------- */
 // A minor at 150 BPM, 16 bars: A section Am F C G twice, B section F G Em Am twice.
@@ -1100,7 +1106,7 @@ function carThumb(id){if(thumbs[id])return thumbs[id];const C=CARS[id],c=documen
 /* ---------- state ---------- */
 let state='menu',G=null,choices=[],curLevel=clamp(P.lastLevel|0,0,LEVELS.length-1),eid=0;
 
-function newGame(li){const L=LEVELS[li];curLevel=li;groundPat=makeGround(L);const C=CARS[P.cars[P.car]?P.car:'interceptor'],Wd=buildWorld(L),start={};
+function newGame(li){const L=LEVELS[li];curLevel=li;const wk=FORECAST[L.id]||rollWeather(L);groundPat=makeGround(L);const C=CARS[P.cars[P.car]?P.car:'interceptor'],Wd=buildWorld(L),start={};
   for(const k in C.start.w)start[k]={lvl:C.start.w[k],cd:0.4,aim:-Math.PI/2};
   G={L,t:0,kills:0,level:1,xp:0,xpNeed:6,pending:0,shake:0,hurtFlash:0,live:false,
     miniKills:0,minisSpawned:0,eliteKills:0,ramKills:0,barrelBooms:0,lowAt:-1,newAch:[],achT:0,
@@ -1112,6 +1118,7 @@ function newGame(li){const L=LEVELS[li];curLevel=li;groundPat=makeGround(L);cons
     enemies:[],bullets:[],ebullets:[],missiles:[],mines:[],gems:[],pickups:[],parts:[],texts:[],rings:[],booms:[],barrels:Wd.barrels,decals:[],arcs:[],beams:[],shells:[],
     spawnT:0,nextMini:180,nextElite:70,nextAmbush:35,cam:{x:ARENA/2,y:ARENA/2+200},view:{ox:0,oy:0}};
   for(let i=0;i<70;i++)G.decals.push({x:rand(0,ARENA),y:rand(0,ARENA),r:rand(18,60),rot:rand(0,TAU),k:'oil'});
+  G.wx=makeWeather(wk);
   G.bolts=8*gl('wallet');G.pending=gl('kit');
   recalc();
 }
@@ -1198,7 +1205,7 @@ function spawnEnemy(type,o={}){
   const od=odHeat(),oh=od<0?1:1.5+od/45,odd=od<0?1:1.3+od/90,osp=od<0?1:1.1+Math.min(.2,od/300);
   const hm=o.hp?1:(type==='mini'||o.elite?1+G.t/75:hpScale(G.t))*L.diff*(o.hpMul||1)*oh,sc=o.scale||1,hp=o.hp||d.hp*hm;
   const e={id:eid++,type,x,y,a:Math.atan2(p.y-y,p.x-x),v:0,kx:0,ky:0,hp,maxhp:hp,r:d.r*sc,len:d.len*sc,wid:d.wid*sc,
-    spd:d.spd*(o.spdMul||1)*(L.spd||1)*osp*rand(.92,1.08),turn:d.turn,dmg:d.dmg*(1+G.t/400)*(0.7+0.3*L.diff)*(o.dmgMul||1)*odd,xp:d.xp*(o.xpMul||1),col:o.col||d.col,
+    spd:d.spd*(o.spdMul||1)*(L.spd||1)*osp*(G.wx&&G.wx.W.eslow||1)*rand(.92,1.08),turn:d.turn,dmg:d.dmg*(1+G.t/400)*(0.7+0.3*L.diff)*(o.dmgMul||1)*odd,xp:d.xp*(o.xpMul||1),col:o.col||d.col,
     shoots:!!d.shoots,big:type==='mini'||type==='lboss',elite:!!o.elite,ab:o.ab||null,flash:0,ccd:0,sawCd:0,scd:rand(1,2.5),
     charge:0,chargeCd:4,ringCd:3,burstCd:2,sumCd:6,burn:0,los:false,orbit:false,
     // each car keeps its own approach angle, a little lead, and its own sway/shamble rhythm
@@ -1233,6 +1240,89 @@ function spawnUpdate(dt){
     G.lboss=spawnEnemy('lboss',{hp:B.hp*(1+t/400),col:B.col,spdMul:B.spd||1,ab:B.abil,dmgMul:1.2});showBanner(B.name,'Level boss · wreck it to clear the track');sfx('boss');G.shake=14}
   if(t>=G.nextTrader&&!G.trader)spawnTrader();
 }
+
+
+/* ---------- weather: rolled for each track when you pick it, re-rolled every time a run loads ---------- */
+// visuals are screen-space particles; hazards (lightning, tornadoes) live in the world
+const WEATHER={
+  clear:{name:'Clear skies',col:'#ffd65a',desc:'No weather to worry about. Just you and the traffic.'},
+  rain:{name:'Rain',col:'#6fa8ff',desc:'Wet roads: a little less grip for you.',grip:0.85,rain:1,dark:.12,amb:.5},
+  storm:{name:'Thunderstorm',col:'#a98bff',desc:'Heavy rain and lightning. A strike is marked on the road a second before it lands and wrecks everything inside, you included.',grip:0.8,rain:1.7,dark:.3,bolts:1,amb:.9},
+  snow:{name:'Snowfall',col:'#dff3ff',desc:'Snow on the road: less grip, and the other cars drive a bit slower too.',grip:0.75,snow:1,dark:.04,eslow:.92,amb:.2},
+  blizzard:{name:'Blizzard',col:'#ffffff',desc:'Whiteout. Gusts shove every car sideways, the edges of your view fade out, and grip is poor.',grip:0.7,snow:2.6,wind:1,white:.5,eslow:.88,amb:.8},
+  dust:{name:'Dust storm',col:'#e0b070',desc:'Mini tornadoes roam the track. They fling and chew up cars, and they will spin you too.',dust:1,wind:.55,tornado:1,dark:.08,amb:.6},
+  ash:{name:'Ash storm',col:'#ff7a3a',desc:'Falling ash, dry lightning and fire twisters that burn whatever they catch.',ash:1,bolts:.7,tornado:1,fire:1,dark:.22,amb:.6},
+};
+const WX_ODDS={yard:{clear:3,rain:3,storm:2,dust:2},dust:{clear:3,rain:2,storm:2,dust:3},neon:{clear:2,rain:4,storm:3,dust:1},frost:{clear:1,snow:4,blizzard:3,storm:1},inferno:{clear:2,ash:4,dust:2,storm:1}};
+const FORECAST={};
+function rollWeather(L){const o=WX_ODDS[L.id]||{clear:1};let t=0;for(const k in o)t+=o[k];let r=Math.random()*t;for(const k in o)if((r-=o[k])<0)return k;return'clear'}
+function rollForecasts(){for(const L of LEVELS)FORECAST[L.id]=rollWeather(L)}
+function makeWeather(k){return{k,W:WEATHER[k],int:1,ph:rand(0,TAU),windA:rand(0,TAU),gust:0,nextBolt:6,nextTwister:rand(12,20),strikes:[],bolts:[],twisters:[],flash:0,cx:0,cy:0,parts:[]}}
+// intensity drifts between calm spells and heavy ones (about a 75s cycle)
+function updateWeather(dt){const X=G.wx,W=X.W,p=G.p;X.int=0.8+0.45*Math.sin(G.t*TAU/75+X.ph);
+  if(W.wind){X.windA+=dt*0.05;X.gust=Math.max(0,Math.sin(G.t*0.9+X.ph)*1.3-0.2);const F=W.wind*X.gust*110*dt,wx=Math.cos(X.windA),wy=Math.sin(X.windA);
+    p.vx+=wx*F;p.vy+=wy*F;for(const e of G.enemies)if(!e.big&&!e.dead){e.kx+=wx*F*0.6;e.ky+=wy*F*0.6}}
+  // lightning: marked a second ahead, then it lands
+  if(W.bolts){X.nextBolt-=dt*X.int*W.bolts;if(X.nextBolt<=0){X.nextBolt=rand(2.6,4.6);let x,y;
+      if(Math.random()<.55){const a=Math.atan2(p.vy,p.vx),sp=Math.hypot(p.vx,p.vy),lead=sp>120?rand(.6,1.2):0;x=p.x+Math.cos(a)*sp*lead+rand(-150,150);y=p.y+Math.sin(a)*sp*lead+rand(-150,150)}
+      else{const e=G.enemies[Math.floor(Math.random()*G.enemies.length)];if(e){x=e.x;y=e.y}else{x=p.x+rand(-300,300);y=p.y+rand(-300,300)}}
+      X.strikes.push({x:clamp(x,40,ARENA-40),y:clamp(y,40,ARENA-40),t:1.1,R:85})}}
+  for(const st of X.strikes){st.t-=dt;if(st.t<=0)lightning(st)}prune(X.strikes,st=>st.t>0);
+  for(const b of X.bolts)b.life-=dt;prune(X.bolts,b=>b.life>0);X.flash=Math.max(0,X.flash-dt*2.5);
+  // tornadoes wander in from off screen, drift across, and fade out
+  if(W.tornado){X.nextTwister-=dt*X.int;if(X.nextTwister<=0){X.nextTwister=rand(16,26);if(X.twisters.length<(X.int>1.05?3:2)){const a=rand(0,TAU),R=rand(520,700),x=clamp(p.x+Math.cos(a)*R,80,ARENA-80),y=clamp(p.y+Math.sin(a)*R,80,ARENA-80),h=Math.atan2(p.y-y,p.x-x)+rand(-.6,.6);
+      X.twisters.push({x,y,h,v:rand(55,85),life:rand(20,26),age:0,R:58,pull:190,spin:0,fire:!!W.fire});if(X.twisters.length===1)showBanner(W.fire?'Fire twister':'Tornado','Keep clear or get spun')}}}
+  for(const tw of X.twisters){tw.age+=dt;tw.life-=dt;tw.spin+=dt*7;tw.h+=Math.sin(G.t*.7+tw.x*.01)*dt*.6;tw.x+=Math.cos(tw.h)*tw.v*dt;tw.y+=Math.sin(tw.h)*tw.v*dt;
+    if(tw.x<80||tw.x>ARENA-80)tw.h=Math.PI-tw.h;if(tw.y<80||tw.y>ARENA-80)tw.h=-tw.h;tw.x=clamp(tw.x,80,ARENA-80);tw.y=clamp(tw.y,80,ARENA-80);
+    const k=Math.min(1,tw.age/1.5,tw.life/1.5);if(k<=0)continue;DSRC='weather';
+    for(const e of near(tw.x,tw.y,tw.pull+40,[])){if(e.dead||e.big)continue;const dx=tw.x-e.x,dy=tw.y-e.y,d=Math.hypot(dx,dy)||1;if(d>tw.pull)continue;const f=(1-d/tw.pull)*k;
+      e.kx+=(dx/d*260-dy/d*320)*f*dt*3;e.ky+=(dy/d*260+dx/d*320)*f*dt*3;if(d<tw.R)damageEnemy(e,(25+e.maxhp*0.5)*dt*(tw.fire?1.5:1),false)}
+    const dx=tw.x-p.x,dy=tw.y-p.y,d=Math.hypot(dx,dy)||1;if(d<tw.pull&&G.exitT<0){const f=(1-d/tw.pull)*k;p.vx+=(dx/d*240-dy/d*300)*f*dt*2.4;p.vy+=(dy/d*240+dx/d*300)*f*dt*2.4;
+      if(d<tw.R){p.a+=dt*5*f;chip((tw.fire?12:7)*dt*(0.7+0.3*G.L.diff));G.shake=Math.max(G.shake,4)}}}
+  prune(X.twisters,tw=>tw.life>0)}
+function lightning(st){const X=G.wx,p=G.p;X.flash=1;sfx('thunder');G.shake=Math.max(G.shake,9);
+  const pts=[[st.x+rand(-60,60),st.y-700]];for(let i=1;i<9;i++)pts.push([st.x+rand(-40,40)*(1-i/9),st.y-700+700*i/9]);pts.push([st.x,st.y]);X.bolts.push({pts,life:.28});
+  boomFx(st.x,st.y,60);G.decals.push({x:st.x,y:st.y,r:st.R*.6,rot:rand(0,TAU),k:'scorch'});DSRC='weather';
+  for(const e of near(st.x,st.y,st.R+70,[]))if(!e.dead&&d2(e.x,e.y,st.x,st.y)<(st.R+e.r)**2)damageEnemy(e,e.big?e.maxhp*0.05:e.maxhp*0.8+40);
+  for(const b of G.barrels)if(b.alive&&b.fuse<0&&d2(b.x,b.y,st.x,st.y)<(st.R+b.r)**2)b.fuse=0.05;
+  if(d2(p.x,p.y,st.x,st.y)<(st.R+p.r)**2)hurt(22*(0.7+0.3*G.L.diff))}
+function drawWeatherWorld(vis){const X=G.wx;if(!X)return;
+  for(const st of X.strikes){if(!vis(st.x,st.y,st.R))continue;const f=1-st.t/1.1,bl=Math.floor(G.t*14)%2;
+    ctx.fillStyle=`rgba(170,150,255,${.12+.22*f})`;ctx.beginPath();ctx.arc(st.x,st.y,st.R*(.35+.65*f),0,TAU);ctx.fill();
+    ctx.strokeStyle=bl?'rgba(230,220,255,.9)':'rgba(170,140,255,.7)';ctx.lineWidth=3;ctx.setLineDash([10,8]);ctx.beginPath();ctx.arc(st.x,st.y,st.R,0,TAU);ctx.stroke();ctx.setLineDash([])}
+  for(const tw of X.twisters){if(!vis(tw.x,tw.y,tw.pull))continue;const k=Math.min(1,tw.age/1.5,tw.life/1.5);if(k<=0)continue;
+    ctx.fillStyle=`rgba(0,0,0,${.25*k})`;ctx.beginPath();ctx.ellipse(tw.x+10,tw.y+14,tw.R*1.1,tw.R*.7,0,0,TAU);ctx.fill();
+    const c1=tw.fire?'255,120,40':'200,170,120',c2=tw.fire?'255,200,90':'235,215,170';
+    ctx.strokeStyle=`rgba(${c1},${.18*k})`;ctx.lineWidth=2;ctx.setLineDash([6,10]);ctx.beginPath();ctx.arc(tw.x,tw.y,tw.pull,0,TAU);ctx.stroke();ctx.setLineDash([]);
+    for(let i=0;i<7;i++){const f=i/7,r=tw.R*(1.25-f*.85),yo=-f*70,a=tw.spin*(1+f)+i;ctx.strokeStyle=`rgba(${i%2?c2:c1},${(.5-.04*i)*k})`;ctx.lineWidth=5-i*.4;
+      ctx.beginPath();ctx.ellipse(tw.x+Math.cos(a)*6,tw.y+yo,r,r*.42,0,a%TAU,a%TAU+4.6);ctx.stroke()}
+    for(let i=0;i<10;i++){const a=tw.spin*1.6+i*.63,r=tw.R*(.5+(i%3)*.3);ctx.fillStyle=`rgba(${c1},${.7*k})`;ctx.fillRect(tw.x+Math.cos(a)*r-2,tw.y+Math.sin(a)*r*.5-30*(i%4)/3-2,4,4)}}
+  ctx.lineCap='round';for(const b of X.bolts){const a=b.life/.28;ctx.strokeStyle=`rgba(200,190,255,${.5*a})`;ctx.lineWidth=10;ctx.beginPath();b.pts.forEach((q,i)=>i?ctx.lineTo(q[0],q[1]):ctx.moveTo(q[0],q[1]));ctx.stroke();
+    ctx.strokeStyle=`rgba(255,255,255,${a})`;ctx.lineWidth=3;ctx.stroke()}ctx.lineCap='butt'}
+// screen-space rain, snow, dust and ash; they shift with the camera so they feel like they're out in the world
+function drawWeatherScreen(dt){const X=G.wx;if(!X)return;const W=X.W,c=G.cam,lo=S.lowFx,dx=c.x-X.cx,dy=c.y-X.cy;X.cx=c.x;X.cy=c.y;const jump=Math.abs(dx)>400||Math.abs(dy)>400;
+  const kind=W.rain?'rain':W.snow?'snow':W.dust?'dust':W.ash?'ash':null,amt=W.rain||W.snow||W.dust||W.ash||0;
+  const want=kind?Math.round((kind==='rain'?260:kind==='snow'?120:80)*amt*X.int*(lo?.4:1)):0,P2=X.parts;
+  while(P2.length<want)P2.push({x:rand(0,VW),y:rand(-VH*.2,VH),z:rand(.5,1.2),s:rand(0,TAU)});if(P2.length>want)P2.length=want;
+  const wa=X.windA,wf=(W.wind||0)*(.4+X.gust),wxv=Math.cos(wa)*wf*600,wyv=Math.sin(wa)*wf*600;
+  if(W.dark){ctx.fillStyle=W.ash?`rgba(40,14,8,${W.dark*X.int})`:`rgba(8,12,28,${W.dark*X.int})`;ctx.fillRect(0,0,VW,VH)}
+  if(W.dust){ctx.fillStyle=`rgba(190,150,90,${.08+.06*X.int})`;ctx.fillRect(0,0,VW,VH)}
+  if(kind==='rain'){ctx.strokeStyle='rgba(185,210,255,.62)';ctx.lineWidth=1.7;ctx.beginPath();const vy=900,vx=120+wxv;
+    for(const q of P2){if(dt){q.x+=(vx*dt-dx)*q.z;q.y+=(vy*dt-dy)*q.z}if(jump||q.y>VH+20||q.x<-40||q.x>VW+40){q.x=rand(-20,VW+20);q.y=rand(-60,-10)}const L=24*q.z;ctx.moveTo(q.x,q.y);ctx.lineTo(q.x-vx/vy*L,q.y-L)}ctx.stroke()}
+  else if(kind){const col=kind==='snow'?'255,255,255':kind==='dust'?'230,200,150':'90,80,80',vy=kind==='snow'?70:kind==='dust'?30:55;ctx.fillStyle=`rgba(${col},${kind==='dust'?.45:.8})`;
+    for(const q of P2){q.s+=dt*2;if(dt){q.x+=((Math.sin(q.s)*25+wxv)*dt-dx)*q.z;q.y+=((vy+wyv)*dt-dy)*q.z}
+      if(jump||q.y>VH+10||q.y<-20||q.x<-20||q.x>VW+20){if(jump||q.y>VH+10){q.x=rand(0,VW);q.y=rand(-15,-5)}else{q.x=q.x<0?VW+10:q.x>VW?-10:q.x;q.y=q.y<-20?VH:q.y}}
+      const r=(kind==='dust'?1.4:kind==='snow'?2.2:1.8)*q.z;ctx.fillRect(q.x-r,q.y-r,r*2,r*2)}
+    if(kind==='ash')for(let i=0;i<(lo?3:8);i++){const q=P2[i];if(q){ctx.fillStyle='rgba(255,140,60,.8)';ctx.fillRect(q.x+20,q.y+30,2,2)}}}
+  if(W.white){if(!X.wv||X.wk!==VW+'x'+VH){X.wk=VW+'x'+VH;X.wv=ctx.createRadialGradient(VW/2,VH/2,Math.min(VW,VH)*.22,VW/2,VH/2,Math.max(VW,VH)*.62);X.wv.addColorStop(0,'rgba(235,242,255,0)');X.wv.addColorStop(1,'rgba(235,242,255,1)')}
+    ctx.globalAlpha=Math.min(.9,W.white*X.int*(.7+.3*X.gust));ctx.fillStyle=X.wv;ctx.fillRect(0,0,VW,VH);ctx.globalAlpha=1}
+  if(X.flash>0){ctx.fillStyle=`rgba(225,225,255,${X.flash*(S.flash?.38:.1)})`;ctx.fillRect(0,0,VW,VH)}}
+// steady rain hiss or wind howl, made from the shared noise buffer
+let wxAmb=null;
+function updateWeatherSound(){if(!AC||!master)return;const X=G&&G.wx,W=X&&X.W,on=W&&W.amb&&!muted()&&(state==='play'||state==='menu');
+  if(!wxAmb){if(!on)return;const src=AC.createBufferSource();src.buffer=nbufGet();src.loop=true;const f=AC.createBiquadFilter(),g=AC.createGain();g.gain.value=0;src.connect(f);f.connect(g);g.connect(master);src.start();wxAmb={src,f,g}}
+  const tgt=on?W.amb*(state==='menu'?.04:.07)*(W.wind?.7+.5*X.gust:X.int):0;wxAmb.g.gain.setTargetAtTime(tgt,AC.currentTime,.4);
+  if(on){wxAmb.f.type=W.wind||W.dust?'bandpass':'highpass';wxAmb.f.frequency.setTargetAtTime(W.wind||W.dust?380+300*X.gust:W.snow?3000:1600,AC.currentTime,.3);wxAmb.f.Q.value=W.wind||W.dust?1.2:.5}}
 
 /* ---------- traders ---------- */
 // breadth-first route over the wide-clearance grid (room for the truck), trimmed to as few straight legs as possible
@@ -1343,7 +1433,7 @@ function updatePlayer(dt){
   fx=Math.cos(p.a);fy=Math.sin(p.a);const rx=-fy,ry=fx;
   let vf=p.vx*fx+p.vy*fy,vs=p.vx*rx+p.vy*ry;
   const nb=G.buffs.nitro>0?1.35:1,maxF=430*s.speed*nb,acc=540*s.speed*nb;
-  let grip=(G.L.grip||7)*G.car.grip;
+  let grip=(G.L.grip||7)*G.car.grip*(G.wx.W.grip||1);
   for(const z of G.zones){if(!zoneHit(z,p.x,p.y,p.r))continue;const Z=ZONES[z.k];if(Z.grip)grip=Math.min(grip,7*Z.grip);if(Z.dps)chip(Z.dps*dt);if(Z.drag)vf*=Math.exp(-Z.drag*dt)}
   if(thr>0)vf+=thr*acc*dt*(vf<0?2.2:1);else if(thr<0)vf+=thr*acc*dt*(vf>0?1.8:0.6);else vf*=Math.exp(-1.1*dt);
   if(vf>maxF)vf+=(maxF-vf)*Math.min(1,4*dt);vf=Math.max(vf,-190);
@@ -1536,7 +1626,7 @@ function update(dt){
   if(G.exitT>=0)pullIntoPortal(dt);else updatePlayer(dt);spawnUpdate(dt);updateTrader(dt);updateEnemies(dt);
   // cars, bosses and the trader can shove the player after it moved: settle it against walls again
   keepInArena(G.p);collideObs(G.p,G.p.r);keepInArena(G.p);
-  updateHazards(dt);updateWeapons(dt);updateProjectiles(dt);
+  updateHazards(dt);updateWeather(dt);updateWeapons(dt);updateProjectiles(dt);
   prune(G.enemies,e=>!e.dead);
   updatePickups(dt);updateFx(dt);
   G.shake*=Math.exp(-7*dt);G.hurtFlash-=dt;
@@ -1690,8 +1780,10 @@ function draw(){
   for(const b of G.beams){const t=b.life/b.max;ctx.save();ctx.translate(b.x,b.y);ctx.rotate(b.a);ctx.fillStyle=`rgba(255,79,216,${t*.55})`;ctx.fillRect(0,-b.w/2,b.len,b.w);ctx.fillStyle=`rgba(255,240,250,${t})`;ctx.fillRect(0,-b.w/6,b.len,b.w/3);ctx.restore()}
   ctx.globalCompositeOperation='source-over';
   for(const t of G.texts){if(!vis(t.x,t.y,40))continue;const sp=textSprite(t.txt,t.col);ctx.globalAlpha=Math.min(1,t.life*2);ctx.drawImage(sp.c,t.x-sp.w/2,t.y-16,sp.w,sp.h)}ctx.globalAlpha=1;
-  // screen space: arrows to off-screen crates and traders
+  drawWeatherWorld(vis);
+  // screen space: weather, then arrows to off-screen crates and traders
   ctx.setTransform(DPR,0,0,DPR,0,0);
+  drawWeatherScreen(state==='play'||state==='menu'?wxDt:0);
   const arrow=(wx,wy,col)=>{const sx2=wx+ox,sy2=wy+oy;if(sx2>0&&sx2<VW&&sy2>0&&sy2<VH)return;
     const a=Math.atan2(sy2-VH/2,sx2-VW/2),ex=clamp(sx2,28,VW-28),ey=clamp(sy2,110,VH-50);ctx.save();ctx.translate(ex,ey);ctx.rotate(a);ctx.fillStyle=col;ctx.beginPath();ctx.moveTo(14,0);ctx.lineTo(-8,-10);ctx.lineTo(-8,10);ctx.closePath();ctx.fill();ctx.restore()};
   if(state!=='menu'){for(const k of G.pickups)if(k.type==='chest')arrow(k.x,k.y,'#ffc21a');else if(k.type!=='wrench'&&k.type!=='magnet')arrow(k.x,k.y,DROPS[k.type].col);if(G.trader&&G.trader.phase!=='leave')traderArrow();if(G.portal)portalArrow()}
@@ -1722,6 +1814,7 @@ const hudCache={};
 function setT(id,v){if(hudCache[id]!==v){hudCache[id]=v;$(id).textContent=v}}
 function setW(id,f){const v=(clamp(f,0,1)*100).toFixed(1)+'%';if(hudCache[id]!==v){hudCache[id]=v;$(id).style.width=v}}
 function updateHud(){
+  {const W=G.wx.W,h=$('wxHud');if(hudCache.wx!==W.name){hudCache.wx=W.name;h.hidden=false;h.style.setProperty('--c',W.col);h.dataset.tip=`${W.name}|Weather|${W.desc}`;h.innerHTML=`<i></i>Weather <b>${W.name}</b>`}}
   const p=G.p,L=G.L;setW('xpfill',G.xp/G.xpNeed);setW('hpfill',p.hp/p.maxhp);
   setT('hptext',Math.ceil(p.hp)+' / '+p.maxhp);setT('lvl',String(G.level));setT('kills',String(G.kills));setT('timer',fmt(G.t));setT('bolts',String(G.bolts));setT('scrapH',String(scrapEst()));
   let bf='';for(const k in G.buffs)if(G.buffs[k]>0)bf+=`<span class="chip buff" style="--c:${BUFFS[k].col}" data-tip="${BUFFS[k].name}|Power-up · ${Math.ceil(G.buffs[k])}s left|${BUFF_DESC[k]}">${BUFFS[k].name.toUpperCase()} ${Math.ceil(G.buffs[k])}s</span>`;if(hudCache.bf!==bf){hudCache.bf=bf;$('buffs').innerHTML=bf}
@@ -1780,6 +1873,8 @@ function enemyCard(e){const fr=G.buffs.freeze>0,st=[];if(fr)st.push('frozen');if
 function pickHover(wx,wy){const p=G.p,in2=(x,y,r)=>d2(wx,wy,x,y)<r*r;
   let best=null,bd=1e9;for(const e of near(wx,wy,80)){if(e.dead)continue;const q=d2(wx,wy,e.x,e.y);if(q<(e.r+8)**2&&q<bd){bd=q;best=e}}if(best)return enemyCard(best);
   for(const e of G.enemies)if(e.big&&!e.dead&&in2(e.x,e.y,e.r+8))return enemyCard(e);
+  if(G.wx){for(const st of G.wx.strikes)if(in2(st.x,st.y,st.R))return card('Lightning strike','Weather hazard','Lands in a moment and wrecks everything inside the ring, you included. Get out.',[['Lands in',st.t.toFixed(1)+'s']],'#a98bff');
+    for(const tw of G.wx.twisters)if(in2(tw.x,tw.y,tw.pull))return card(tw.fire?'Fire twister':'Tornado','Weather hazard',tw.fire?'Pulls cars in, spins them and burns them. It will spin and singe you too.':'Pulls cars in, spins them and chews them up. It will spin you too.',[['Blows out in',Math.ceil(tw.life)+'s']],tw.fire?'#ff7a3a':'#e0b070')}
   const po=G.portal;if(po&&in2(po.x,po.y,po.r))return card('Exit portal','Way out','Drive in to end the run and bank it on the leaderboard. Get wrecked before you reach it and the run is lost.',[['Overdrive',`${roman(Math.max(1,G.odTier))} · ${fmt(odHeat())}`],['Next tier in',Math.ceil(40-odHeat()%40)+'s']],'#c78bff');
   const tr=G.trader;if(tr&&in2(tr.x,tr.y,52))return card(tr.T.name,'Trader · '+tr.T.title,tr.phase==='parked'?`Parked for ${Math.ceil(tr.stay)}s more. Pull up and press F (or tap the prompt) to trade.`:tr.phase==='arrive'?'Pulling in. Wait for it to park.':'Leaving town.',[['Sells',tr.offers.map(o=>TRINKETS[o.id].name).join(', ')]],tr.T.col);
   if(in2(p.x,p.y,p.r+6)){const W=Object.keys(G.weapons).map(k=>WDEF[k].name+' '+G.weapons[k].lvl),Pa=Object.keys(G.passives).map(k=>PDEF[k].name+' '+G.passives[k]);
@@ -1810,7 +1905,7 @@ function updateHover(){const tip=$('hoverTip');const idle=performance.now()-mous
 const SCREENS=['scrMenu','scrGarage','scrLevels','scrLevel','scrShop','scrPause','scrOver','scrAch','scrSet','scrHow','scrBoard'],SUBS=['scrLevels','scrGarage','scrAch','scrSet','scrHow','scrBoard'];
 let cur='scrMenu';const navStack=[];
 function show(id){cur=id;for(const s of SCREENS)$(s).hidden=s!==id;$('overlay').hidden=!id;$('overlay').classList.toggle('attract',state==='menu');if(id){$('tip').hidden=true;$('banner').classList.remove('show')}}
-function openSub(id,opener){navStack.push({id:cur||'scrMenu',focus:opener});if(id==='scrAch')renderAch();if(id==='scrBoard')renderBoard();if(id==='scrSet')renderSettings();if(id==='scrLevels')renderLevels();if(id==='scrGarage')renderGarage();show(id);
+function openSub(id,opener){navStack.push({id:cur||'scrMenu',focus:opener});if(id==='scrLevels')rollForecasts();if(id==='scrAch')renderAch();if(id==='scrBoard')renderBoard();if(id==='scrSet')renderSettings();if(id==='scrLevels')renderLevels();if(id==='scrGarage')renderGarage();show(id);
   const f=id==='scrLevels'?$('lv'+curLevel):null;(f&&!f.disabled?f:$(id).querySelector('.back')).focus()}
 function goBack(){const top=navStack.pop()||{id:'scrMenu',focus:null},id=top.id;if(id==='scrLevels')renderLevels();if(id==='scrGarage')renderGarage();show(id);if(id==='scrMenu')refreshMenu();
   // re-rendered screens replace their buttons; find the matching one again
@@ -1837,12 +1932,12 @@ function renderLevels(){const lv=acctInfo(P.acctXp).lv;$('lvAcct').textContent='
     return`<button class="lv" id="lv${i}" data-i="${i}" ${open?'':'disabled'} style="--c:${L.wall};--g:${L.ground};--p:rgb(${L.paint})">
       <div class="art"><span class="no">${i+1}</span>${T.cleared?'<span class="tick">Cleared</span>':''}</div>
       <div class="body"><h3>${L.name}</h3><p>${L.desc}</p>
-      ${open?`<div class="meta"><span>Threat <b>×${L.diff}</b></span><span>Boss <b>${L.boss.name}</b></span><span>Best <b>${fmt(T.best||0)}</b></span></div>`
+      ${open?`<div class="meta"><span>Threat <b>×${L.diff}</b></span><span class="wx" style="--wc:${WEATHER[FORECAST[L.id]||'clear'].col}"><i></i>Forecast <b>${WEATHER[FORECAST[L.id]||'clear'].name}</b></span><span>Boss <b>${L.boss.name}</b></span><span>Best <b>${fmt(T.best||0)}</b></span></div>`
         :`<span class="lockmsg">Locked · account level ${L.req}</span>`}</div></button>`}).join('')}
-function startGame(li=curLevel){if(G&&G.live)commitRun();navStack.length=0;initAudio();newGame(li);P.lastLevel=li;G.live=true;P.runs++;saveProfile();
+function startGame(li=curLevel){if(G&&G.live)commitRun();navStack.length=0;initAudio();newGame(li);delete FORECAST[LEVELS[li].id];P.lastLevel=li;G.live=true;P.runs++;saveProfile();
   state='play';show(null);$('hud').hidden=false;updateLoadout();touch.active=false;last=performance.now();for(const k in hudCache)delete hudCache[k];
   startBanner();checkAch()}
-const startBanner=()=>showBanner(G.L.name,`Wreck ${G.L.minis} Juggernauts to draw out ${G.L.boss.name}`);
+const startBanner=()=>showBanner(G.L.name,`${G.wx.k==='clear'?'':G.wx.W.name+' · '}Wreck ${G.L.minis} Juggernauts to draw out ${G.L.boss.name}`);
 function toMenu(){if(G&&G.live)commitRun();navStack.length=0;state='menu';newGame(curLevel);$('hud').hidden=true;$('tip').hidden=true;show('scrMenu');refreshMenu();$('startBtn').focus()}
 function togglePause(){if(state==='play'){state='paused';$('pauseLevel').textContent=G.L.name+' · '+G.car.name+' · '+fmt(G.t);show('scrPause');$('resumeBtn').focus()}else if(state==='paused'){state='play';show(null);last=performance.now()}}
 /* ---------- online leaderboard (api/scores.js on Vercel, scores kept in Upstash Redis) ---------- */
@@ -1898,9 +1993,9 @@ function lbSaveName(){const nm=lbClean($('lbName').value);if(nm.length<2){$('lbM
   lbPost({action:'name'}).then(()=>{$('lbMsg').textContent='Name saved.';renderBoard()}).catch(e=>{$('lbMsg').textContent='Name saved on this device. '+lbErrText(e.code)})}
 $('lbSave').onclick=lbSaveName;$('lbName').addEventListener('keydown',e=>{if(e.code==='Enter'||e.code==='NumpadEnter'){e.preventDefault();lbSaveName()}});
 lbFlush();
-const SRCNAME={ram:'Ramming',bumpers:'Blast Bumpers',cables:'Jumper Cables',napalm:'Napalm Tank',hazard:'Hazards',barrels:'Barrels',airstrike:'Airstrikes',other:'Other'};
+const SRCNAME={weather:'Weather',ram:'Ramming',bumpers:'Blast Bumpers',cables:'Jumper Cables',napalm:'Napalm Tank',hazard:'Hazards',barrels:'Barrels',airstrike:'Airstrikes',other:'Other'};
 function renderReport(){const od=G.odStart>=0?(G.escaped||G.forfeit?G.t-G.odStart:0):-1,items=Object.values(G.tk).reduce((a,b)=>a+b,0);
-  $('rWhere').textContent=`${G.L.name} · ${G.car.name}`;
+  $('rWhere').textContent=`${G.L.name} · ${G.car.name} · ${G.wx.W.name}`;
   const note=G.escaped?`You made it through the exit portal after ${fmt(od)} of Overdrive (tier ${roman(Math.max(1,G.odTier))}). Run banked · +25% XP and scrap.`:
     G.forfeit?`Wrecked in Overdrive ${roman(Math.max(1,G.odTier))}, ${fmt(od)} after the portal opened. Runs only count once you escape, so this one is off the leaderboard and rewards are halved.`:
     G.cleared?'':`Wreck ${G.L.boss.name} to open the exit portal.`;
@@ -2002,8 +2097,9 @@ function attract(dt){G.t+=dt;const p=G.p,R=clamp(Math.min(VW,VH)*.4,160,460),w=0
   updateFx(dt)}
 resize();newGame(curLevel);show('scrMenu');refreshMenu();
 let last=performance.now();
+let wxDt=0;
 function frame(now){
-  const dt=clamp((now-last)/1000,0,0.05);last=now;
+  const dt=clamp((now-last)/1000,0,0.05);last=now;wxDt=dt;updateWeatherSound();
   if(state==='play'){update(dt);if(state==='play'||state==='levelup')updateHud()}
   else if(state==='menu')attract(dt);
   else if(state==='over'){updateWreck(dt);updateFx(dt);G.shake*=Math.exp(-7*dt)}
