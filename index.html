@@ -245,6 +245,28 @@ kbd{display:inline-block;font-family:var(--body);font-weight:700;font-size:12px;
 .wrow .wv{font-variant-numeric:tabular-nums;min-width:6.5em;text-align:right}
 .odtag{display:inline-block;background:#7b3fe0;color:#fff;font-weight:700;letter-spacing:.1em;padding:1px 7px;margin-right:6px;animation:tpulse 1s ease-in-out infinite}
 #rNote{max-width:640px}
+/* after-action report: two columns on wide screens, compact tiles, details collapsible on phones */
+#scrOver{width:min(980px,100%);gap:12px}
+#scrOver .rep{display:grid;grid-template-columns:minmax(300px,390px) minmax(0,1fr);gap:22px;width:100%;align-items:start}
+#scrOver .repL{display:flex;flex-direction:column;gap:12px;align-items:center;text-align:center;min-width:0}
+#scrOver .big{font-size:clamp(34px,4.6vw,54px);margin:0}
+#scrOver #rNote{font-size:13px;line-height:1.45;margin:0}
+#scrOver .results{grid-template-columns:1fr 1fr;gap:8px}
+#scrOver .res{padding:8px 10px}#scrOver .res b{font-size:22px}
+#scrOver .acct{width:100%}
+#scrOver .btns{margin:0}
+#scrOver .repR{display:flex;flex-direction:column;gap:8px;min-width:0;text-align:left}
+#scrOver .repR summary{list-style:none;cursor:pointer;margin:0}#scrOver .repR summary::-webkit-details-marker{display:none}
+#scrOver .repR .secthead{margin:2px 0 0}
+#scrOver .aar{grid-template-columns:repeat(3,minmax(0,1fr));gap:5px}
+#scrOver .aar div{padding:5px 8px}#scrOver .aar span{font-size:9px}#scrOver .aar b{font-size:13px}
+#scrOver .aarw{gap:4px;padding:8px 10px}#scrOver .wrow{font-size:12px;grid-template-columns:minmax(90px,140px) 1fr auto}#scrOver .wbar{height:8px}
+#scrOver .newach{display:flex;flex-wrap:wrap;gap:5px;justify-content:flex-start}
+#scrOver .achip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--hazard);padding:2px 8px 2px 2px;font-size:12px;font-weight:700;background:rgba(10,9,12,.85)}
+#scrOver .achip i{font-style:normal;background:var(--hazard);color:var(--ink);font-size:9px;padding:2px 4px;min-width:20px;text-align:center}#scrOver .achip.more{padding:2px 8px;color:var(--dim);border-color:var(--line)}
+@media (max-width:820px){#scrOver .rep{grid-template-columns:1fr;gap:14px}
+  #scrOver .repR summary::after{content:' ▸ tap to open';color:var(--dim);letter-spacing:.06em}#scrOver .repR[open] summary::after{content:' ▾'}
+  #scrOver .aar{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (max-width:520px){.wrow{grid-template-columns:96px 1fr auto;gap:6px}}
 .lbt .lbinfo{text-align:center;color:var(--dim);padding:22px 10px}
 .lbrank{text-transform:none;letter-spacing:.06em;font-size:14px}.lbrank b{color:var(--hazard)}
@@ -478,28 +500,34 @@ body.nocursor,body.nocursor *{cursor:none!important}
 
   <section id="scrOver" class="panel" hidden>
     <div class="hazard-stripe"></div>
-    <p class="sub" id="rWhere"></p>
-    <h2 class="big" id="overTitle">Wrecked</h2>
-    <p class="tagline" id="rNote" hidden></p>
-    <div class="results">
-      <div class="res"><span>Survived</span><b id="rTime">0:00</b></div>
-      <div class="res"><span>Wrecks</span><b id="rKills">0</b></div>
-      <div class="res"><span>Level</span><b id="rLvl">1</b></div>
-      <div class="res"><span>Best on track</span><b id="rBest">0:00</b></div>
-    </div>
-    <p class="sub secthead">After-action report</p>
-    <div class="aar" id="rStats"></div>
-    <p class="sub secthead">Damage dealt</p>
-    <div class="aarw" id="rWeap"></div>
-    <div class="acct">
-      <div class="top2"><span>Account level<b id="oAcct">1</b></span><span class="gain" id="oGain">+0 XP</span></div>
-      <div class="achbar"><i id="oAcctFill"></i></div>
-    </div>
-    <p class="sub lbrank" id="rRank"></p>
-    <div id="rAchWrap" hidden><p class="sub" style="margin-bottom:10px">Unlocked this run</p><div class="newach" id="rAch"></div></div>
-    <div class="btns">
-      <button class="btn" id="againBtn">Drive again</button>
-      <button class="btn alt" id="oMenuBtn">Main menu</button>
+    <div class="rep">
+      <div class="repL">
+        <p class="sub" id="rWhere"></p>
+        <h2 class="big" id="overTitle">Wrecked</h2>
+        <p class="tagline" id="rNote" hidden></p>
+        <div class="results">
+          <div class="res"><span>Survived</span><b id="rTime">0:00</b></div>
+          <div class="res"><span>Wrecks</span><b id="rKills">0</b></div>
+          <div class="res"><span>Level</span><b id="rLvl">1</b></div>
+          <div class="res"><span>Best on track</span><b id="rBest">0:00</b></div>
+        </div>
+        <div class="acct">
+          <div class="top2"><span>Account level<b id="oAcct">1</b></span><span class="gain" id="oGain">+0 XP</span></div>
+          <div class="achbar"><i id="oAcctFill"></i></div>
+        </div>
+        <p class="sub lbrank" id="rRank"></p>
+        <div class="btns">
+          <button class="btn" id="againBtn">Drive again</button>
+          <button class="btn alt" id="oMenuBtn">Main menu</button>
+        </div>
+      </div>
+      <details class="repR" id="rDetails" open>
+        <summary class="sub secthead">After-action report</summary>
+        <div class="aar" id="rStats"></div>
+        <p class="sub secthead">Damage dealt</p>
+        <div class="aarw" id="rWeap"></div>
+        <div id="rAchWrap" hidden><p class="sub secthead">Unlocked this run</p><div class="newach" id="rAch"></div></div>
+      </details>
     </div>
     <div class="hazard-stripe"></div>
   </section>
@@ -1630,7 +1658,12 @@ function updatePortal(dt){const o=G.portal,h=odHeat();o.t+=dt;
   const p=G.p;if(G.exitT<0&&state==='play'&&d2(p.x,p.y,o.x,o.y)<(o.r-12)**2){G.exitT=0.9;p.inv=2;sfx('level');showBanner('Escaped','Banking your run…')}}
 function pullIntoPortal(dt){const p=G.p,o=G.portal,k=Math.min(1,7*dt);p.x+=(o.x-p.x)*k;p.y+=(o.y-p.y)*k;p.vx=p.vy=0;p.a+=9*dt;p.inv=Math.max(p.inv,.5)}
 function escapeRun(){G.escaped=true;G.exitT=-1;state='over';commitRun();results('Escaped');showReport()}
-function showReport(){show('scrOver');$('overlay').scrollTop=0;$('againBtn').focus({preventScroll:true})}
+function showReport(){$('rDetails').open=innerWidth>820;show('scrOver');fitReport();$('overlay').scrollTop=0;$('againBtn').focus({preventScroll:true})}
+// shrink the report to fit short windows instead of making you scroll (phones keep the details collapsible instead)
+function fitReport(){const pn=$('scrOver');if(pn.hidden)return;pn.style.zoom='';if(innerWidth<=820)return;
+  // zoom reflows the text a little, so measure again after each step
+  const avail=$('overlay').clientHeight-56;let z=1;for(let i=0;i<4;i++){const h=pn.getBoundingClientRect().height;if(h<=avail)break;z=Math.max(.6,z*avail/h);pn.style.zoom=z.toFixed(3)}}
+addEventListener('resize',()=>{if(cur==='scrOver')fitReport()});
 function drawPortal(o){const t=G.t,r=o.r*Math.min(1,o.t/0.8);if(r<=1)return;
   ctx.save();ctx.globalCompositeOperation='lighter';
   const g=ctx.createRadialGradient(o.x,o.y,r*.2,o.x,o.y,r*2.6);g.addColorStop(0,'rgba(170,90,255,.6)');g.addColorStop(1,'rgba(170,90,255,0)');ctx.fillStyle=g;ctx.beginPath();ctx.arc(o.x,o.y,r*2.6,0,TAU);ctx.fill();
@@ -2309,13 +2342,14 @@ function renderReport(){const od=G.odStart>=0?(G.escaped||G.forfeit?G.t-G.odStar
     G.clearT>=0?[G.L.boss.name,'down at '+fmt(G.clearT)]:['Boss','not reached']];
   if(od>=0)st.push(['Overdrive',`${fmt(od)} · tier ${roman(Math.max(1,G.odTier))}`]);
   $('rStats').innerHTML=st.map(([k,v])=>`<div><span>${esc(k)}</span><b>${esc(v)}</b></div>`).join('');
-  const rows=Object.entries(G.dmgBy).filter(([,v])=>v>=1).sort((a,b)=>b[1]-a[1]),mx=rows.length?rows[0][1]:1;
+  // the six biggest sources, the rest folded into one row
+  let rows=Object.entries(G.dmgBy).filter(([,v])=>v>=1).sort((a,b)=>b[1]-a[1]);if(rows.length>7)rows=[...rows.slice(0,6),['__rest',rows.slice(6).reduce((a,r)=>a+r[1],0)]];const mx=rows.length?Math.max(...rows.map(r=>r[1])):1;
   $('rWeap').innerHTML=rows.length?rows.map(([k,v])=>{const w=WDEF[k],lv=G.weapons[k];
-    return`<div class="wrow"><span class="wn">${esc(w?w.name:SRCNAME[k]||k)}${lv?` <small>Lv ${lv.lvl}</small>`:''}</span><span class="wbar"><i style="width:${(v/mx*100).toFixed(1)}%"></i></span><span class="wv">${Math.round(v).toLocaleString()} <small>${Math.round(v/tot*100)}%</small></span></div>`}).join(''):'<p class="sub">No damage dealt</p>'}
+    return`<div class="wrow"><span class="wn">${esc(w?w.name:k==='__rest'?'Everything else':SRCNAME[k]||k)}${lv?` <small>Lv ${lv.lvl}</small>`:''}</span><span class="wbar"><i style="width:${(v/mx*100).toFixed(1)}%"></i></span><span class="wv">${Math.round(v).toLocaleString()} <small>${Math.round(v/tot*100)}%</small></span></div>`}).join(''):'<p class="sub">No damage dealt</p>'}
 function results(title){const T=P.tracks[G.L.id]||{best:G.t};$('overTitle').textContent=title;renderReport();
   $('rTime').textContent=fmt(G.t);$('rKills').textContent=G.kills;$('rLvl').textContent=G.level;$('rBest').textContent=fmt(T.best);
   fillAcct('oAcct',null,'oAcctFill');$('oGain').innerHTML=`+${G.gain} XP · +${G.scrapGain} <span class="scrapi"></span>scrap`;
-  lbAfterRun();$('rAchWrap').hidden=!G.newAch.length;$('rAch').innerHTML=G.newAch.map(a=>`<div class="toast">${badge(a.ic,true)}<div><b>${a.name}</b></div></div>`).join('')}
+  lbAfterRun();$('rAchWrap').hidden=!G.newAch.length;{const seen=new Set(),list=G.newAch.filter(a=>!seen.has(a.id)&&seen.add(a.id));$('rAch').innerHTML=list.slice(0,8).map(a=>`<span class="achip" title="${esc(a.desc)}"><i>${a.ic}</i>${esc(a.name)}</span>`).join('')+(list.length>8?`<span class="achip more">+${list.length-8} more</span>`:'')}}
 function gameOver(){state='over';commitRun();results(G.forfeit?'Run lost':'Wrecked');$('tip').hidden=true;const p=G.p;
   // the car blows apart: a big blast, pieces of bodywork in the car's colour, then a burning shell
   explode(p.x,p.y,170,0);G.shake=24;G.wreck={t:0,booms:[.18,.4,.65]};sfx('boom');
