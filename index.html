@@ -1112,8 +1112,9 @@ const BUFFS={nitro:{name:'Nitro',col:'#4f8bff',t:8},fury:{name:'Overdrive',col:'
 // power-ups from wrecks: the same chance per wreck as before, but drawn from a bank that refills over time (about one every
 // 3.3s, faster with luck, up to 4 saved), and the strongest have their own cooldowns. Early on the bank never runs dry; late
 // in a run it stops huge kill rates from chaining bubble shields, freezes and wrenches back to back.
-const DROP_CD={bubble:45,freeze:35,nuke:30,fury:25};
-function wreckDrop(){const now=G.t;G.dropBank=Math.min(4,(G.dropBank??4)+(now-(G.dropAt??0))*0.3*G.stats.drop);G.dropAt=now;
+// wrenches get a cooldown too, so a burst of wrecks during an ambush can't rain healing on you
+const DROP_CD={bubble:75,freeze:50,nuke:30,fury:25,wrench:10};
+function wreckDrop(){const now=G.t;G.dropBank=Math.min(4,(G.dropBank??2)+(now-(G.dropAt??0))*0.3*G.stats.drop);G.dropAt=now;
   if(G.dropBank<1)return null;const k=rollDrop(1);if(!k)return null;G.dropNext=G.dropNext||{};
   if(DROP_CD[k]&&now<(G.dropNext[k]||0))return null;G.dropBank-=1;if(DROP_CD[k])G.dropNext[k]=now+DROP_CD[k];return k}
 function rollDrop(mul){let r=Math.random()/(mul*G.stats.drop);for(const k in DROPS){if((r-=DROPS[k].w)<0)return k}return null}
