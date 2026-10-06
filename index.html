@@ -493,7 +493,7 @@ body.nocursor,body.nocursor *{cursor:none!important}
     <div class="keys">
       <div class="key"><b>Chrome hunters</b><span>A shiny loot car shows up now and then. It runs and hides, and gets away after a minute. Follow the silver arrow and the live camera in the corner, and wreck it for a supply crate and bolts.</span></div>
       <div class="key"><b>Juggernauts</b><span>A mini boss rolls in every 3 minutes. Wreck enough of them and the level boss comes for you.</span></div>
-      <div class="key"><b>RC minions</b><span>Some level-ups are little remote-control cars with antennas. They take a weapon slot and work on their own: Medic patches you up, Rammer rams cars, Bomb drives into crowds and blows up, Scavenger fetches scrap and digs up bolts, Jammer slows cars and stops gunners firing. Signal Booster makes them all stronger.</span></div>
+      <div class="key"><b>RC minions</b><span>Some level-ups are little remote-control cars with antennas. They take a weapon slot and work on their own: Medic patches you up, Rammer rams cars, Bomb drives into crowds and blows up, Scavenger fetches scrap and digs up bolts, Jammer hunts down packs of cars, slowing them and stopping gunners firing. Signal Booster makes them all stronger.</span></div>
       <div class="key"><b>Weather</b><span>Every run rolls its own weather, shown as the forecast on the track card. Rain and snow cost grip, blizzards shove you around, thunderstorms drop marked lightning strikes, and dust storms send tornadoes across the track.</span></div>
       <div class="key"><b>Exit portal</b><span>Beat the level boss and a portal opens in a far corner. Drive in to end the run and bank it. Stay longer and Overdrive kicks in: tougher, faster cars every 40 seconds. Get wrecked before you escape and the run doesn't count.</span></div>
       <div class="key"><b>Traders</b><span>From about 2:00, a trader truck parks nearby every couple of minutes. Follow the light beam or the HUD arrow, drive into its ring and press F to buy items with bolts.</span></div>
@@ -913,7 +913,7 @@ const WDEF={
   rc_ram:{name:'Rammer RC',rc:1,desc:['A souped-up RC car rams the nearest car over and over, leaving it dazed for a moment.','Harder hits.','A second rammer.','Faster, and hits harder still.','A third rammer.']},
   rc_bomb:{name:'Bomb RC',rc:1,desc:['A rigged RC car drives into the thickest crowd and blows up. A new one is built a few seconds later.','Bigger blast.','Rebuilt faster.','Heavier charge.','Two bomb cars at a time.']},
   rc_scav:{name:'Scavenger RC',rc:1,desc:['A scavenger RC car hoovers up scrap and bolts lying around and sends them your way.','Drives faster, and digs up a few bolts now and then.','Wider vacuum.','A second scavenger.','Digs up bolts twice as often.']},
-  rc_jam:{name:'Jammer RC',rc:1,desc:['A jammer RC car circles you, scrambling every car in its field: they slow down and gunners can\'t fire.','Bigger field.','Fries enemy bullets that fly into the field.','The field burns cars inside it.','A second jammer.']},
+  rc_jam:{name:'Jammer RC',rc:1,desc:['A jammer RC car hunts down packs of cars and parks in the middle, scrambling everything in its field: they slow down and gunners can\'t fire.','Bigger field.','Fries enemy bullets that fly into the field.','The field burns cars inside it.','A second jammer.']},
   hydro:{name:'Hydro Cannon',only:'hydro',desc:['Roof cannon blasts the nearest car with a high-pressure jet, shoving it back and soaking it (soaked cars slow down).','Longer, harder-hitting jet.','A second jet locks on to another car.','Soaked cars take 25% more damage from everything.','Every 5 seconds a tidal wave bursts out around the van.']},
   drone:{name:'Attack Drone',unlock:'escapee',desc:['A drone circles your car and shoots the nearest car.','Faster fire.','A second drone.','Harder-hitting rounds.','A third drone, and rounds punch through.']},
 };
@@ -1733,7 +1733,20 @@ function updateRC(dt,wdt){const p=G.p,s=G.stats,W=G.weapons,up=G.passives.uplink
       if(m.tg)rcDrive(m,m.tg.x,m.tg.y,(lv>=2?520:430)*ms,dt);else rcDrive(m,hx,hy,follow,dt);
       for(const g of G.gems)if(!g.pull&&Math.abs(g.x-m.x)<vac&&Math.abs(g.y-m.y)<vac){g.pull=true;if(Math.random()<.3)part(g.x,g.y,0,0,.25,4,'#c9a46a','spark')}
       if(lv>=2){m.dig+=dt*(lv>=5?2:1);if(m.dig>=20){m.dig=0;dropBolts(m.x,m.y,3+lv);for(let i=0;i<8;i++)part(m.x,m.y,rand(-120,120),rand(-120,120),rand(.3,.6),rand(3,6),'#8a7350','debris');tone(300,.1,'square',.04,600)}}}
-    else if(m.k==='rc_jam'){const R=110+18*lv;rcDrive(m,p.x+Math.cos(G.t*1.1+j)*120,p.y+Math.sin(G.t*1.1+j)*120,follow,dt);m.R=R;
+    else if(m.k==='rc_jam'){const R=110+18*lv;m.R=R;
+      // hunt for the biggest pack near you (gunners count double, closer packs count more), park in its middle,
+      // and leave a pack another jammer is already sitting on
+      if(m.jx===undefined)m.cd=0;
+      if((m.cd-=dt)<=0){m.cd=.4;m.jx=null;const pool=near(p.x,p.y,560).filter(e=>!e.dead&&!e.big);let best=0;
+        for(let c=0;c<Math.min(10,pool.length);c++){const e0=pool[Math.floor(Math.random()*pool.length)];let n=0,sx=0,sy=0;
+          for(const e of near(e0.x,e0.y,R+40))if(!e.dead&&d2(e.x,e.y,e0.x,e0.y)<R*R){const w=e.shoots?2:1;n+=w;sx+=e.x*w;sy+=e.y*w}
+          if(!n)continue;const cx=sx/n,cy=sy/n;let sc=n*(1.3-Math.min(1,Math.hypot(cx-p.x,cy-p.y)/560)*.6);
+          for(const o of G.rcs)if(o!==m&&o.k==='rc_jam'&&o.jx!=null&&d2(o.jx,o.jy,cx,cy)<(R*1.4)**2)sc*=.3;
+          // stick with the current pack unless a clearly bigger one turns up
+          if(m.lx!=null&&d2(m.lx,m.ly,cx,cy)<(R*.6)**2)sc*=1.25;
+          if(sc>best){best=sc;m.jx=cx;m.jy=cy}}
+        if(best<2)m.jx=null;m.lx=m.jx;m.ly=m.jy}
+      if(m.jx!=null)rcDrive(m,m.jx,m.jy,Math.max(follow,420*ms),dt);else rcDrive(m,p.x+Math.cos(G.t*1.1+j)*120,p.y+Math.sin(G.t*1.1+j)*120,follow,dt);
       for(const e of near(m.x,m.y,R+60)){if(e.dead||d2(e.x,e.y,m.x,m.y)>(R+e.r)**2)continue;e.jam=.3;if(lv>=4){DSRC='rc_jam';damageEnemy(e,10*mb*s.dmg*dt,false)}}
       if(lv>=3)for(const b of G.ebullets)if(b.life>0&&d2(b.x,b.y,m.x,m.y)<R*R){b.life=0;for(let i=0;i<3;i++)part(b.x,b.y,rand(-90,90),rand(-90,90),.15,2,'#b07aff','spark')}}
   });
