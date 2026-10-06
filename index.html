@@ -189,6 +189,10 @@ kbd{display:inline-block;font-family:var(--body);font-weight:700;font-size:12px;
 .scrapi{display:inline-block;width:.62em;height:.62em;background:var(--xp);transform:rotate(45deg);margin:0 .38em 0 .12em;vertical-align:.05em}
 .stat .scrapi{margin:0 2px 0 8px}
 #buffs{display:flex;gap:6px;flex-wrap:wrap;min-height:0}
+#hunterCam{align-self:flex-start;width:172px;background:rgba(10,9,12,.9);border:2px solid #e8e4ee;box-shadow:3px 3px 0 var(--ink);pointer-events:auto}
+#hunterCam canvas{display:block;width:168px;height:96px}#hunterCam .hc{display:flex;justify-content:center;align-items:center;padding:3px 6px;font-size:10px;font-weight:700;letter-spacing:.08em;color:#e8e4ee;font-variant-numeric:tabular-nums}
+#hunterCam .hc b{font-size:9px;letter-spacing:.14em}#hunterCam.urgent{border-color:#ff3b4e;animation:tpulse .5s ease-in-out infinite alternate}
+@media (max-width:720px){#hunterCam{width:132px}#hunterCam canvas{width:128px;height:73px}}
 #cds{display:flex;gap:6px;flex-wrap:wrap;min-height:0;pointer-events:auto}
 .chip.cd{color:var(--dim);border-color:var(--line);font-variant-numeric:tabular-nums;gap:6px}.chip.cd b{color:#3fe0d0;font-weight:700}
 .chip.cd i{display:block;width:44px;height:5px;background:linear-gradient(90deg,#3fe0d0 calc(var(--k)*100%),rgba(63,224,208,.15) 0)}
@@ -343,6 +347,7 @@ body.nocursor,body.nocursor *{cursor:none!important}
     <div id="wxHud" hidden></div>
     <div id="buffs"></div>
     <div id="cds"></div>
+    <div id="hunterCam" hidden data-tip="Chrome hunter|Loot piñata|Runs and hides from you, and gets away a minute after it shows up. Wreck it for a supply crate and bolts. Follow the silver arrow."><canvas id="hcam" width="168" height="96"></canvas><div class="hc"><span id="hcInfo"></span></div></div>
     <div id="bossWrap" hidden data-tip="Boss health|Boss|Bosses smash straight through props and most walls. Downtown, even they have to drive around the buildings."><div id="bossName">JUGGERNAUT</div><div class="bossbar"><div id="bossfill"></div></div></div>
   </div>
   <div id="loadout"></div>
@@ -469,6 +474,7 @@ body.nocursor,body.nocursor *{cursor:none!important}
       <div class="key"><i style="background:#8ce6ff;border-radius:50%"></i><span><b>Tesla pylon</b> · glows, then zaps everything close</span></div>
     </div>
     <div class="keys">
+      <div class="key"><b>Chrome hunters</b><span>A shiny loot car shows up now and then. It runs and hides, and gets away after a minute. Follow the silver arrow and the live camera in the corner, and wreck it for a supply crate and bolts.</span></div>
       <div class="key"><b>Juggernauts</b><span>A mini boss rolls in every 3 minutes. Wreck enough of them and the level boss comes for you.</span></div>
       <div class="key"><b>Weather</b><span>Every run rolls its own weather, shown as the forecast on the track card. Rain and snow cost grip, blizzards shove you around, thunderstorms drop marked lightning strikes, and dust storms send tornadoes across the track.</span></div>
       <div class="key"><b>Exit portal</b><span>Beat the level boss and a portal opens in a far corner. Drive in to end the run and bank it. Stay longer and Overdrive kicks in: tougher, faster cars every 40 seconds. Get wrecked before you escape and the run doesn't count.</span></div>
@@ -759,7 +765,7 @@ function debugKey(code,shift){const inRun=state==='play'&&G&&G.live,p=G&&G.p;
     case'F1':DBG.god=!DBG.god;dbgSay('God mode '+(DBG.god?'ON':'off'));break;
     case'F1S':DBG.ohk=!DBG.ohk;dbgSay('One-hit kills '+(DBG.ohk?'ON':'off'));break;
     case'F2':dbgSpawnMini();break;
-    case'F2S':spawnEnemy(Math.random()<.5?'truck':'sedan',{elite:true,hpMul:7,scale:1.3,xpMul:5,col:'#e8e4ee',spdMul:1.1});dbgSay('Chrome hunter spawned');break;
+    case'F2S':spawnHunter();dbgSay('Chrome hunter spawned');break;
     case'F3':dbgSpawnBoss();break;
     case'F3S':{DSRC='debug';let n=0;for(const e of [...G.enemies])if(!e.dead){damageEnemy(e,1e12,false);n++}dbgSay('Wrecked '+n+' cars');break}
     case'F4':dbgWeather(1);break;case'F4S':dbgWeather(-1);break;
@@ -1203,6 +1209,7 @@ function steer(e,d,dx,dy){const p=G.p;e.orbit=false;
 // zombie layer on top of steer(): the horde only re-thinks its heading every so often, sways as it shambles,
 // surges and sags in speed, and braces before lunging when it gets close. Pathing stays smart; reflexes don't.
 function shamble(e,dt,d,dx,dy,target){
+  if(e.elite&&e.born!=null)return hunterSteer(e,dt,d);
   if((e.react-=dt)<=0){e.react=e.type==='buggy'?rand(.2,.4):rand(.3,.55);e.want=steer(e,d,dx,dy)}
   let want=e.want+(e.big?0:Math.sin(G.t*e.wf+e.wp)*.2*clamp(d/400,.3,1));
   if(e.big||e.orbit)return[want,target];
@@ -1543,7 +1550,7 @@ function spawnUpdate(dt){
   G.spawnT+=DBG.noSpawn?0:dt*rate;
   while(G.spawnT>=1){G.spawnT-=1;if(G.enemies.length<260)spawnEnemy(pickType(te))}
   if(t>=G.nextAmbush){G.nextAmbush+=od<0?45:20;const n=12+Math.floor(te/30);for(let i=0;i<n&&G.enemies.length<ECAP;i++){const a=i/n*TAU,x=G.p.x+Math.cos(a)*460,y=G.p.y+Math.sin(a)*460;if(x<40||y<40||x>ARENA-40||y>ARENA-40||solidAt(x,y,14))continue;spawnEnemy('buggy',{x,y})}showBanner('Ambush!','They’re boxing you in')}
-  if(t>=G.nextElite){G.nextElite+=od<0?70:Math.max(8,20-od/15);spawnEnemy(Math.random()<.5?'truck':'sedan',{elite:true,hpMul:7,scale:1.3,xpMul:5,col:'#e8e4ee',spdMul:1.1});showBanner('Chrome hunter','Wreck it for a supply crate and bolts')}
+  if(t>=G.nextElite){G.nextElite+=od<0?70:Math.max(8,20-od/15);spawnHunter()}
   // mini boss once every 3 minutes
   if(t>=G.nextMini){G.nextMini+=od<0?180:60;G.minisSpawned++;G.mini=spawnEnemy('mini',{hpMul:1+(G.minisSpawned-1)*0.5,ab:{charge:1}});G.mini.num=G.minisSpawned;
     showBanner('Juggernaut inbound',G.cleared?'Don’t let it charge you':`Mini boss ${Math.min(G.miniKills+1,L.minis)} of ${L.minis}`);sfx('boss')}
@@ -1635,6 +1642,51 @@ function updateWeatherSound(){if(!AC||!master)return;const X=G&&G.wx,W=X&&X.W,on
   if(!wxAmb){if(!on)return;const src=AC.createBufferSource();src.buffer=nbufGet();src.loop=true;const f=AC.createBiquadFilter(),g=AC.createGain();g.gain.value=0;src.connect(f);f.connect(g);g.connect(master);src.start();wxAmb={src,f,g}}
   const tgt=on?W.amb*(state==='menu'?.04:.07)*(W.wind?.7+.5*X.gust:X.int):0;wxAmb.g.gain.setTargetAtTime(tgt,AC.currentTime,.4);
   if(on){wxAmb.f.type=W.wind||W.dust?'bandpass':'highpass';wxAmb.f.frequency.setTargetAtTime(W.wind||W.dust?380+300*X.gust:W.snow?3000:1600,AC.currentTime,.3);wxAmb.f.Q.value=W.wind||W.dust?1.2:.5}}
+
+
+/* ---------- chrome hunters: loot piñatas that run, hide, and get away after a minute ---------- */
+const HUNT_LIFE=60;
+function spawnHunter(){const e=spawnEnemy(Math.random()<.5?'truck':'sedan',{elite:true,hpMul:9,scale:1.3,xpMul:5,col:'#e8e4ee',spdMul:1.1});e.born=G.t;e.want=Math.atan2(e.y-G.p.y,e.x-G.p.x);
+  showBanner('Chrome hunter spotted','It runs and hides · wreck it within a minute for a supply crate and bolts');return e}
+// pick an escape heading: away from you, clear of walls and the arena edge, preferring spots you can't see.
+// It only drifts once it's well clear of you (over ~1,000px), so it stays on the radar
+function hunterSteer(e,dt,d){const p=G.p;
+  if((e.react-=dt)<=0){e.react=rand(.25,.4);let best=e.want||0,bs=-1e9;const toP=Math.atan2(p.y-e.y,p.x-e.x);
+    for(let i=0;i<12;i++){const a=i/12*TAU+rand(-.12,.12),cx=Math.cos(a),cy=Math.sin(a);let sc=0;
+      for(const L of[90,180]){const x=e.x+cx*L,y=e.y+cy*L;if(x<90||y<90||x>ARENA-90||y>ARENA-90)sc-=600;if(solidAt(x,y,e.r+6))sc-=L===90?1000:500}
+      const x=e.x+cx*200,y=e.y+cy*200,nd=Math.hypot(x-p.x,y-p.y);
+      sc+=d>1000?-Math.abs(nd-1050)*0.6:(nd-d)*1.4;
+      sc-=Math.max(0,Math.cos(angDiff(a,toP)))*140;
+      if(i%2===0&&d<900&&!losClear(x,y,p.x,p.y))sc+=90;
+      sc-=Math.abs(angDiff(e.a,a))*30;if(sc>bs){bs=sc;best=a}}
+    e.want=best}
+  // quick when you're close, but a touch slower than your top speed so a good line catches it
+  // when you get close it hits a nitro burst to slip away (every 5s)
+  e.boostCd=(e.boostCd??2)-dt;if(d<320&&e.boostCd<=0){e.boost=1.1;e.boostCd=5}
+  if(e.boost>0){e.boost-=dt;if(Math.random()<.7)part(e.x-Math.cos(e.a)*e.len*.5,e.y-Math.sin(e.a)*e.len*.5,rand(-30,30),rand(-30,30),rand(.2,.35),rand(5,9),'#6fa8ff','spark')}
+  return[e.want,Math.max(e.spd,300)*(d<450?1.25:d>1000?0.8:1.1)*(e.boost>0?1.45:1)]}
+function hunterEscapes(e){e.dead=true;for(let i=0;i<(S.lowFx?6:16);i++)part(e.x+rand(-20,20),e.y+rand(-20,20),rand(-60,60),rand(-60,60),rand(.6,1.1),rand(10,18),null,'smoke');
+  toast('CH','Chrome hunter','Got away with the loot')}
+const huntLeft=e=>Math.max(0,HUNT_LIFE-(G.t-(e.born??G.t)));
+// live picture-in-picture of the nearest hunter: the real car sprites, drawn into a small canvas around it
+let hcamCtx=null;
+function drawHunterCam(){const el=$('hunterCam');if(!G||!G.live||state==='menu'){if(!el.hidden)el.hidden=true;return}
+  let e=null,bd=1e18;for(const q of G.enemies)if(q.elite&&!q.dead){const dd=d2(q.x,q.y,G.p.x,G.p.y);if(dd<bd){bd=dd;e=q}}
+  if(!e){if(!el.hidden)el.hidden=true;return}if(el.hidden)el.hidden=false;
+  const cvs=$('hcam'),r=Math.min(2,window.devicePixelRatio||1),W=168,H=96;if(cvs.width!==W*r){cvs.width=W*r;cvs.height=H*r}if(!hcamCtx)hcamCtx=cvs.getContext('2d');
+  const c2=hcamCtx,sc=0.42,R=Math.max(W,H)/sc;c2.setTransform(r,0,0,r,0,0);c2.fillStyle=G.L.ground;c2.fillRect(0,0,W,H);
+  c2.setTransform(r*sc,0,0,r*sc,r*(W/2-e.x*sc),r*(H/2-e.y*sc));
+  c2.strokeStyle=`rgba(${G.L.paint},.25)`;c2.lineWidth=6;c2.beginPath();for(let g=600;g<ARENA;g+=600){if(Math.abs(g-e.x)<R){c2.moveTo(g,e.y-R);c2.lineTo(g,e.y+R)}if(Math.abs(g-e.y)<R){c2.moveTo(e.x-R,g);c2.lineTo(e.x+R,g)}}c2.stroke();
+  for(const o of G.obs){if(!o.solid||Math.abs(o.x-e.x)>R||Math.abs(o.y-e.y)>R)continue;c2.fillStyle=o.col||'#3a3644';if(o.rect)c2.fillRect(o.x-o.w/2,o.y-o.h/2,o.w,o.h);else{c2.beginPath();c2.arc(o.x,o.y,o.r,0,TAU);c2.fill()}}
+  // borrow the real sprite blitter by pointing it at the small canvas for a moment
+  const pc=ctx,pd=DPR;ctx=c2;DPR=r*sc;const ox=W/2/sc-e.x,oy=H/2/sc-e.y;
+  try{for(const q of G.enemies){if(q.dead||Math.abs(q.x-e.x)>R||Math.abs(q.y-e.y)>R)continue;blitCar(carSprite(q.len,q.wid,q===e?'#ffffff':q.col,q.flash>0,q.elite?'elite':q.shoots?'gun':''),q.x+ox,q.y+oy,q.a)}
+    if(Math.abs(G.p.x-e.x)<R&&Math.abs(G.p.y-e.y)<R){ctx.setTransform(r*sc,0,0,r*sc,r*(W/2-e.x*sc),r*(H/2-e.y*sc));ctx.fillStyle=G.car.col;ctx.beginPath();ctx.arc(G.p.x,G.p.y,16,0,TAU);ctx.fill();ctx.strokeStyle='#0a090c';ctx.lineWidth=4;ctx.stroke()}}
+  finally{ctx=pc;DPR=pd}
+  c2.setTransform(r,0,0,r,0,0);c2.strokeStyle='rgba(232,228,238,.9)';c2.lineWidth=1.5;const bl=Math.floor(G.t*3)%2;c2.strokeRect(W/2-22,H/2-22,44,44);
+  c2.fillStyle=bl?'#ff3b4e':'rgba(255,59,78,.35)';c2.beginPath();c2.arc(10,10,4,0,TAU);c2.fill();c2.fillStyle='#e8e4ee';c2.font='700 9px ui-monospace,monospace';c2.fillText('LIVE',17,13);c2.textAlign='right';c2.fillText('CHROME HUNTER',W-6,13);c2.textAlign='left';
+  const dx=e.x-G.p.x,dy=e.y-G.p.y,left=huntLeft(e);
+  $('hcInfo').innerHTML=`${Math.ceil(left)}s · ${Math.round(Math.hypot(dx,dy)/10)}m <span class="tarr" style="transform:rotate(${Math.atan2(dy,dx).toFixed(2)}rad)">▶</span>`;el.classList.toggle('urgent',left<15)}
 
 /* ---------- traders ---------- */
 // breadth-first route over the wide-clearance grid (room for the truck), trimmed to as few straight legs as possible
@@ -1777,7 +1829,7 @@ const DZ=[];
 function updateEnemies(dt){
   const p=G.p,s=G.stats,E=G.enemies,tr=G.trader,fr=G.buffs.freeze>0,Z=DZ;DZ.length=0;for(const z of G.zones)if(ZONES[z.k].edps)DZ.push(z);
   for(const e of E){
-    if(e.dead)continue;e.flash-=dt;e.ccd-=dt;e.sawCd-=dt;
+    if(e.dead)continue;if(e.elite&&e.born!=null&&G.t-e.born>=HUNT_LIFE){hunterEscapes(e);continue}e.flash-=dt;e.ccd-=dt;e.sawCd-=dt;
     for(let i=0;i<Z.length;i++){const z=Z[i],zd=ZONES[z.k].edps;if(Math.abs(e.x-z.x)<z.r+e.r&&Math.abs(e.y-z.y)<z.r+e.r&&zoneHit(z,e.x,e.y,e.r)){DSRC=z.k==='napalm'?'napalm':'hazard';damageEnemy(e,zd*dt*G.L.diff,false)}}
     if(e.dead)continue;
     const dx=p.x-e.x,dy=p.y-e.y,d=Math.hypot(dx,dy)||1;let target=e.spd;
@@ -2136,7 +2188,13 @@ function draw(){
   drawWeatherScreen(state==='play'||state==='menu'?wxDt:0);
   const arrow=(wx,wy,col)=>{const sx2=wx+ox,sy2=wy+oy;if(sx2>0&&sx2<VW&&sy2>0&&sy2<VH)return;
     const a=Math.atan2(sy2-VH/2,sx2-VW/2),ex=clamp(sx2,28,VW-28),ey=clamp(sy2,110,VH-50);ctx.save();ctx.translate(ex,ey);ctx.rotate(a);ctx.fillStyle=col;ctx.beginPath();ctx.moveTo(14,0);ctx.lineTo(-8,-10);ctx.lineTo(-8,10);ctx.closePath();ctx.fill();ctx.restore()};
+  if(state!=='menu')for(const q of G.enemies)if(q.elite&&!q.dead)hunterArrow(q);
   if(state!=='menu'){for(const k of G.pickups)if(k.type==='chest')arrow(k.x,k.y,'#ffc21a');else if(k.type!=='wrench'&&k.type!=='magnet')arrow(k.x,k.y,DROPS[k.type].col);if(G.trader&&G.trader.phase!=='leave')traderArrow();if(G.portal)portalArrow()}
+  // chrome hunter off screen: a silver arrow with a CH tag and the seconds it has left
+  function hunterArrow(e){const sx2=e.x+ox,sy2=e.y+oy;if(sx2>0&&sx2<VW&&sy2>0&&sy2<VH)return;const a=Math.atan2(sy2-VH/2,sx2-VW/2),ex=clamp(sx2,44,VW-44),ey=clamp(sy2,ex>VW-340?250:200,VH-80),left=huntLeft(e),pl=1+(left<15?.18:.08)*Math.sin(G.t*(left<15?10:5));
+    ctx.save();ctx.translate(ex,ey);ctx.save();ctx.rotate(a);ctx.scale(pl,pl);ctx.fillStyle='#e8e4ee';ctx.beginPath();ctx.moveTo(26,0);ctx.lineTo(-6,-16);ctx.lineTo(-6,16);ctx.closePath();ctx.fill();ctx.strokeStyle='#0a090c';ctx.lineWidth=2;ctx.stroke();ctx.restore();
+    ctx.fillStyle='#0a090c';ctx.beginPath();ctx.arc(0,0,13,0,TAU);ctx.fill();ctx.strokeStyle=left<15?'#ff3b4e':'#e8e4ee';ctx.lineWidth=2;ctx.stroke();ctx.fillStyle='#e8e4ee';ctx.font='700 10px "Chakra Petch",sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText('CH',0,1);ctx.font='700 11px "Chakra Petch",sans-serif';ctx.fillText(Math.ceil(left)+'s',0,24);ctx.textAlign='left';ctx.textBaseline='alphabetic';ctx.restore()}
   // exit portal off screen: a pulsing purple arrow with a ring
   function portalArrow(){const o=G.portal,sx2=o.x+ox,sy2=o.y+oy;if(sx2>0&&sx2<VW&&sy2>0&&sy2<VH)return;const a=Math.atan2(sy2-VH/2,sx2-VW/2),ex=clamp(sx2,44,VW-44),ey=clamp(sy2,190,VH-70),pl=1+.15*Math.sin(G.t*7);
     ctx.save();ctx.translate(ex,ey);ctx.save();ctx.rotate(a);ctx.scale(pl,pl);ctx.fillStyle='#c78bff';ctx.beginPath();ctx.moveTo(30,0);ctx.lineTo(-6,-19);ctx.lineTo(-6,19);ctx.closePath();ctx.fill();ctx.restore();
@@ -2221,7 +2279,7 @@ const statRows=rows=>`<div class="ts">${rows.map(([k,v])=>`<span>${k}</span><b>$
 const card=(title,kind,desc,rows,col,bar)=>({col,html:`<div class="tt">${esc(title)}</div><div class="tk">${esc(kind)}</div>${bar!=null?`<div class="tb"><i style="width:${(clamp(bar,0,1)*100).toFixed(1)}%"></i></div>`:''}${rows&&rows.length?statRows(rows):''}${desc?`<div class="td">${esc(desc)}</div>`:''}`});
 function enemyCard(e){const fr=G.buffs.freeze>0||e.ice>0,st=[];if(fr)st.push('frozen');if(e.charge>0)st.push('charging');if(e.burn>0)st.push('on fire');
   let name,kind,desc;if(e.type==='lboss'){name=G.L.boss.name;kind='Level boss';desc='Wreck it to clear '+G.L.name+'. It '+Object.keys(e.ab).map(k=>ABIL[k]).join(', ')+'.'}
-  else if(e.elite){name='Chrome Hunter';kind='Elite '+ENEMY_INFO[e.type][1].toLowerCase();desc='Seven times the armour of a normal '+ENEMY_INFO[e.type][0].toLowerCase()+'. Drops a supply crate and bolts.'}
+  else if(e.elite){name='Chrome Hunter';kind='Elite '+ENEMY_INFO[e.type][1].toLowerCase();desc='Nine times the armour of a normal '+ENEMY_INFO[e.type][0].toLowerCase()+'. Runs and hides from you, and gets away '+(e.born!=null?Math.ceil(huntLeft(e))+'s from now':'after a minute')+'. Drops a supply crate and bolts.';if(e.born!=null)st.push('fleeing')}
   else [name,kind,desc]=ENEMY_INFO[e.type];
   return card(name,kind+(st.length?' · '+st.join(', '):''),desc,[['HP',`${Math.max(0,Math.ceil(e.hp)).toLocaleString()} / ${Math.ceil(e.maxhp).toLocaleString()}`],['Ram damage',Math.round(e.dmg)],['Top speed',Math.round(e.spd)],['XP',Math.round(e.xp)]],e.big||e.elite?'#ff3b4e':e.col,e.hp/e.maxhp)}
 // what's under the cursor, top-most first
@@ -2471,7 +2529,7 @@ function frame(now){
   else if(state==='menu')attract(dt);
   else if(state==='over'){updateWreck(dt);updateFx(dt);G.shake*=Math.exp(-7*dt)}
   const c=G.cam,p=G.p,am=state==='menu',tx=am?ARENA/2:p.x+p.vx*.3,ty=am?ARENA/2:p.y+p.vy*.3,k=1-Math.exp(-6*dt);c.x+=(tx-c.x)*k;c.y+=(ty-c.y)*k;
-  draw();updateHover();renderRadio(false);renderDebug(false);requestAnimationFrame(frame);
+  draw();drawHunterCam();updateHover();renderRadio(false);renderDebug(false);requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);
 $('startBtn').focus();
