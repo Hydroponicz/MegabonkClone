@@ -465,6 +465,7 @@ body.nocursor,body.nocursor *{cursor:none!important}
       <div class="set-row"><label for="shakeRange"><b>Screen shake</b><span class="d">How hard crashes and blasts rattle the camera</span></label><div class="range"><input type="range" id="shakeRange" min="0" max="100" step="10"><output id="shakeOut" for="shakeRange">100%</output></div></div>
       <div class="set-row"><div><b>Damage numbers</b><span class="d">Pop-up numbers when you hit a car</span></div><button class="switch" role="switch" data-set="dmgNums" aria-label="Damage numbers"></button></div>
       <div class="set-row"><div><b>Damage flash</b><span class="d">Red screen edge when hit or low on HP</span></div><button class="switch" role="switch" data-set="flash" aria-label="Damage flash"></button></div>
+      <div class="set-row"><div><b>Auto resolution</b><span class="d">Lowers the drawing resolution a little when the game can't keep up, and raises it again when it can</span></div><button class="switch" role="switch" data-set="autoRes" aria-label="Auto resolution"></button></div>
       <div class="set-row"><div><b>Low-detail mode</b><span class="d">Fewer particles and lower resolution for slower devices</span></div><button class="switch" role="switch" data-set="lowFx" aria-label="Low-detail mode"></button></div>
       <div class="set-row"><div><b>Auto-pause</b><span class="d">Pause when the window loses focus</span></div><button class="switch" role="switch" data-set="autoPause" aria-label="Auto-pause"></button></div>
       <div class="set-row"><div><b>Transfer save</b><span class="d">Move your unlocks and progress to another phone or computer</span></div><button class="btn alt" id="xferBtn">Transfer</button></div>
@@ -620,7 +621,7 @@ let storageOK=true,saveFailed=false;
 function readKey(key){let raw;try{raw=localStorage.getItem(key)}catch(e){storageOK=false;return null}if(raw==null)return null;try{const v=JSON.parse(raw);if(v&&typeof v==='object')return v}catch(e){}return null}
 function load(key,def){return Object.assign({},def,readKey(key)||{})}
 function save(key,v){try{localStorage.setItem(key,JSON.stringify(v));return true}catch(e){if(!saveFailed){saveFailed=true;setTimeout(()=>toast('!','Couldn\'t save','This browser refused to store your progress. Back it up in Settings › Transfer save.'),500)}return false}}
-const S0={sound:true,vol:80,music:true,musVol:60,wxVol:100,ambVol:100,shake:100,dmgNums:true,flash:true,lowFx:false,autoPause:true};
+const S0={sound:true,vol:80,music:true,musVol:60,wxVol:100,ambVol:100,shake:100,dmgNums:true,flash:true,lowFx:false,autoPause:true,autoRes:true};
 const P0={runs:0,kills:0,bossKills:0,eliteKills:0,time:0,best:0,bestKills:0,bestLevel:0,bestRam:0,bestBarrels:0,bestWeapons:0,bestWlvl:0,bestBrink:0,
   acctXp:0,bought:0,lastLevel:0,ach:{},tracks:{},scrap:0,garage:{},cars:{interceptor:1},car:'interceptor',bestProps:0,powerups:0};
 const S=load('carnageSettings',S0);
@@ -644,9 +645,24 @@ const needFor=n=>100+50*(n-1);
 function acctInfo(xp){let lv=1;while(xp>=needFor(lv)){xp-=needFor(lv);lv++}return{lv,into:xp,need:needFor(lv)}}
 
 /* ---------- canvas ---------- */
-const cv=$('cv');let ctx=cv.getContext('2d');
+const cv=$('cv');let ctx=cv.getContext('2d',{alpha:false}); // opaque: every frame paints the whole canvas
 let VW=0,VH=0,DPR=1;
-function resize(){DPR=S.lowFx?1:Math.min(2,window.devicePixelRatio||1);VW=innerWidth;VH=innerHeight;cv.width=Math.round(VW*DPR);cv.height=Math.round(VH*DPR);vignette=null;spriteCache.clear();textCache.clear()}
+// automatic resolution: when frames can't keep up with the display, draw at a lower internal resolution, and step back up when there's headroom.
+// the display's own refresh interval is learned from the fastest recent frames, so 30Hz screens and battery savers don't trigger it
+const AQ={scale:1,ema:0,best:16.7,slowT:0,fastT:0,cool:2,lowParts:false,buf:[],n:0};
+const baseDPR=()=>S.lowFx?1:Math.min(2,window.devicePixelRatio||1);
+function autoQuality(ms){if(!S.autoRes||document.hidden||ms>400){AQ.slowT=AQ.fastT=0;return}const dt=ms/1000;
+  // display interval: the 10th-percentile frame of the last 60 (one early frame from timing jitter can't fool it), drifting up only very slowly
+  AQ.buf[AQ.n++%60]=ms;if(AQ.n%30===0&&AQ.buf.length>=60){const so=AQ.buf.slice().sort((a,b)=>a-b);AQ.best=Math.max(6.5,Math.min(so[6],AQ.best))}AQ.best+=0.001;
+  AQ.ema=AQ.ema?AQ.ema*.94+ms*.06:ms;if((AQ.cool-=dt)>0)return;
+  const busy=state==='play',min=Math.max(.5,.7/baseDPR());
+  if(busy&&AQ.ema>AQ.best*1.35+2)AQ.slowT+=dt;else AQ.slowT=0;
+  if(AQ.ema<AQ.best*1.12+1)AQ.fastT+=dt;else AQ.fastT=0;
+  // far behind (under a third of the display rate): bigger steps, sooner
+  const far=AQ.ema>AQ.best*3;
+  if(AQ.slowT>(far?.6:1.5)){AQ.slowT=0;AQ.cool=far?1:3;if(AQ.scale>min+.01){AQ.scale=Math.max(min,AQ.scale-(far?.25:.15));resize()}else AQ.lowParts=true}
+  else if(AQ.fastT>(busy?10:3)){AQ.fastT=0;AQ.cool=3;if(AQ.lowParts)AQ.lowParts=false;else if(AQ.scale<1){AQ.scale=Math.min(1,AQ.scale+.15);resize()}}}
+function resize(){DPR=baseDPR()*(S.autoRes?AQ.scale:1);VW=innerWidth;VH=innerHeight;cv.width=Math.round(VW*DPR);cv.height=Math.round(VH*DPR);vignette=null;spriteCache.clear();textCache.clear()}
 addEventListener('resize',resize);
 
 /* ---------- audio ---------- */
@@ -853,7 +869,7 @@ function debugAux(code){if(code==='BracketLeft')DBG.scale=Math.max(0.25,DBG.scal
 function renderDebug(force){if(!DBG.on)return;const el=$('dbg');if(!force&&(DBG.infoT-=1)>0)return;DBG.infoT=12;
   const on=v=>v?'<b class="on">ON</b>':'<b>off</b>',g=G,p=g&&g.p;let h=`<div class="dh">DEV CONSOLE <span>\` to close</span></div>`;
   if(g){const big=g.enemies.filter(e=>e.big&&!e.dead).length,w=g.wx;
-    h+=`<div class="dl"><span>FPS</span><b>${Math.round(1000/DBG.ft)} · ${DBG.ft.toFixed(1)}ms</b></div>
+    h+=`<div class="dl"><span>FPS</span><b>${Math.round(1000/DBG.ft)} · ${DBG.ft.toFixed(1)}ms · res ${Math.round(DPR*100)}%${AQ.lowParts?' · fewer fx':''}</b></div>
 <div class="dl"><span>State</span><b>${state}${g.dbg?' · debug run':''}</b></div>
 <div class="dl"><span>Track</span><b>${g.L.name} · ${g.car.name}</b></div>
 <div class="dl"><span>Time</span><b>${fmt(g.t)} · lvl ${g.level} · ${g.kills} wrecks</b></div>
@@ -1306,17 +1322,18 @@ function steer(e,d,dx,dy){const p=G.p;e.orbit=false;
   return Math.atan2(ty,tx)+e.flank*clamp((d-220)/500,0,1)}
 // zombie layer on top of steer(): the horde only re-thinks its heading every so often, sways as it shambles,
 // surges and sags in speed, and braces before lunging when it gets close. Pathing stays smart; reflexes don't.
+let SH_T=0; // shamble's second result (target speed), so it doesn't build an array per car per frame
 function shamble(e,dt,d,dx,dy,target){
   if(e.elite&&e.born!=null)return hunterSteer(e,dt,d);
   if((e.react-=dt)<=0){e.react=e.type==='buggy'?rand(.2,.4):rand(.3,.55);e.want=steer(e,d,dx,dy)}
   let want=e.want+(e.big?0:Math.sin(G.t*e.wf+e.wp)*.2*clamp(d/400,.3,1));
-  if(e.big||e.orbit)return[want,target];
+  if(e.big||e.orbit){SH_T=target;return want}
   target*=.8+.2*Math.sin(G.t*e.sf+e.wp);if(d>900&&!e.los)target*=.75;
   e.lungeCd-=dt;
   if(e.windup>0){e.windup-=dt;target*=.25;if(e.windup<=0)e.lunge=.45}
   else if(e.lunge>0){e.lunge-=dt;target*=1.6}
   else if(!e.shoots&&d<190&&e.lungeCd<=0&&Math.cos(angDiff(e.a,Math.atan2(dy,dx)))>.85){e.windup=.3;e.lungeCd=rand(2.5,4)}
-  return[want,target]}
+  SH_T=target;return want}
 // a lumpy outline for rocks and junk piles
 function blob(r,n=9,j=.28){const pts=[];for(let i=0;i<n;i++){const a=i/n*TAU,rr=r*(1-j/2+Math.random()*j);pts.push([Math.cos(a)*rr,Math.sin(a)*rr])}return pts}
 function buildWorld(L){
@@ -1544,7 +1561,7 @@ function recalc(){const P_=G.passives,T=G.tk,s=G.stats,C=G.car;
   const old=G.p.maxhp;G.p.maxhp=Math.round((C.hp+10*gl('frame')+25*(P_.armor||0)+20*(T.cage||0))*(T.glass?0.8:1));G.p.hp=Math.min(G.p.maxhp,G.p.hp+Math.max(0,G.p.maxhp-old));}
 
 /* ---------- effects ---------- */
-const partCap=()=>S.lowFx?350:1000;
+const partCap=()=>S.lowFx?350:AQ.lowParts?550:1000;
 const PPOOL=[];
 function part(x,y,vx,vy,life,size,col,kind){if(G.parts.length>partCap())return;const q=PPOOL.pop()||{};q.x=x;q.y=y;q.vx=vx;q.vy=vy;q.life=life;q.max=life;q.size=size;q.col=col;q.kind=kind;G.parts.push(q)}
 function addText(x,y,txt,col){if(G.texts.length>60)G.texts.shift();G.texts.push({x:x+rand(-8,8),y,txt,col,life:0.7})}
@@ -1848,13 +1865,14 @@ function hunterSteer(e,dt,d){const p=G.p;
   // when you get close it hits a nitro burst to slip away (every 5s)
   e.boostCd=(e.boostCd??2)-dt;if(d<320&&e.boostCd<=0){e.boost=1.1;e.boostCd=5}
   if(e.boost>0){e.boost-=dt;if(Math.random()<.7)part(e.x-Math.cos(e.a)*e.len*.5,e.y-Math.sin(e.a)*e.len*.5,rand(-30,30),rand(-30,30),rand(.2,.35),rand(5,9),'#6fa8ff','spark')}
-  return[e.want,Math.max(e.spd,300)*(d<450?1.25:d>1000?0.8:1.1)*(e.boost>0?1.45:1)]}
+  SH_T=Math.max(e.spd,300)*(d<450?1.25:d>1000?0.8:1.1)*(e.boost>0?1.45:1);return e.want}
 function hunterEscapes(e){e.dead=true;for(let i=0;i<(S.lowFx?6:16);i++)part(e.x+rand(-20,20),e.y+rand(-20,20),rand(-60,60),rand(-60,60),rand(.6,1.1),rand(10,18),null,'smoke');
   toast('CH','Chrome hunter','Got away with the loot')}
 const huntLeft=e=>Math.max(0,HUNT_LIFE-(G.t-(e.born??G.t)));
 // live picture-in-picture of the nearest hunter: the real car sprites, drawn into a small canvas around it
 let hcamCtx=null;
-function drawHunterCam(){const el=$('hunterCam');if(!G||!G.live||state==='menu'){if(!el.hidden)el.hidden=true;return}
+let hcamTick=0;
+function drawHunterCam(){if((hcamTick^=1)&&!$('hunterCam').hidden)return;const el=$('hunterCam');if(!G||!G.live||state==='menu'){if(!el.hidden)el.hidden=true;return}
   let e=null,bd=1e18;for(const q of G.enemies)if(q.elite&&!q.dead){const dd=d2(q.x,q.y,G.p.x,G.p.y);if(dd<bd){bd=dd;e=q}}
   if(!e){if(!el.hidden)el.hidden=true;return}if(el.hidden)el.hidden=false;
   const cvs=$('hcam'),r=Math.min(2,window.devicePixelRatio||1),W=168,H=96;if(cvs.width!==W*r){cvs.width=W*r;cvs.height=H*r}if(!hcamCtx)hcamCtx=cvs.getContext('2d');
@@ -2024,7 +2042,7 @@ function updateEnemies(dt){
     if(e.shoots&&!(e.jam>0)){e.scd-=dt;
       if(e.scd<=0&&d<560&&(e.los||d<170)){e.scd=rand(1.8,2.6);const a=Math.atan2(dy+p.vy*.25,dx+p.vx*.25);G.ebullets.push({x:e.x,y:e.y,vx:Math.cos(a)*340,vy:Math.sin(a)*340,life:2.5,dmg:9*(1+G.t/400)*(0.7+0.3*G.L.diff)*(1+((e.odd||1)-1)*.5)})}}
     if(e.ab)target=bossMoves(e,dt,d,dx,dy);
-    let want;[want,target]=shamble(e,dt,d,dx,dy,target);if(e.orbit)target=e.spd*.65;
+    const want=shamble(e,dt,d,dx,dy,target);target=SH_T;if(e.orbit)target=e.spd*.65;
     const da=angDiff(e.a,want),turn=e.charge>0?0.3:e.turn;
     e.a+=clamp(da,-turn*dt,turn*dt);
     if(!e.orbit)target*=0.45+0.55*Math.max(0,Math.cos(da));
@@ -2805,7 +2823,7 @@ $('achBtn').onclick=e=>openSub('scrAch',e.currentTarget);$('lbBtn').onclick=e=>o
 $('howBtn').onclick=e=>openSub('scrHow',e.currentTarget);$('pSetBtn').onclick=e=>openSub('scrSet',e.currentTarget);
 for(const b of document.querySelectorAll('.back'))b.onclick=goBack;
 for(const b of document.querySelectorAll('.switch'))b.onclick=()=>{const k=b.dataset.set;S[k]=!S[k];saveSettings();renderSettings();
-  if(k==='sound'){initAudio();applyVolume();sfx('pick')}if(k==='music')initAudio();if(k==='lowFx')resize()};
+  if(k==='sound'){initAudio();applyVolume();sfx('pick')}if(k==='music')initAudio();if(k==='lowFx')resize();if(k==='autoRes'){AQ.scale=1;AQ.lowParts=false;AQ.cool=2;resize()}};
 $('volRange').oninput=e=>{S.vol=+e.target.value;$('volOut').textContent=S.vol+'%';applyVolume()};
 $('volRange').onchange=()=>{saveSettings();initAudio();sfx('pick')};
 for(const [id,k] of [['wx','wxVol'],['amb','ambVol']]){$(id+'Range').oninput=e=>{S[k]=+e.target.value;$(id+'Out').textContent=S[k]+'%';applyVolume()};$(id+'Range').onchange=()=>{saveSettings();initAudio()}}
@@ -2826,7 +2844,7 @@ resize();newGame(curLevel);show('scrMenu');refreshMenu();
 let last=performance.now();
 let wxDt=0;
 function frame(now){requestAnimationFrame(frame);
-  const dt=clamp((now-last)/1000,0,0.05);last=now;wxDt=dt;updateWeatherSound();
+  const ms=now-last,dt=clamp(ms/1000,0,0.05);last=now;wxDt=dt;updateWeatherSound();autoQuality(ms);
   DBG.ft=DBG.ft*.92+(dt*1000)*.08;if(DBG.msgT>0)DBG.msgT-=dt;
   if(state==='play'){if(DBG.scale>1){for(let i=0;i<DBG.scale&&state==='play';i++)update(dt)}else update(dt*DBG.scale);if(state==='play'||state==='levelup')updateHud()}
   else if(state==='menu')attract(dt);
