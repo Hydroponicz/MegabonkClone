@@ -115,7 +115,7 @@ module.exports = async (req, res) => {
       const bad = plausible(b);
       if (bad) return res.status(400).json({ error: 'implausible_' + bad });
       const score = scoreOf(+b.t, +b.kills);
-      const run = { t: Math.floor(+b.t), kills: +b.kills, level: +b.level, car: CARS.includes(b.car) ? b.car : 'interceptor', cleared: !!b.cleared, at: Date.now() };
+      const run = { t: Math.floor(+b.t), kills: +b.kills, level: +b.level, car: CARS.includes(b.car) ? b.car : 'interceptor', cleared: !!b.cleared || !!b.escaped, escaped: !!b.escaped, at: Date.now() };
       const [prev] = await redis([['ZSCORE', 'lb:' + track, b.pid]]);
       const best = prev === null || score > +prev;
       const cmds = [['HSET', 'lbname', b.pid, name]];
