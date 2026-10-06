@@ -34,10 +34,12 @@ html,body{height:100%;margin:0;overflow:hidden;background:var(--asphalt);color:v
 .bossbar{width:min(520px,90vw);height:12px;background:rgba(0,0,0,.65);border:2px solid var(--ink)}
 #bossfill{height:100%;background:linear-gradient(90deg,var(--hp),var(--ember));width:100%}
 #loadout{display:flex;flex-wrap:wrap;gap:6px;max-width:calc(100% - 190px)}
-#glove{position:absolute;right:16px;bottom:16px;display:flex;gap:6px;pointer-events:auto}
+#glove{position:absolute;right:16px;bottom:calc(env(safe-area-inset-bottom,0px) + 16px);display:flex;gap:6px;pointer-events:auto}
 #glove .gslot{width:52px;height:46px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;background:rgba(10,9,12,.85);border:2px solid var(--line);color:var(--fg);font:700 13px var(--body);letter-spacing:.06em;padding:0;cursor:pointer}
 #glove .gslot:first-child:not(.empty){border-color:var(--hazard)}#glove .gslot small{font-size:9px;color:var(--hazard);letter-spacing:.14em;min-height:10px}
 #glove .gslot.empty{border-style:dashed;opacity:.45;cursor:default}
+#glove .gslot{touch-action:none;-webkit-tap-highlight-color:transparent;user-select:none}#glove .gslot:active:not(.empty){transform:scale(.92);border-color:var(--fg)}
+@media (pointer:coarse){#glove{gap:8px;right:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 12px)}#glove .gslot{width:66px;height:60px;font-size:15px}#glove .gslot:not(.empty) small{color:var(--hazard)}#loadout{max-width:calc(100% - 230px)}}
 .chip{background:rgba(10,9,12,.82);border:1px solid var(--line);padding:4px 8px;display:flex;gap:7px;align-items:center;font-size:11px;font-weight:700;letter-spacing:.08em}
 .pips{display:flex;gap:2px}.pips i{width:6px;height:6px;background:var(--line);display:block}
 .pips i.on{background:var(--hazard)}.chip.p .pips i.on{background:var(--xp)}
@@ -134,6 +136,8 @@ kbd{display:inline-block;font-family:var(--body);font-weight:700;font-size:12px;
 .legend i{flex:none;width:14px;height:14px;display:block}
 
 #toasts{position:fixed;right:16px;bottom:calc(env(safe-area-inset-bottom,0px) + 60px);display:flex;flex-direction:column;align-items:flex-end;gap:8px;pointer-events:none}
+/* on touchscreens the glovebox is bigger, so toasts sit above it */
+@media (pointer:coarse){#toasts{bottom:calc(env(safe-area-inset-bottom,0px) + 86px)}}
 .toast{display:flex;align-items:center;gap:12px;background:rgba(10,9,12,.95);border:2px solid var(--hazard);box-shadow:5px 5px 0 var(--ink);padding:8px 16px 8px 8px;max-width:calc(100vw - 32px);animation:tin .35s ease-out;transition:opacity .3s,transform .3s}
 .toast.out{opacity:0;transform:translateX(24px)}
 .toast .badge{width:40px;height:40px;font-size:12px}
@@ -829,8 +833,9 @@ function useGlove(i=0){if(state!=='play'||G.exitT>=0)return;const id=G.glove[i];
   else if(id==='nitrocan'){G.buffs.nitro=Math.max(G.buffs.nitro,8*s.buffMul);tone(300,0.3,'sawtooth',0.05,900)}
   else if(id==='empnade'){for(const e of G.enemies)if(!e.dead&&d2(e.x,e.y,p.x,p.y)<380*380)e.ice=e.big?1:3;G.rings.push({x:p.x,y:p.y,r:20,max:380,dmg:0,hit:null});sfx('zap')}
   updateGlove()}
-function updateGlove(){const el=$('glove');if(!el||!G)return;let h='';for(let i=0;i<GLOVE_MAX;i++){const id=G.glove[i],d=id&&TRINKETS[id];
-    h+=d?`<button class="gslot" data-i="${i}" data-tip="${esc(d.name)}|Glovebox · ${i?'slot '+(i+1):'next up (Q)'}|${esc(d.desc)}"><b>${d.glove}</b><small>${i?'':'Q'}</small></button>`:`<span class="gslot empty"></span>`}
+const coarse=()=>matchMedia('(pointer: coarse)').matches;
+function updateGlove(){const el=$('glove');if(!el||!G)return;let h='';const tap=coarse();for(let i=0;i<GLOVE_MAX;i++){const id=G.glove[i],d=id&&TRINKETS[id];
+    h+=d?`<button class="gslot" data-i="${i}" aria-label="Use ${esc(d.name)}" data-tip="${esc(d.name)}|Glovebox · ${tap?'tap to use':i?'click to use':'Q or click to use'}|${esc(d.desc)}"><b>${d.glove}</b><small>${tap?'TAP':i?'':'Q'}</small></button>`:`<span class="gslot empty"></span>`}
   el.innerHTML=h}
 function grantItem(id){if(TRINKETS[id].glove){if(G.glove.length<GLOVE_MAX)G.glove.push(id);updateGlove()}else if(id==='voucher')G.pending++;else{G.tk[id]=(G.tk[id]||0)+1;recalc()}updateLoadout()}
 const stockFor=cat=>{const ks=Object.keys(TRINKETS).filter(k=>TRINKETS[k].cat===cat),items=shuffle(ks.filter(k=>!TRINKETS[k].shop&&itemOpen(k))),cons=shuffle(ks.filter(k=>TRINKETS[k].shop));
@@ -2178,7 +2183,10 @@ $('lbTabs').addEventListener('click',e=>{const b=e.target.closest('.lbtab');if(!
 function lbSaveName(){const nm=lbClean($('lbName').value);if(nm.length<2){$('lbMsg').textContent='Names need at least 2 letters or numbers.';return}
   P.lbName=nm;saveProfile();$('lbName').value=nm;if(!lbOnline){$('lbMsg').textContent='Name saved on this device.';return}
   lbPost({action:'name'}).then(()=>{$('lbMsg').textContent='Name saved.';renderBoard()}).catch(e=>{$('lbMsg').textContent='Name saved on this device. '+lbErrText(e.code)})}
-$('lbSave').onclick=lbSaveName;$('glove').addEventListener('click',e=>{const b=e.target.closest('.gslot');if(b&&b.dataset.i!=null){b.blur();useGlove(+b.dataset.i)}});$('rSeek').onclick=e=>{e.currentTarget.blur();initAudio();skipSong()};$('lbName').addEventListener('keydown',e=>{if(e.code==='Enter'||e.code==='NumpadEnter'){e.preventDefault();lbSaveName()}});
+$('lbSave').onclick=lbSaveName;// glovebox slots fire on touch-down for any finger (click only fires for the primary touch, which is busy steering);
+// click still works for keyboard activation (detail 0)
+$('glove').addEventListener('pointerdown',e=>{const b=e.target.closest('.gslot');if(!b||b.dataset.i==null)return;e.preventDefault();e.stopPropagation();useGlove(+b.dataset.i)});
+$('glove').addEventListener('click',e=>{const b=e.target.closest('.gslot');if(b&&b.dataset.i!=null&&e.detail===0)useGlove(+b.dataset.i)});$('rSeek').onclick=e=>{e.currentTarget.blur();initAudio();skipSong()};$('lbName').addEventListener('keydown',e=>{if(e.code==='Enter'||e.code==='NumpadEnter'){e.preventDefault();lbSaveName()}});
 lbFlush();
 const SRCNAME={glovebox:'Glovebox',shrapnel:'Shrapnel Shells',crumple:'Crumple Zone',weather:'Weather',ram:'Ramming',bumpers:'Blast Bumpers',cables:'Jumper Cables',napalm:'Napalm Tank',hazard:'Hazards',barrels:'Barrels',airstrike:'Airstrikes',other:'Other'};
 function renderReport(){const od=G.odStart>=0?(G.escaped||G.forfeit?G.t-G.odStart:0):-1,items=Object.values(G.tk).reduce((a,b)=>a+b,0);
