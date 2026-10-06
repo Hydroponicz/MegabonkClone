@@ -245,6 +245,28 @@ kbd{display:inline-block;font-family:var(--body);font-weight:700;font-size:12px;
 .wrow .wv{font-variant-numeric:tabular-nums;min-width:6.5em;text-align:right}
 .odtag{display:inline-block;background:#7b3fe0;color:#fff;font-weight:700;letter-spacing:.1em;padding:1px 7px;margin-right:6px;animation:tpulse 1s ease-in-out infinite}
 #rNote{max-width:640px}
+/* after-action report: two columns on wide screens, compact tiles, details collapsible on phones */
+#scrOver{width:min(980px,100%);gap:12px}
+#scrOver .rep{display:grid;grid-template-columns:minmax(300px,390px) minmax(0,1fr);gap:22px;width:100%;align-items:start}
+#scrOver .repL{display:flex;flex-direction:column;gap:12px;align-items:center;text-align:center;min-width:0}
+#scrOver .big{font-size:clamp(34px,4.6vw,54px);margin:0}
+#scrOver #rNote{font-size:13px;line-height:1.45;margin:0}
+#scrOver .results{grid-template-columns:1fr 1fr;gap:8px}
+#scrOver .res{padding:8px 10px}#scrOver .res b{font-size:22px}
+#scrOver .acct{width:100%}
+#scrOver .btns{margin:0}
+#scrOver .repR{display:flex;flex-direction:column;gap:8px;min-width:0;text-align:left}
+#scrOver .repR summary{list-style:none;cursor:pointer;margin:0}#scrOver .repR summary::-webkit-details-marker{display:none}
+#scrOver .repR .secthead{margin:2px 0 0}
+#scrOver .aar{grid-template-columns:repeat(3,minmax(0,1fr));gap:5px}
+#scrOver .aar div{padding:5px 8px}#scrOver .aar span{font-size:9px}#scrOver .aar b{font-size:13px}
+#scrOver .aarw{gap:4px;padding:8px 10px}#scrOver .wrow{font-size:12px;grid-template-columns:minmax(90px,140px) 1fr auto}#scrOver .wbar{height:8px}
+#scrOver .newach{display:flex;flex-wrap:wrap;gap:5px;justify-content:flex-start}
+#scrOver .achip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--hazard);padding:2px 8px 2px 2px;font-size:12px;font-weight:700;background:rgba(10,9,12,.85)}
+#scrOver .achip i{font-style:normal;background:var(--hazard);color:var(--ink);font-size:9px;padding:2px 4px;min-width:20px;text-align:center}#scrOver .achip.more{padding:2px 8px;color:var(--dim);border-color:var(--line)}
+@media (max-width:820px){#scrOver .rep{grid-template-columns:1fr;gap:14px}
+  #scrOver .repR summary::after{content:' ▸ tap to open';color:var(--dim);letter-spacing:.06em}#scrOver .repR[open] summary::after{content:' ▾'}
+  #scrOver .aar{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (max-width:520px){.wrow{grid-template-columns:96px 1fr auto;gap:6px}}
 .lbt .lbinfo{text-align:center;color:var(--dim);padding:22px 10px}
 .lbrank{text-transform:none;letter-spacing:.06em;font-size:14px}.lbrank b{color:var(--hazard)}
@@ -279,6 +301,14 @@ body.nocursor,body.nocursor *{cursor:none!important}
 #radio #rSeek:active{transform:translateY(2px);box-shadow:inset 0 1px 0 rgba(255,255,255,.08)}
 #radio #rSeek:focus-visible{outline:2px solid var(--hazard);outline-offset:2px}
 @media (max-width:720px){#radio.inrun{display:none}#radio{transform:scale(.85);transform-origin:top right}}
+#dbg{position:fixed;left:16px;top:200px;z-index:7;width:330px;max-height:calc(100vh - 290px);overflow:auto;background:rgba(6,6,10,.86);border:1px solid #3fe0d0;box-shadow:0 0 0 1px #000,0 6px 18px rgba(0,0,0,.5);
+  padding:8px 10px;font:12px/1.35 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:#cfe;pointer-events:none}
+#dbg .dh{font-weight:700;color:#3fe0d0;letter-spacing:.12em;margin-bottom:4px;display:flex;justify-content:space-between}#dbg .dh span{color:#7a8;font-weight:400;letter-spacing:0}
+#dbg .dl{display:grid;grid-template-columns:62px 1fr;gap:6px}#dbg .dl span{color:#7a8}#dbg .dl b{font-weight:400;color:#eef}#dbg b.on{color:#5cf08a;font-weight:700}
+#dbg .dk{display:grid;grid-template-columns:1fr 1fr;gap:2px 8px;margin-top:6px;padding-top:6px;border-top:1px solid #234;font-size:11px;color:#bcd}
+#dbg kbd{font:700 10px ui-monospace,monospace;background:#1a2a2a;border:1px solid #3a5a5a;border-bottom-width:2px;color:#3fe0d0;padding:0 3px;margin-right:4px}
+#dbg .dm{margin-top:6px;padding:4px 6px;background:#3fe0d0;color:#06170f;font-weight:700}
+@media (max-width:720px){#dbg{top:auto;bottom:80px;width:calc(100vw - 32px);max-height:40vh}}
 #wxHud{align-self:flex-start;display:flex;align-items:center;gap:7px;background:rgba(10,9,12,.85);border:1px solid var(--line);padding:4px 10px;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);pointer-events:auto}
 #wxHud i{width:8px;height:8px;border-radius:50%;background:var(--c)}#wxHud b{color:var(--fg)}
 .lv .wx{display:inline-flex;align-items:center;gap:5px}.lv .wx i{width:7px;height:7px;border-radius:50%;background:var(--wc);display:inline-block}
@@ -307,12 +337,13 @@ body.nocursor,body.nocursor *{cursor:none!important}
     <div id="traderHud" hidden data-tip="Trader|Shop on wheels|Drive into the dashed ring around the truck and press F (or tap the prompt) to buy items with bolts. Items also come from the Trader's Roll on level up."></div>
     <div id="wxHud" hidden></div>
     <div id="buffs"></div>
-    <div id="bossWrap" hidden data-tip="Boss health|Boss|Bosses ignore walls and smash straight through props."><div id="bossName">JUGGERNAUT</div><div class="bossbar"><div id="bossfill"></div></div></div>
+    <div id="bossWrap" hidden data-tip="Boss health|Boss|Bosses smash straight through props and most walls. Downtown, even they have to drive around the buildings."><div id="bossName">JUGGERNAUT</div><div class="bossbar"><div id="bossfill"></div></div></div>
   </div>
   <div id="loadout"></div>
   <div id="glove" aria-label="Glovebox"></div>
 </div>
 <div id="banner"></div>
+<div id="dbg" hidden></div>
 <div id="radio" hidden data-tip="Car radio|Music|Shuffles through the station's tracks. Hit SEEK or press N to skip to the next one.">
   <div class="rlcd">
     <div class="r1"><span class="rcall" id="rCall">KRSH</span><span class="rtrk">TRK <b id="rTrk">01</b></span><span class="rfm"><b id="rFreq">98.6</b><small>FM</small></span></div>
@@ -403,6 +434,7 @@ body.nocursor,body.nocursor *{cursor:none!important}
       <div class="key"><b>Drive</b><span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> or arrows</span></div>
       <div class="key"><b>Handbrake drift</b><span><kbd>Space</kbd></span></div>
       <div class="key"><b>Trade</b><span><kbd>F</kbd> next to a parked trader</span></div>
+      <div class="key"><b>Developer console</b><span><kbd>`</kbd> toggles it · F1–F10 and Shift+F1–F10 for test cheats. Debug runs don't post to the leaderboard</span></div>
       <div class="key"><b>Use glovebox item</b><span><kbd>Q</kbd> or tap a glovebox slot (bottom right)</span></div>
       <div class="key"><b>Next radio track</b><span><kbd>N</kbd> or the SEEK button</span></div>
       <div class="key"><b>Pause</b><span><kbd>P</kbd> or <kbd>Esc</kbd></span></div>
@@ -449,7 +481,7 @@ body.nocursor,body.nocursor *{cursor:none!important}
   </section>
 
   <section id="scrShop" class="panel" hidden>
-    <div class="shophead"><span class="who" id="shopTitle">Firepower</span><h2 class="big" id="shopName">Trader</h2><span class="wallet"><span class="nut"></span><span id="shopBolts">0</span></span></div>
+    <div class="shophead"><span class="who" id="shopTitle">Firepower</span><h2 class="big" id="shopName">Trader</h2><span class="wallet"><span class="nut"></span><span id="shopBolts">0</span></span><span class="sub" id="shopSlots"></span></div>
     <p class="sub">Buy with keys 1 to 3 · <kbd>R</kbd> to restock · <kbd>F</kbd> or <kbd>Esc</kbd> to leave</p>
     <div class="cards" id="shopCards"></div>
     <div class="btns"><button class="btn alt" id="shopReroll">Restock</button><button class="btn alt" id="shopLeave">Hit the road</button></div>
@@ -468,28 +500,34 @@ body.nocursor,body.nocursor *{cursor:none!important}
 
   <section id="scrOver" class="panel" hidden>
     <div class="hazard-stripe"></div>
-    <p class="sub" id="rWhere"></p>
-    <h2 class="big" id="overTitle">Wrecked</h2>
-    <p class="tagline" id="rNote" hidden></p>
-    <div class="results">
-      <div class="res"><span>Survived</span><b id="rTime">0:00</b></div>
-      <div class="res"><span>Wrecks</span><b id="rKills">0</b></div>
-      <div class="res"><span>Level</span><b id="rLvl">1</b></div>
-      <div class="res"><span>Best on track</span><b id="rBest">0:00</b></div>
-    </div>
-    <p class="sub secthead">After-action report</p>
-    <div class="aar" id="rStats"></div>
-    <p class="sub secthead">Damage dealt</p>
-    <div class="aarw" id="rWeap"></div>
-    <div class="acct">
-      <div class="top2"><span>Account level<b id="oAcct">1</b></span><span class="gain" id="oGain">+0 XP</span></div>
-      <div class="achbar"><i id="oAcctFill"></i></div>
-    </div>
-    <p class="sub lbrank" id="rRank"></p>
-    <div id="rAchWrap" hidden><p class="sub" style="margin-bottom:10px">Unlocked this run</p><div class="newach" id="rAch"></div></div>
-    <div class="btns">
-      <button class="btn" id="againBtn">Drive again</button>
-      <button class="btn alt" id="oMenuBtn">Main menu</button>
+    <div class="rep">
+      <div class="repL">
+        <p class="sub" id="rWhere"></p>
+        <h2 class="big" id="overTitle">Wrecked</h2>
+        <p class="tagline" id="rNote" hidden></p>
+        <div class="results">
+          <div class="res"><span>Survived</span><b id="rTime">0:00</b></div>
+          <div class="res"><span>Wrecks</span><b id="rKills">0</b></div>
+          <div class="res"><span>Level</span><b id="rLvl">1</b></div>
+          <div class="res"><span>Best on track</span><b id="rBest">0:00</b></div>
+        </div>
+        <div class="acct">
+          <div class="top2"><span>Account level<b id="oAcct">1</b></span><span class="gain" id="oGain">+0 XP</span></div>
+          <div class="achbar"><i id="oAcctFill"></i></div>
+        </div>
+        <p class="sub lbrank" id="rRank"></p>
+        <div class="btns">
+          <button class="btn" id="againBtn">Drive again</button>
+          <button class="btn alt" id="oMenuBtn">Main menu</button>
+        </div>
+      </div>
+      <details class="repR" id="rDetails" open>
+        <summary class="sub secthead">After-action report</summary>
+        <div class="aar" id="rStats"></div>
+        <p class="sub secthead">Damage dealt</p>
+        <div class="aarw" id="rWeap"></div>
+        <div id="rAchWrap" hidden><p class="sub secthead">Unlocked this run</p><div class="newach" id="rAch"></div></div>
+      </details>
     </div>
     <div class="hazard-stripe"></div>
   </section>
@@ -677,9 +715,92 @@ function renderRadio(force){const el=$('radio');if(!el)return;const on=MUS.on&&S
   if(mus){mus.an.getByteFrequencyData(mus.bins);const bars=el.querySelectorAll('.eq i');for(let i=0;i<bars.length;i++){const v=mus.bins[1+i*2]/255;bars[i].style.transform=`scaleY(${Math.max(.08,v*v*1.3).toFixed(2)})`}}}
 // browsers only allow audio after a gesture: start the menu music on the first click or key
 for(const ev of['pointerdown','keydown'])addEventListener(ev,()=>{if(!AC||AC.state!=='running')initAudio()},{capture:true});
+
+/* ---------- developer console: ` toggles it; F1-F10 and Shift+F1-F10 are cheats and test triggers ---------- */
+// (F11/F12 are left to the browser and Alt is never used, so Alt+F4 can't be hit by accident)
+// any run where the console was switched on is marked as a debug run and never posted to the online leaderboard
+const DBG={on:false,god:false,ohk:false,noSpawn:false,hit:false,scale:1,ft:16,msg:'',msgT:0,infoT:0};
+const DBG_KEYS=[
+  ['F1','God mode','Shift+F1','One-hit kills'],
+  ['F2','Spawn Juggernaut','Shift+F2','Spawn Chrome hunter'],
+  ['F3','Spawn level boss','Shift+F3','Wreck every car'],
+  ['F4','Next weather','Shift+F4','Previous weather'],
+  ['F5','Lightning strike ahead','Shift+F5','Tornado nearby'],
+  ['F6','Level up','Shift+F6','Max out the rig'],
+  ['F7','Call a trader','Shift+F7','Drop every power-up'],
+  ['F8','Open exit portal','Shift+F8','Overdrive +1 tier'],
+  ['F9','Ambush now','Shift+F9','Pause enemy spawns'],
+  ['F10','+500 bolts','Shift+F10','Fill glovebox + item'],
+  ['[ / ]','Slow / speed up time','\\','Hitbox overlay'],
+  ['=','Skip ahead 60s','`','Close console']];
+function dbgSay(m){DBG.msg=m;DBG.msgT=2.5;renderDebug(true)}
+function toggleDebug(){DBG.on=!DBG.on;if(DBG.on&&G&&G.live)G.dbg=true;$('dbg').hidden=!DBG.on;if(!DBG.on){DBG.scale=1}renderDebug(true)}
+function dbgSpawnMini(){G.minisSpawned++;G.mini=spawnEnemy('mini',{hpMul:1+(G.minisSpawned-1)*0.5,ab:{charge:1}});G.mini.num=G.minisSpawned;showBanner('Juggernaut inbound','Spawned from the console');sfx('boss')}
+function dbgSpawnBoss(){if(G.lboss&&!G.lboss.dead)return dbgSay('The level boss is already out');const B=G.L.boss;G.bossDue=-1;
+  G.lboss=spawnEnemy('lboss',{hp:B.hp*(1+G.t/400),col:B.col,spdMul:B.spd||1,ab:B.abil,dmgMul:1.2});showBanner(B.name,'Level boss · spawned from the console');sfx('boss');G.shake=14}
+function dbgWeather(step){const ks=Object.keys(WEATHER),i=(ks.indexOf(G.wx.k)+step+ks.length)%ks.length;G.wx=makeWeather(ks[i]);delete hudCache.wx;dbgSay('Weather: '+WEATHER[ks[i]].name)}
+function dbgMaxRig(){const W=Object.keys(WDEF).filter(k=>unlocked(WDEF[k])||G.weapons[k]),Pa=Object.keys(PDEF).filter(k=>unlocked(PDEF[k])||G.passives[k]);
+  for(const k of Object.keys(G.weapons))G.weapons[k].lvl=5;for(const k of W){if(Object.keys(G.weapons).length>=Math.max(5,slotsW()))break;if(!G.weapons[k])G.weapons[k]={lvl:5,cd:0.3,aim:G.p.a}}
+  for(const k of Object.keys(G.passives))G.passives[k]=5;for(const k of Pa){if(Object.keys(G.passives).length>=Math.max(5,slotsP()))break;if(!G.passives[k])G.passives[k]=5}recalc();updateLoadout();dbgSay('Rig maxed: 5 weapons and 5 upgrades at level 5 (ignores garage slots)')}
+function debugKey(code,shift){const inRun=state==='play'&&G&&G.live,p=G&&G.p;
+  if(code==='F10'&&!inRun){if(shift){for(const a of ACH)P.ach[a.id]=P.ach[a.id]||Date.now();for(const c in CARS)P.cars[c]=1;P.acctXp=Math.max(P.acctXp,1e6);saveProfile();refreshMenu&&refreshMenu();dbgSay('Unlocked every achievement, car and track')}
+    else{P.scrap+=5000;saveProfile();refreshMenu&&refreshMenu();dbgSay('+5,000 garage scrap')}return}
+  if(!inRun)return dbgSay('Start a run first (F10 / Shift+F10 work on the menu)');
+  G.dbg=true;const ahead=d=>[clamp(p.x+Math.cos(p.a)*d,60,ARENA-60),clamp(p.y+Math.sin(p.a)*d,60,ARENA-60)];
+  switch(code+(shift?'S':'')){
+    case'F1':DBG.god=!DBG.god;dbgSay('God mode '+(DBG.god?'ON':'off'));break;
+    case'F1S':DBG.ohk=!DBG.ohk;dbgSay('One-hit kills '+(DBG.ohk?'ON':'off'));break;
+    case'F2':dbgSpawnMini();break;
+    case'F2S':spawnEnemy(Math.random()<.5?'truck':'sedan',{elite:true,hpMul:7,scale:1.3,xpMul:5,col:'#e8e4ee',spdMul:1.1});dbgSay('Chrome hunter spawned');break;
+    case'F3':dbgSpawnBoss();break;
+    case'F3S':{DSRC='debug';let n=0;for(const e of [...G.enemies])if(!e.dead){damageEnemy(e,1e12,false);n++}dbgSay('Wrecked '+n+' cars');break}
+    case'F4':dbgWeather(1);break;case'F4S':dbgWeather(-1);break;
+    case'F5':{const [x,y]=ahead(220);G.wx.strikes.push({x,y,t:1.1,R:85});dbgSay('Lightning strike incoming');break}
+    case'F5S':{const [x,y]=ahead(320);G.wx.twisters.push({x,y,h:p.a+Math.PI,v:60,life:20,age:0,R:58,pull:190,spin:0,fire:!!G.wx.W.fire});dbgSay('Tornado spawned');break}
+    case'F6':G.pending++;dbgSay('Level up queued');break;case'F6S':dbgMaxRig();break;
+    case'F7':if(G.trader)dbgSay('A trader is already in town');else{spawnTrader();dbgSay(G.trader?'Trader on the way':'No route for a trader right now')}break;
+    case'F7S':{const ks=Object.keys(DROPS);ks.forEach((k,i)=>{const a=i/ks.length*TAU;dropPickup(p.x+Math.cos(a)*90,p.y+Math.sin(a)*90,k)});dbgSay('Every power-up dropped around you');break}
+    case'F8':if(G.portal)dbgSay('The portal is already open');else{G.cleared=true;G.clearT=G.t;if(G.lboss){G.lboss.dead=true;G.lboss=null}openPortal();dbgSay('Exit portal opened · Overdrive started')}break;
+    case'F8S':if(G.odStart<0)dbgSay('Open the portal first (F8)');else{G.odStart-=40;dbgSay('Overdrive tier '+odTierOf(odHeat()))}break;
+    case'F9':G.nextAmbush=G.t;dbgSay('Ambush!');break;case'F9S':DBG.noSpawn=!DBG.noSpawn;dbgSay('Enemy spawns '+(DBG.noSpawn?'PAUSED':'resumed'));break;
+    case'F10':G.bolts+=500;dbgSay('+500 bolts');break;
+    case'F10S':{const cons=Object.keys(TRINKETS).filter(k=>TRINKETS[k].glove);while(G.glove.length<GLOVE_MAX)G.glove.push(cons[Math.floor(Math.random()*cons.length)]);updateGlove();const id=rollItem();grantItem(id);dbgSay('Glovebox filled · got '+TRINKETS[id].name);break}}
+  renderDebug(true)}
+function debugAux(code){if(code==='BracketLeft')DBG.scale=Math.max(0.25,DBG.scale/2);else if(code==='BracketRight')DBG.scale=Math.min(4,DBG.scale*2);else if(code==='Backslash')DBG.hit=!DBG.hit;
+  else if(code==='Equal'&&state==='play'&&G.live){G.t+=60;G.dbg=true;dbgSay('Skipped ahead to '+fmt(G.t));return}
+  dbgSay(code==='Backslash'?'Hitboxes '+(DBG.hit?'ON':'off'):'Time ×'+DBG.scale)}
+function renderDebug(force){if(!DBG.on)return;const el=$('dbg');if(!force&&(DBG.infoT-=1)>0)return;DBG.infoT=12;
+  const on=v=>v?'<b class="on">ON</b>':'<b>off</b>',g=G,p=g&&g.p;let h=`<div class="dh">DEV CONSOLE <span>\` to close</span></div>`;
+  if(g){const big=g.enemies.filter(e=>e.big&&!e.dead).length,w=g.wx;
+    h+=`<div class="dl"><span>FPS</span><b>${Math.round(1000/DBG.ft)} · ${DBG.ft.toFixed(1)}ms</b></div>
+<div class="dl"><span>State</span><b>${state}${g.dbg?' · debug run':''}</b></div>
+<div class="dl"><span>Track</span><b>${g.L.name} · ${g.car.name}</b></div>
+<div class="dl"><span>Time</span><b>${fmt(g.t)} · lvl ${g.level} · ${g.kills} wrecks</b></div>
+<div class="dl"><span>Player</span><b>${p?Math.ceil(p.hp)+'/'+p.maxhp+' HP · '+Math.round(Math.hypot(p.vx,p.vy))+' spd · ('+Math.round(p.x)+','+Math.round(p.y)+')':'-'}</b></div>
+<div class="dl"><span>Weather</span><b>${w?w.W.name+' · ×'+w.int.toFixed(2):'-'}</b></div>
+<div class="dl"><span>Cars</span><b>${g.enemies.length} (${big} big) · spawns ${DBG.noSpawn?'PAUSED':'on'}</b></div>
+<div class="dl"><span>Objects</span><b>${g.bullets.length} shots · ${g.ebullets.length} enemy · ${g.parts.length} fx · ${g.gems.length} gems</b></div>
+<div class="dl"><span>Next</span><b>jugg ${fmt(Math.max(0,g.nextMini-g.t))} · elite ${fmt(Math.max(0,g.nextElite-g.t))} · ambush ${fmt(Math.max(0,g.nextAmbush-g.t))}</b></div>
+<div class="dl"><span>Boss</span><b>${g.lboss?'out':g.cleared?'down':g.bossDue>0?'due':'-'} · minis ${g.miniKills}/${g.L.minis} · ${g.portal?'Overdrive '+roman(Math.max(1,g.odTier)):'no portal'}</b></div>
+<div class="dl"><span>Radio</span><b>${MUS.on?CUR.title+' · '+CUR.bpm+' BPM':'off'}</b></div>
+<div class="dl"><span>Toggles</span><b>god ${on(DBG.god)} · 1-hit ${on(DBG.ohk)} · hitbox ${on(DBG.hit)} · time ×${DBG.scale}</b></div>`}
+  h+=`<div class="dk">${DBG_KEYS.map(([a,b,c,d])=>`<span><kbd>${a}</kbd>${b}</span><span><kbd>${c}</kbd>${d}</span>`).join('')}</div>`;
+  if(DBG.msgT>0)h+=`<div class="dm">${esc(DBG.msg)}</div>`;el.innerHTML=h}
+function drawDebugWorld(vis){if(!DBG.on||!DBG.hit)return;const p=G.p;ctx.lineWidth=1.5;
+  ctx.strokeStyle='rgba(255,80,80,.8)';ctx.beginPath();for(const e of G.enemies){if(e.dead||!vis(e.x,e.y,e.r))continue;ctx.moveTo(e.x+e.r,e.y);ctx.arc(e.x,e.y,e.r,0,TAU)}ctx.stroke();
+  ctx.strokeStyle='rgba(80,255,160,.9)';ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,TAU);ctx.stroke();
+  ctx.strokeStyle='rgba(63,224,208,.35)';ctx.setLineDash([6,6]);ctx.beginPath();ctx.arc(p.x,p.y,G.stats.magnet,0,TAU);ctx.stroke();ctx.setLineDash([]);
+  ctx.strokeStyle='rgba(255,214,90,.6)';ctx.beginPath();for(const o of G.obs){if(!o.solid||!vis(o.x,o.y,o.rect?Math.max(o.w,o.h):o.r))continue;if(o.rect)ctx.rect(o.x-o.w/2,o.y-o.h/2,o.w,o.h);else{ctx.moveTo(o.x+o.r,o.y);ctx.arc(o.x,o.y,o.r,0,TAU)}}ctx.stroke();
+  // boss route arrows (downtown) or the regular flow field, a few cells around the camera
+  const c=G.cam,arr=G.L.bossWalls&&G.enemies.some(e=>e.big&&!e.dead)?bDir:fDir;ctx.strokeStyle='rgba(169,139,255,.5)';ctx.beginPath();
+  for(let x=c.x-VW/2;x<c.x+VW/2;x+=FC*2)for(let y=c.y-VH/2;y<c.y+VH/2;y+=FC*2){const cx=clamp(x/FC|0,0,FN-1),cy=clamp(y/FC|0,0,FN-1),a=arr[cx*FN+cy];if(a!==a)continue;const X=cx*FC+FC/2,Y=cy*FC+FC/2;ctx.moveTo(X,Y);ctx.lineTo(X+Math.cos(a)*18,Y+Math.sin(a)*18)}ctx.stroke()}
 /* ---------- input ---------- */
 const keys={};
 addEventListener('keydown',e=>{
+  if(!(e.target&&e.target.tagName==='INPUT')){
+    if(e.code==='Backquote'&&!e.repeat){e.preventDefault();toggleDebug();return}
+    if(DBG.on&&/^F([1-9]|10)$/.test(e.code)){e.preventDefault();if(!e.repeat&&!e.altKey&&!e.ctrlKey&&!e.metaKey)debugKey(e.code,e.shiftKey);return}
+    if(DBG.on&&/^(BracketLeft|BracketRight|Backslash|Equal)$/.test(e.code)&&!e.repeat){e.preventDefault();debugAux(e.code);return}}
   if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space'].includes(e.code)&&state==='play')e.preventDefault();
   keys[e.code]=true;
   // held keys repeat: never let that toggle pause, re-trigger a pick, or click a button that just took focus
@@ -712,7 +833,7 @@ const LEVELS=[
     ground:'#232128',paint:'255,194,26',wall:'#ffc21a',boss:{name:'THE CRUSHER',col:'#d63434',hp:9000,abil:{charge:1,summon:1}}},
   {id:'dust',name:'Outskirts',desc:'Farmland at the edge of town. Groves, rock piles, barns and propane tanks.',req:3,diff:1.4,head:40,rate:1.1,minis:2,theme:'outskirts',barrels:['barrel','propane'],
     ground:'#34361f',paint:'255,236,200',wall:'#e0a050',boss:{name:'SANDSTORM',col:'#c98a3a',hp:15000,abil:{charge:1,ring:1}}},
-  {id:'neon',name:'Neon District',desc:'Downtown after dark. Tight streets, alleys and live tesla pylons.',req:6,diff:1.75,head:80,rate:1.12,minis:3,spd:1.08,theme:'city',barrels:['barrel','propane'],
+  {id:'neon',name:'Neon District',desc:'Downtown after dark. Wide neon boulevards, towering blocks and live tesla pylons.',req:6,diff:1.75,head:80,rate:1.12,minis:3,spd:1.08,theme:'city',bossWalls:1,barrels:['barrel','propane'],
     ground:'#17142a',paint:'255,79,216',wall:'#ff4fd8',boss:{name:'OVERCLOCK',col:'#7a3cff',hp:22000,spd:1.4,abil:{burst:1,ring:1}}},
   {id:'frost',name:'Frostbite Flats',desc:'Black ice and pine forest. Your tires barely grip. Theirs grip just fine.',req:10,diff:2.5,head:120,rate:1.3,minis:3,grip:2.6,theme:'frost',barrels:['barrel','propane'],
     ground:'#26313c',paint:'200,240,255',wall:'#9fe4ff',boss:{name:'GLACIER HAULER',col:'#5aa8d6',hp:32000,abil:{charge:1,ring:1,summon:1}}},
@@ -814,7 +935,10 @@ const TRINKETS={
   nitrocan:{name:'Nitro Canister',desc:'8 seconds of Nitro when you use it: top speed and ramming way up.',cost:12,cat:'luck',rar:'common',shop:1,glove:'NOS'},
   empnade:{name:'EMP Grenade',desc:'Stuns every car around you for 3 seconds when you use it.',cost:20,cat:'luck',rar:'common',shop:1,glove:'EMP'},
 };
-const itemOpen=k=>(G.tk[k]||0)<(TRINKETS[k].max||5);
+// trinket limits: a few different trinkets per run (more with the garage's Trinket Case), and at most 3 of any one
+const TK_STACK=3,tkCap=k=>Math.min(TK_STACK,TRINKETS[k].max||TK_STACK),tkCount=()=>Object.keys(G.tk).filter(k=>G.tk[k]>0).length;
+const itemOpen=k=>{const n=G.tk[k]||0;return n?n<tkCap(k):tkCount()<slotsT()};
+const tkWhyNot=k=>(G.tk[k]||0)?`Maxed ×${tkCap(k)}`:'Trinket slots full';
 // a Trader's Roll: any non-consumable item you can still stack
 const rollPool=()=>Object.keys(TRINKETS).filter(k=>!TRINKETS[k].shop&&itemOpen(k));
 function rollItem(){const pool=rollPool();if(!pool.length)return'patch';
@@ -837,7 +961,7 @@ const coarse=()=>matchMedia('(pointer: coarse)').matches;
 function updateGlove(){const el=$('glove');if(!el||!G)return;let h='';const tap=coarse();for(let i=0;i<GLOVE_MAX;i++){const id=G.glove[i],d=id&&TRINKETS[id];
     h+=d?`<button class="gslot" data-i="${i}" aria-label="Use ${esc(d.name)}" data-tip="${esc(d.name)}|Glovebox · ${tap?'tap to use':i?'click to use':'Q or click to use'}|${esc(d.desc)}"><b>${d.glove}</b><small>${tap?'TAP':i?'':'Q'}</small></button>`:`<span class="gslot empty"></span>`}
   el.innerHTML=h}
-function grantItem(id){if(TRINKETS[id].glove){if(G.glove.length<GLOVE_MAX)G.glove.push(id);updateGlove()}else if(id==='voucher')G.pending++;else{G.tk[id]=(G.tk[id]||0)+1;recalc()}updateLoadout()}
+function grantItem(id){if(!TRINKETS[id].shop&&!itemOpen(id))return;if(TRINKETS[id].glove){if(G.glove.length<GLOVE_MAX)G.glove.push(id);updateGlove()}else if(id==='voucher')G.pending++;else{G.tk[id]=(G.tk[id]||0)+1;recalc()}updateLoadout()}
 const stockFor=cat=>{const ks=Object.keys(TRINKETS).filter(k=>TRINKETS[k].cat===cat),items=shuffle(ks.filter(k=>!TRINKETS[k].shop&&itemOpen(k))),cons=shuffle(ks.filter(k=>TRINKETS[k].shop));
   return[...items.slice(0,cons.length?2:3),...cons.slice(0,1)].map(id=>({id,sold:false}))};
 // unique item effects that trigger on a wreck
@@ -950,6 +1074,7 @@ const CARS={
 const GARAGE={
   wslots:{name:'Weapon Bay',desc:'One more weapon slot every run (you start with 2).',max:3,cost:90},
   pslots:{name:'Upgrade Rack',desc:'One more upgrade slot every run (you start with 2).',max:3,cost:80},
+  tslots:{name:'Trinket Case',desc:'One more trinket slot every run (you start with 4).',max:4,cost:100},
   frame:{name:'Reinforced Frame',desc:'+10 max HP per level.',max:5,cost:40},
   engine:{name:'Tuned Engine',desc:'+3% top speed per level.',max:5,cost:50},
   ammo:{name:'Better Ammo',desc:'+5% weapon damage per level.',max:5,cost:60},
@@ -963,7 +1088,7 @@ const GARAGE={
 };
 const gl=k=>P.garage[k]||0;
 // how many different weapons / upgrades a run can carry
-const slotsW=()=>2+gl('wslots'),slotsP=()=>2+gl('pslots');
+const slotsW=()=>2+gl('wslots'),slotsP=()=>2+gl('pslots'),slotsT=()=>4+gl('tslots');
 const gcost=k=>Math.round(GARAGE[k].cost*Math.pow(1.6,gl(k)));
 
 /* ---------- random drops ---------- */
@@ -1006,9 +1131,9 @@ function solidAt(x,y,r){if(!ocells.length)return false;const x0=clamp((x-r)/OG|0
   for(let cx=x0;cx<=x1;cx++)for(let cy=y0;cy<=y1;cy++)for(const o of ocells[cx*ON+cy])if(o.solid&&hitsShape(o,x,y,r))return true;return false}
 // push a circle (b.x,b.y radius r) out of solid obstacles; returns the last push normal or null
 const HIT={nx:0,ny:0};
-function collideObs(b,r){let hit=null;for(let pass=0;pass<3;pass++){const h=collideOnce(b,r);if(!h)break;hit=h}return hit}
-function collideOnce(b,r){let hit=null;const x0=clamp((b.x-r)/OG|0,0,ON-1),x1=clamp((b.x+r)/OG|0,0,ON-1),y0=clamp((b.y-r)/OG|0,0,ON-1),y1=clamp((b.y+r)/OG|0,0,ON-1);
-  for(let cx=x0;cx<=x1;cx++)for(let cy=y0;cy<=y1;cy++){const c=ocells[cx*ON+cy];for(let i=0;i<c.length;i++){const o=c[i];if(!o.solid)continue;
+function collideObs(b,r,only){let hit=null;for(let pass=0;pass<3;pass++){const h=collideOnce(b,r,only);if(!h)break;hit=h}return hit}
+function collideOnce(b,r,only){let hit=null;const x0=clamp((b.x-r)/OG|0,0,ON-1),x1=clamp((b.x+r)/OG|0,0,ON-1),y0=clamp((b.y-r)/OG|0,0,ON-1),y1=clamp((b.y+r)/OG|0,0,ON-1);
+  for(let cx=x0;cx<=x1;cx++)for(let cy=y0;cy<=y1;cy++){const c=ocells[cx*ON+cy];for(let i=0;i<c.length;i++){const o=c[i];if(!o.solid||(only&&o.k!==only))continue;
     if(o.rect){const hw=o.w/2,hh=o.h/2,qx=clamp(b.x,o.x-hw,o.x+hw),qy=clamp(b.y,o.y-hh,o.y+hh);let dx=b.x-qx,dy=b.y-qy;const dd=dx*dx+dy*dy;if(dd>=r*r)continue;
       if(dd<1e-6){const px=hw-Math.abs(b.x-o.x),py=hh-Math.abs(b.y-o.y);if(px<py){dx=Math.sign(b.x-o.x)||1;dy=0;b.x=o.x+dx*(hw+r)}else{dy=Math.sign(b.y-o.y)||1;dx=0;b.y=o.y+dy*(hh+r)}HIT.nx=dx;HIT.ny=dy}
       else{const d=Math.sqrt(dd);HIT.nx=dx/d;HIT.ny=dy/d;b.x=qx+HIT.nx*r;b.y=qy+HIT.ny*r}hit=HIT}
@@ -1019,6 +1144,23 @@ function collideOnce(b,r){let hit=null;const x0=clamp((b.x-r)/OG|0,0,ON-1),x1=cl
 // so routes keep to the middle of streets. Each cell then stores a smoothed downhill direction.
 const FC=50,FN=Math.ceil(ARENA/FC);let fBlock=new Uint8Array(FN*FN),fWide=new Uint8Array(FN*FN),fTruck=new Uint8Array(FN*FN),fDist=new Int32Array(FN*FN),fDir=new Float32Array(FN*FN);
 const FBK=Array.from({length:16},()=>[]),NBR=[[1,0,5],[-1,0,5],[0,1,5],[0,-1,5],[1,1,7],[1,-1,7],[-1,1,7],[-1,-1,7]];
+// bosses on tracks with bossWalls get their own flow field: cells within 75px of a building are off limits,
+// so their route keeps a big car's whole body on the street
+let bBlock=new Uint8Array(FN*FN),bDist=new Int32Array(FN*FN),bDir=new Float32Array(FN*FN);
+const buildingNear=(x,y,r)=>{const x0=clamp((x-r)/OG|0,0,ON-1),x1=clamp((x+r)/OG|0,0,ON-1),y0=clamp((y-r)/OG|0,0,ON-1),y1=clamp((y+r)/OG|0,0,ON-1);
+  for(let cx=x0;cx<=x1;cx++)for(let cy=y0;cy<=y1;cy++)for(const o of ocells[cx*ON+cy])if(o.k==='building'&&hitsShape(o,x,y,r))return true;return false};
+function buildBossBlock(){bBlock=new Uint8Array(FN*FN);for(let cx=0;cx<FN;cx++)for(let cy=0;cy<FN;cy++){const x=cx*FC+FC/2,y=cy*FC+FC/2;bBlock[cx*FN+cy]=x<70||y<70||x>ARENA-70||y>ARENA-70||buildingNear(x,y,75)?1:0}}
+function updateBossFlow(){const p=G.p;bDist.fill(-1);let s0=clamp(p.x/FC|0,0,FN-1)*FN+clamp(p.y/FC|0,0,FN-1);bDist[s0]=0;FBK[0].push(s0);let pending=1;
+  for(let cur=0;pending>0;cur++){const B=FBK[cur&15];while(B.length){const c=B.pop();pending--;if(bDist[c]!==cur)continue;const cx=c/FN|0,cy=c%FN;
+    for(const [ox,oy,w] of NBR){const nx=cx+ox,ny=cy+oy;if(nx<0||ny<0||nx>=FN||ny>=FN)continue;const n=nx*FN+ny;if(bBlock[n]&&c!==s0)continue;
+      if(ox&&oy&&(bBlock[nx*FN+cy]||bBlock[cx*FN+ny]))continue;const nd=cur+w;if(bDist[n]<0||nd<bDist[n]){bDist[n]=nd;FBK[nd&15].push(n);pending++}}}}
+  for(let c=0;c<FN*FN;c++){const d=bDist[c];if(d<=0){bDir[c]=NaN;continue}const cx=c/FN|0,cy=c%FN;let vx=0,vy=0;
+    for(const [ox,oy,w] of NBR){const nx=cx+ox,ny=cy+oy;if(nx<0||ny<0||nx>=FN||ny>=FN)continue;const dn=bDist[nx*FN+ny];if(dn<0||dn>=d)continue;const g=(d-dn)/w,k=g*g/(ox&&oy?1.414:1);vx+=ox*k;vy+=oy*k}
+    bDir[c]=vx||vy?Math.atan2(vy,vx):NaN}}
+// a boss heads straight for you when nothing is in the way, otherwise it follows its street route
+const bossLine=(x0,y0,x1,y1,r)=>{const dx=x1-x0,dy=y1-y0,n=Math.ceil(Math.hypot(dx,dy)/30);for(let i=0;i<=n;i++)if(buildingNear(x0+dx*i/n,y0+dy*i/n,r))return false;return true};
+function bossAngle(e,dx,dy){if(bossLine(e.x,e.y,G.p.x,G.p.y,e.r*.9))return Math.atan2(dy,dx);
+  const a=bDir[clamp(e.x/FC|0,0,FN-1)*FN+clamp(e.y/FC|0,0,FN-1)];return a===a?a:Math.atan2(dy,dx)}
 function buildFlowBlock(){fBlock=new Uint8Array(FN*FN);fWide=new Uint8Array(FN*FN);fTruck=new Uint8Array(FN*FN);
   for(let cx=0;cx<FN;cx++)for(let cy=0;cy<FN;cy++){const x=cx*FC+FC/2,y=cy*FC+FC/2;fBlock[cx*FN+cy]=solidAt(x,y,4)?1:0;fWide[cx*FN+cy]=solidAt(x,y,22)?1:0;fTruck[cx*FN+cy]=solidAt(x,y,32)?1:0}}
 function updateFlow(){const p=G.p;fDist.fill(-1);const s0=clamp(p.x/FC|0,0,FN-1)*FN+clamp(p.y/FC|0,0,FN-1);fDist[s0]=0;FBK[0].push(s0);let pending=1;
@@ -1042,7 +1184,7 @@ function segClear(x0,y0,x1,y1,r){const dx=x1-x0,dy=y1-y0,n=Math.ceil(Math.hypot(
 // how a car picks its heading: straight at the player (leading the target, from its own flank angle)
 // while the road is clear, otherwise down the flow field. Gunners circle at firing range instead.
 function steer(e,d,dx,dy){const p=G.p;e.orbit=false;
-  if(e.big)return Math.atan2(dy,dx);
+  if(e.big)return G.L.bossWalls?bossAngle(e,dx,dy):Math.atan2(dy,dx);
   if(d>=170&&!e.los)return flowAngle(e,dx,dy);
   // gunners: blend a sideways orbit with closing in or backing off to hold ~330px
   if(e.shoots&&d<560){e.orbit=true;const ux=dx/d,uy=dy/d,k=clamp((d-330)/120,-1,1),sd=e.flank>=0?1:-1,t=1-Math.abs(k);return Math.atan2(ux*sd*t+uy*k,-uy*sd*t+ux*k)}
@@ -1078,29 +1220,27 @@ function buildWorld(L){
   const pylons=n=>{for(let i=0,t=0;i<n&&t<n*30;t++){const x=rand(200,ARENA-200),y=rand(200,ARENA-200);if(!free(x,y,60))continue;const py={x,y,t:rand(0,4)};W.pylons.push(py);add({k:'pylon',x,y,r:16,solid:true,py});i++}};
   const th=L.theme;
   if(th==='city'){
-    // city blocks between the painted roads every 600px; the middle block is an open plaza
-    const E=[0,600,1200,1800,2400,3000],pal=['#2a2540','#30284a','#222a44','#3a2440','#262236'];
-    for(let bx=0;bx<5;bx++)for(let by=0;by<5;by++){// outer blocks stop 150px short of the wall, leaving a ring road instead of a dead-end lane
-      const x0=E[bx]+(bx?72:150),x1=E[bx+1]-(bx<4?72:150),y0=E[by]+(by?72:150),y1=E[by+1]-(by<4?72:150);
-      W.deco.push({x:(x0+x1)/2,y:(y0+y1)/2,w:x1-x0,h:y1-y0});if(bx===2&&by===2)continue;
-      const ix0=x0+28,iy0=y0+28,iw=x1-x0-56,ih=y1-y0-56,lay=Math.floor(Math.random()*4),al=56,bld=(x,y,w,h)=>add({k:'building',x:x+w/2,y:y+h/2,w,h,rect:true,solid:true,col:pal[Math.floor(Math.random()*pal.length)],seed:Math.random()});
-      if(lay===0)bld(ix0,iy0,iw,ih);
-      else if(lay===1){const s=iw*rand(.35,.6);bld(ix0,iy0,s-al/2,ih);bld(ix0+s+al/2,iy0,iw-s-al/2,ih)}
-      else if(lay===2){const s=ih*rand(.35,.6);bld(ix0,iy0,iw,s-al/2);bld(ix0,iy0+s+al/2,iw,ih-s-al/2)}
-      else{const a=iw/2-al/2,b=ih/2-al/2;bld(ix0,iy0,a,b);bld(ix0+a+al,iy0,a,b);bld(ix0,iy0+b+al,a,b);bld(ix0+a+al,iy0+b+al,a,b)}}
-    // tesla pylons sit in the middle of street intersections (the only open ground big enough downtown)
+    // city blocks between the painted roads every 600px, with wide boulevards (~330px) so even bosses can drive them.
+    // one compact building per block, no alleys; the middle block and a couple of random lots stay open
+    const E=[0,600,1200,1800,2400,3000],pal=['#2a2540','#30284a','#222a44','#3a2440','#262236'],M=165,EDGE=175;
+    const open=new Set(['2,2']);while(open.size<4){const b=Math.floor(Math.random()*5),c=Math.floor(Math.random()*5);if(Math.abs(b-2)+Math.abs(c-2)>1)open.add(b+','+c)}
+    for(let bx=0;bx<5;bx++)for(let by=0;by<5;by++){// outer blocks stop short of the wall, leaving a ring road
+      const x0=E[bx]+(bx?M:EDGE),x1=E[bx+1]-(bx<4?M:EDGE),y0=E[by]+(by?M:EDGE),y1=E[by+1]-(by<4?M:EDGE);
+      W.deco.push({x:(x0+x1)/2,y:(y0+y1)/2,w:x1-x0,h:y1-y0});if(open.has(bx+','+by))continue;
+      const aw=x1-x0-24,ah=y1-y0-24,w=aw*rand(.62,1),h=ah*rand(.62,1),x=x0+12+rand(0,aw-w),y=y0+12+rand(0,ah-h);
+      add({k:'building',x:x+w/2,y:y+h/2,w,h,rect:true,solid:true,col:pal[Math.floor(Math.random()*pal.length)],seed:Math.random()})}
+    // tesla pylons sit in the middle of street intersections
     {const X=[];for(let i=1;i<5;i++)for(let j=1;j<5;j++)X.push([E[i],E[j]]);shuffle(X);let n=0;for(const [x,y] of X){if(n>=5)break;if(d2(x,y,sx,sy)<500*500||!free(x,y,16))continue;const py={x,y,t:rand(0,4)};W.pylons.push(py);add({k:'pylon',x,y,r:16,solid:true,py});n++}}
-    for(let i=1;i<5;i++)for(let s=120;s<ARENA-60;s+=260)for(const off of[-86,86]){if(Math.random()<.5)continue;const a=E[i]+off;if(!solidAt(a,s,62)&&d2(a,s,sx,sy)>300*300)add({k:'lamp',x:a,y:s,r:7,solid:true});if(!solidAt(s,a,62)&&d2(s,a,sx,sy)>300*300)add({k:'lamp',x:s,y:a,r:7,solid:true})}
-    for(let i=0,t=0;i<26&&t<400;t++){const line=E[1+Math.floor(Math.random()*4)],along=rand(100,ARENA-100),side=Math.random()<.5?-46:46,hz=Math.random()<.5,x=hz?along:line+side,y=hz?line+side:along,w=hz?42:22,h=hz?22:42;
-      if(d2(x,y,sx,sy)<400*400||solidAt(x,y,80))continue;add({k:'parked',x,y,w,h,rect:true,solid:true,col:['#4a86d9','#b8c93e','#8d6a4f','#c9c6d0','#b44ad0'][i%5]});i++}
-    prop('cone',40,9);prop('hydrant',18,8);prop('crate',16,13);zone('oil',8,40,70);
+    // street lamps along the curbs
+    for(let i=1;i<5;i++)for(let s=120;s<ARENA-60;s+=300)for(const off of[-138,138]){if(Math.random()<.45)continue;const a=E[i]+off;if(!solidAt(a,s,40)&&d2(a,s,sx,sy)>300*300)add({k:'lamp',x:a,y:s,r:7,solid:true});if(!solidAt(s,a,40)&&d2(s,a,sx,sy)>300*300)add({k:'lamp',x:s,y:a,r:7,solid:true})}
+    prop('cone',50,9);prop('hydrant',22,8);prop('crate',20,13);zone('oil',10,40,80);
   }else if(th==='yard'){rect('container',22,120,160,44,52);circ('junk',16,34,58);prop('tires',24,16);zone('oil',10,40,80)}
   else if(th==='outskirts'){grove('tree',14,3,16,28);circ('rock',18,16,44);rect('barn',4,140,180,90,120);circ('silo',3,32,40);prop('hay',30,15);prop('crate',20,13);zone('oil',5,40,60)}
   else if(th==='frost'){grove('pine',16,3,16,26);circ('rock',16,18,46);rect('cabin',5,90,120,70,90);prop('snowman',22,14);prop('crate',20,13);zone('ice',14,60,140)}
   else{circ('rock',26,20,56);grove('burnt',8,3,12,20);rect('ruin',8,80,140,60,100);prop('crate',25,13);zone('lava',12,50,110);strips(8);pylons(4)}
   for(let i=0,t=0;i<30&&t<600;t++){const k=L.barrels[Math.floor(Math.random()*L.barrels.length)],B=BTYPES[k],x=rand(120,ARENA-120),y=rand(120,ARENA-120);
     if(d2(x,y,sx,sy)<320*320||solidAt(x,y,B.r+6)||W.zones.some(z=>d2(x,y,z.x,z.y)<z.r*z.r))continue;W.barrels.push({x,y,r:B.r,t:k,alive:true,respawn:0,fuse:-1});i++}
-  buildFlowBlock();return W}
+  buildFlowBlock();if(L.bossWalls)buildBossBlock();return W}
 // props that get knocked over (and tumble away) instead of smashing
 const KNOCK={tires:1,hay:1,cone:1,hydrant:1,snowman:1};
 function propsTouch(x,y,r,vx=0,vy=0){let n=0;const x0=clamp((x-r)/OG|0,0,ON-1),x1=clamp((x+r)/OG|0,0,ON-1),y0=clamp((y-r)/OG|0,0,ON-1),y1=clamp((y+r)/OG|0,0,ON-1);
@@ -1310,7 +1450,7 @@ function showBanner(t,s){const b=$('banner');b.innerHTML=t+(s?`<small>${s}</smal
 /* ---------- combat ---------- */
 // which weapon, item or hazard is dealing damage right now (for the after-action report)
 let DSRC='other';
-function damageEnemy(e,amt,txt=true){if(e.dead)return;const T=G.tk;let crit=false;
+function damageEnemy(e,amt,txt=true){if(e.dead)return;const T=G.tk;let crit=false;if(DBG.ohk)amt=Math.max(amt,e.hp+1);
   if(G.stats.crit&&Math.random()<G.stats.crit){amt*=3;crit=true}
   G.dmgBy[DSRC]=(G.dmgBy[DSRC]||0)+Math.min(amt,Math.max(0,e.hp));e.hp-=amt;e.flash=0.07;
   // Finishing Move: a regular car left under 15% is wrecked outright (direct hits only, not burns)
@@ -1336,14 +1476,14 @@ function killEnemy(e){
 }
 // Crumple Zone: a hit sets off a shockwave, at most every few seconds
 function crumple(){const lv=G.passives.crumple;if(!lv||G.t<(G.crumpleAt||0))return;G.crumpleAt=G.t+Math.max(1.5,4-0.4*lv);G.rings.push({src:'crumple',x:G.p.x,y:G.p.y,r:20,max:150+15*lv,dmg:(20+12*lv)*G.stats.dmg,hit:new Set()})}
-function hurt(amt){const p=G.p,s=G.stats;if(G.exitT>=0||p.inv>0||state!=='play'||G.buffs.bubble>0)return;
+function hurt(amt){const p=G.p,s=G.stats;if(DBG.god||G.exitT>=0||p.inv>0||state!=='play'||G.buffs.bubble>0)return;
   if(s.shieldCd&&G.shieldT<=0){G.shieldT=s.shieldCd;p.inv=0.4;G.rings.push({x:p.x,y:p.y,r:20,max:90,dmg:0,hit:new Set()});tone(900,0.15,'triangle',0.05,400);return}
   p.hp-=amt*s.taken;G.dmgTaken+=amt*s.taken;p.inv=0.45;crumple();G.shake=Math.min(18,G.shake+6);G.hurtFlash=0.3;sfx('hurt');
   if(p.hp<=0){if(G.tk.tire>0){G.tk.tire--;p.hp=p.maxhp*0.5;p.inv=2;explode(p.x,p.y,180,60*s.dmg,0);showBanner('Spare tire','Back on the road');return}
     if(G.revives>0){G.revives--;p.hp=p.maxhp*0.5;p.inv=2;explode(p.x,p.y,180,60*s.dmg,0);showBanner('Second wind','Back on the road');return}p.hp=0;gameOver()}
   else if(p.hp<p.maxhp*0.1&&G.lowAt<0)G.lowAt=G.t}
 // damage over time from hazards: no i-frames, but bubble and armor still apply
-function chip(amt){const p=G.p;if(G.tk.runflat)amt*=0.5;if(G.exitT>=0||G.buffs.bubble>0||state!=='play')return;p.hp-=amt*G.stats.taken;G.dmgTaken+=amt*G.stats.taken;G.hurtFlash=Math.max(G.hurtFlash,0.12);if(p.hp<=0){p.hp=0.01;p.inv=0;hurt(1)}else if(p.hp<p.maxhp*0.1&&G.lowAt<0)G.lowAt=G.t}
+function chip(amt){const p=G.p;if(DBG.god)return;if(G.tk.runflat)amt*=0.5;if(G.exitT>=0||G.buffs.bubble>0||state!=='play')return;p.hp-=amt*G.stats.taken;G.dmgTaken+=amt*G.stats.taken;G.hurtFlash=Math.max(G.hurtFlash,0.12);if(p.hp<=0){p.hp=0.01;p.inv=0;hurt(1)}else if(p.hp<p.maxhp*0.1&&G.lowAt<0)G.lowAt=G.t}
 // a rocket prefers the nearest car no other rocket is already chasing (bosses can take several)
 function missileTarget(m){let best=null,bd=900*900,any=null,ad=900*900;
   for(const e of G.enemies){if(e.dead)continue;const d=d2(m.x,m.y,e.x,e.y);if(d<ad){ad=d;any=e}if(d<bd&&(e.big||!G.missiles.some(o=>o!==m&&o.t===e))){bd=d;best=e}}return best||any}
@@ -1390,7 +1530,7 @@ function spawnPoint(r,lean){const p=G.p,sp=Math.hypot(p.vx,p.vy),va=Math.atan2(p
 function pickType(t){const w=[['buggy',5],['sedan',t>20?4:1],['truck',t>60?2:0],['gunner',t>90?2:0]];let tot=0;for(const x of w)tot+=x[1];let r=Math.random()*tot;for(const [k,v] of w){if((r-=v)<0)return k}return'buggy'}
 function spawnUpdate(dt){
   const t=G.t,L=G.L,te=t+L.head,od=odHeat(),rate=(0.8+te/22+(te>240?(te-240)/14:0))*L.rate*(od<0?1:1.6+od/40);
-  G.spawnT+=dt*rate;
+  G.spawnT+=DBG.noSpawn?0:dt*rate;
   while(G.spawnT>=1){G.spawnT-=1;if(G.enemies.length<260)spawnEnemy(pickType(te))}
   if(t>=G.nextAmbush){G.nextAmbush+=od<0?45:20;const n=12+Math.floor(te/30);for(let i=0;i<n&&G.enemies.length<ECAP;i++){const a=i/n*TAU,x=G.p.x+Math.cos(a)*460,y=G.p.y+Math.sin(a)*460;if(x<40||y<40||x>ARENA-40||y>ARENA-40||solidAt(x,y,14))continue;spawnEnemy('buggy',{x,y})}showBanner('Ambush!','They’re boxing you in')}
   if(t>=G.nextElite){G.nextElite+=od<0?70:Math.max(8,20-od/15);spawnEnemy(Math.random()<.5?'truck':'sedan',{elite:true,hpMul:7,scale:1.3,xpMul:5,col:'#e8e4ee',spdMul:1.1});showBanner('Chrome hunter','Wreck it for a supply crate and bolts')}
@@ -1522,7 +1662,12 @@ function updatePortal(dt){const o=G.portal,h=odHeat();o.t+=dt;
   const p=G.p;if(G.exitT<0&&state==='play'&&d2(p.x,p.y,o.x,o.y)<(o.r-12)**2){G.exitT=0.9;p.inv=2;sfx('level');showBanner('Escaped','Banking your run…')}}
 function pullIntoPortal(dt){const p=G.p,o=G.portal,k=Math.min(1,7*dt);p.x+=(o.x-p.x)*k;p.y+=(o.y-p.y)*k;p.vx=p.vy=0;p.a+=9*dt;p.inv=Math.max(p.inv,.5)}
 function escapeRun(){G.escaped=true;G.exitT=-1;state='over';commitRun();results('Escaped');showReport()}
-function showReport(){show('scrOver');$('overlay').scrollTop=0;$('againBtn').focus({preventScroll:true})}
+function showReport(){$('rDetails').open=innerWidth>820;show('scrOver');fitReport();$('overlay').scrollTop=0;$('againBtn').focus({preventScroll:true})}
+// shrink the report to fit short windows instead of making you scroll (phones keep the details collapsible instead)
+function fitReport(){const pn=$('scrOver');if(pn.hidden)return;pn.style.zoom='';if(innerWidth<=820)return;
+  // zoom reflows the text a little, so measure again after each step
+  const avail=$('overlay').clientHeight-56;let z=1;for(let i=0;i<4;i++){const h=pn.getBoundingClientRect().height;if(h<=avail)break;z=Math.max(.6,z*avail/h);pn.style.zoom=z.toFixed(3)}}
+addEventListener('resize',()=>{if(cur==='scrOver')fitReport()});
 function drawPortal(o){const t=G.t,r=o.r*Math.min(1,o.t/0.8);if(r<=1)return;
   ctx.save();ctx.globalCompositeOperation='lighter';
   const g=ctx.createRadialGradient(o.x,o.y,r*.2,o.x,o.y,r*2.6);g.addColorStop(0,'rgba(170,90,255,.6)');g.addColorStop(1,'rgba(170,90,255,0)');ctx.fillStyle=g;ctx.beginPath();ctx.arc(o.x,o.y,r*2.6,0,TAU);ctx.fill();
@@ -1569,11 +1714,11 @@ function updateTrader(dt){const tr=G.trader,p=G.p;G.near=false;if(!tr)return;
 function openShop(){if(!G.trader)return;state='shop';touch.active=false;for(const k in keys)keys[k]=false;renderShop();show('scrShop');
   const f=$('shopCards').querySelector('button:not(:disabled)')||$('shopLeave');f.focus()}
 function renderShop(){const tr=G.trader;if(!tr)return;$('scrShop').style.setProperty('--c',tr.T.col);
-  $('shopTitle').textContent=tr.T.title;$('shopName').textContent=tr.T.name;$('shopBolts').textContent=G.bolts;
+  $('shopTitle').textContent=tr.T.title;$('shopSlots').textContent=`Trinkets ${tkCount()}/${slotsT()} · max ${TK_STACK} of each`;$('shopName').textContent=tr.T.name;$('shopBolts').textContent=G.bolts;
   const rc=restockCost();$('shopReroll').innerHTML=`Restock · <span class="nut"></span>${rc}`;$('shopReroll').disabled=G.bolts<rc;
   $('shopCards').innerHTML=tr.offers.map((o,i)=>{const d=TRINKETS[o.id],c=price(o.id),own=G.tk[o.id]||0;
-    const full=d.glove&&G.glove.length>=GLOVE_MAX;return`<button class="card${o.sold?' sold':''}" data-i="${i}" ${o.sold||G.bolts<c||full?'disabled':''}><span class="num">${i+1}</span><span class="kind" style="color:${RAR[d.rar].col}">${d.glove?(full?'Glovebox full':'Consumable · glovebox'):d.shop?'Consumable':RAR[d.rar].name+' item'}</span><h3>${d.name}</h3><p>${d.desc}</p>${own?`<span class="owned">Owned ×${own}</span>`:''}<span class="price">${o.sold?'Sold':`<span class="nut"></span>${c}`}</span></button>`}).join('')}
-function buy(i){const tr=G.trader;if(!tr||state!=='shop')return;const o=tr.offers[i];if(!o||o.sold)return;const c=price(o.id);if(G.bolts<c||(TRINKETS[o.id].glove&&G.glove.length>=GLOVE_MAX))return;
+    const full=d.glove?G.glove.length>=GLOVE_MAX:!d.shop&&!o.sold&&!itemOpen(o.id);return`<button class="card${o.sold?' sold':''}" data-i="${i}" ${o.sold||G.bolts<c||full?'disabled':''}><span class="num">${i+1}</span><span class="kind" style="color:${RAR[d.rar].col}">${d.glove?(full?'Glovebox full':'Consumable · glovebox'):d.shop?'Consumable':full?tkWhyNot(o.id):RAR[d.rar].name+' item'}</span><h3>${d.name}</h3><p>${d.desc}</p>${own?`<span class="owned">Owned ×${own}</span>`:''}<span class="price">${o.sold?'Sold':`<span class="nut"></span>${c}`}</span></button>`}).join('')}
+function buy(i){const tr=G.trader;if(!tr||state!=='shop')return;const o=tr.offers[i];if(!o||o.sold)return;const c=price(o.id);if(G.bolts<c||(TRINKETS[o.id].glove&&G.glove.length>=GLOVE_MAX)||(!TRINKETS[o.id].shop&&!itemOpen(o.id)))return;
   G.bolts-=c;o.sold=true;G.bought++;sfx('buy');grantItem(o.id);
   renderShop();checkAch();const f=$('shopCards').querySelector('button:not(:disabled)')||$('shopLeave');f.focus()}
 const restockCost=()=>4+4*G.trader.restocks;
@@ -1643,7 +1788,7 @@ function updateEnemies(dt){
     const kd=Math.exp(-5*dt);e.kx*=kd;e.ky*=kd;
     e.x=clamp(e.x,e.r,ARENA-e.r);e.y=clamp(e.y,e.r,ARENA-e.r);
     // regular cars follow the flow field round walls; bosses plough straight through
-    if(!e.big)collideObs(e,e.r);
+    if(!e.big)collideObs(e,e.r);else if(G.L.bossWalls)collideObs(e,e.r*.85,'building');
     if(tr){const R=44+e.r,q=d2(e.x,e.y,tr.x,tr.y);if(q<R*R){const dq=Math.sqrt(q)||1;e.x=tr.x+(e.x-tr.x)/dq*R;e.y=tr.y+(e.y-tr.y)/dq*R}}
     const rr=e.r+p.r;
     if(d<rr){
@@ -1806,7 +1951,7 @@ function updateFx(dt){
 function update(dt){
   G.t+=dt;
   for(const k in G.buffs)if(G.buffs[k]>0)G.buffs[k]-=dt;G.flashT-=dt;
-  G.frame++;if((G.flowT-=dt)<=0){G.flowT=0.25;updateFlow()}
+  G.frame++;if((G.flowT-=dt)<=0){G.flowT=0.25;updateFlow();if(G.L.bossWalls&&G.enemies.some(e=>e.big&&!e.dead))updateBossFlow()}
   if((G.leashT-=dt)<=0){G.leashT=0.5;recycleStragglers()}
   G.dist+=Math.hypot(G.p.vx,G.p.vy)*dt;DSRC='other';
   if(G.tk.piggy&&G.t>=(G.piggyAt??20)){G.piggyAt=G.t+20;const g=Math.min(6*G.tk.piggy,Math.floor(G.bolts*0.03*G.tk.piggy));if(g>0){G.bolts+=g;G.boltsGot+=g;addText(G.p.x,G.p.y-30,'+'+g+' interest','#ffd65a')}}
@@ -1972,7 +2117,7 @@ function draw(){
   for(const b of G.beams){const t=b.life/b.max;ctx.save();ctx.translate(b.x,b.y);ctx.rotate(b.a);ctx.fillStyle=`rgba(255,79,216,${t*.55})`;ctx.fillRect(0,-b.w/2,b.len,b.w);ctx.fillStyle=`rgba(255,240,250,${t})`;ctx.fillRect(0,-b.w/6,b.len,b.w/3);ctx.restore()}
   ctx.globalCompositeOperation='source-over';
   for(const t of G.texts){if(!vis(t.x,t.y,40))continue;const sp=textSprite(t.txt,t.col);ctx.globalAlpha=Math.min(1,t.life*2);ctx.drawImage(sp.c,t.x-sp.w/2,t.y-16,sp.w,sp.h)}ctx.globalAlpha=1;
-  drawWeatherWorld(vis);
+  drawWeatherWorld(vis);drawDebugWorld(vis);
   // screen space: weather, then arrows to off-screen crates and traders
   ctx.setTransform(DPR,0,0,DPR,0,0);
   drawWeatherScreen(state==='play'||state==='menu'?wxDt:0);
@@ -2127,7 +2272,7 @@ function renderLevels(){const lv=acctInfo(P.acctXp).lv;$('lvAcct').textContent='
       ${open?`<div class="meta"><span>Threat <b>×${L.diff}</b></span><span class="wx" style="--wc:${WEATHER[FORECAST[L.id]||'clear'].col}"><i></i>Forecast <b>${WEATHER[FORECAST[L.id]||'clear'].name}</b></span><span>Boss <b>${L.boss.name}</b></span><span>Best <b>${fmt(T.best||0)}</b></span></div>`
         :`<span class="lockmsg">Locked · account level ${L.req}</span>`}</div></button>`}).join('')}
 function startGame(li=curLevel){if(G&&G.live)commitRun();navStack.length=0;initAudio();newGame(li);delete FORECAST[LEVELS[li].id];P.lastLevel=li;G.live=true;P.runs++;saveProfile();
-  state='play';show(null);$('hud').hidden=false;updateLoadout();updateGlove();touch.active=false;last=performance.now();for(const k in hudCache)delete hudCache[k];
+  state='play';show(null);$('hud').hidden=false;updateLoadout();updateGlove();if(DBG.on)G.dbg=true;touch.active=false;last=performance.now();for(const k in hudCache)delete hudCache[k];
   startBanner();checkAch()}
 const startBanner=()=>showBanner(G.L.name,`${G.wx.k==='clear'?'':G.wx.W.name+' · '}Wreck ${G.L.minis} Juggernauts to draw out ${G.L.boss.name}`);
 function toMenu(){if(G&&G.live)commitRun();navStack.length=0;state='menu';newGame(curLevel);$('hud').hidden=true;$('tip').hidden=true;show('scrMenu');refreshMenu();$('startBtn').focus()}
@@ -2143,7 +2288,7 @@ const carIdOf=c=>Object.keys(CARS).find(k=>CARS[k]===c)||'interceptor';
 async function lbFetch(q,opts={}){const r=await fetch(LB_API+q,Object.assign({cache:'no-store'},opts));const j=await r.json().catch(()=>({}));
   if(!r.ok)throw Object.assign(new Error('lb'),{code:j.error||r.status,env:j.environment});return j}
 const lbPost=body=>lbFetch('',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(Object.assign({pid:P.pid,name:P.lbName},body))});
-function lbQueueRun(){if(G.t<10||G.forfeit)return null;const id=G.L.id,run={track:id,t:Math.floor(G.t),kills:G.kills,level:G.level,car:carIdOf(G.car),cleared:!!G.cleared,escaped:!!G.escaped};
+function lbQueueRun(){if(G.t<10||G.forfeit||G.dbg)return null;const id=G.L.id,run={track:id,t:Math.floor(G.t),kills:G.kills,level:G.level,car:carIdOf(G.car),cleared:!!G.cleared,escaped:!!G.escaped};
   const q=P.lbQueue[id];if(!q||run.t>q.t||(run.t===q.t&&run.kills>q.kills))P.lbQueue[id]=run;saveProfile();return run}
 let lbBusy=null;
 function lbFlush(){if(!lbOnline)return Promise.resolve({});if(lbBusy)return lbBusy.then(lbFlush);
@@ -2157,7 +2302,7 @@ const lbErrText=(c,env)=>!lbOnline?'Online leaderboards work on the deployed sit
   c===429?'Too many requests. Try again in a minute.':'Can\'t reach the leaderboard right now. Your runs are saved and will post later.';
 // results screen line
 function lbAfterRun(){const el=$('rRank'),g=G,L=G.L;
-  if(!g.lbRun){el.textContent=G.forfeit?'Not posted · you didn\'t make it to the exit portal':G.t<10?'Runs under 10 seconds don\'t go on the leaderboard':'';return}
+  if(!g.lbRun){el.textContent=G.dbg?'Debug run · not posted to the leaderboard':G.forfeit?'Not posted · you didn\'t make it to the exit portal':G.t<10?'Runs under 10 seconds don\'t go on the leaderboard':'';return}
   if(!lbOnline){el.textContent='Leaderboard offline · run saved to post later';return}
   el.textContent='Posting to the leaderboard…';
   g.lbPosting.then(out=>{if(G!==g)return;const j=out[L.id];
@@ -2188,7 +2333,7 @@ $('lbSave').onclick=lbSaveName;// glovebox slots fire on touch-down for any fing
 $('glove').addEventListener('pointerdown',e=>{const b=e.target.closest('.gslot');if(!b||b.dataset.i==null)return;e.preventDefault();e.stopPropagation();useGlove(+b.dataset.i)});
 $('glove').addEventListener('click',e=>{const b=e.target.closest('.gslot');if(b&&b.dataset.i!=null&&e.detail===0)useGlove(+b.dataset.i)});$('rSeek').onclick=e=>{e.currentTarget.blur();initAudio();skipSong()};$('lbName').addEventListener('keydown',e=>{if(e.code==='Enter'||e.code==='NumpadEnter'){e.preventDefault();lbSaveName()}});
 lbFlush();
-const SRCNAME={glovebox:'Glovebox',shrapnel:'Shrapnel Shells',crumple:'Crumple Zone',weather:'Weather',ram:'Ramming',bumpers:'Blast Bumpers',cables:'Jumper Cables',napalm:'Napalm Tank',hazard:'Hazards',barrels:'Barrels',airstrike:'Airstrikes',other:'Other'};
+const SRCNAME={debug:'Console',glovebox:'Glovebox',shrapnel:'Shrapnel Shells',crumple:'Crumple Zone',weather:'Weather',ram:'Ramming',bumpers:'Blast Bumpers',cables:'Jumper Cables',napalm:'Napalm Tank',hazard:'Hazards',barrels:'Barrels',airstrike:'Airstrikes',other:'Other'};
 function renderReport(){const od=G.odStart>=0?(G.escaped||G.forfeit?G.t-G.odStart:0):-1,items=Object.values(G.tk).reduce((a,b)=>a+b,0);
   $('rWhere').textContent=`${G.L.name} · ${G.car.name} · ${G.wx.W.name}`;
   const note=G.escaped?`You made it through the exit portal after ${fmt(od)} of Overdrive (tier ${roman(Math.max(1,G.odTier))}). Run banked · +25% XP and scrap.`:
@@ -2201,13 +2346,14 @@ function renderReport(){const od=G.odStart>=0?(G.escaped||G.forfeit?G.t-G.odStar
     G.clearT>=0?[G.L.boss.name,'down at '+fmt(G.clearT)]:['Boss','not reached']];
   if(od>=0)st.push(['Overdrive',`${fmt(od)} · tier ${roman(Math.max(1,G.odTier))}`]);
   $('rStats').innerHTML=st.map(([k,v])=>`<div><span>${esc(k)}</span><b>${esc(v)}</b></div>`).join('');
-  const rows=Object.entries(G.dmgBy).filter(([,v])=>v>=1).sort((a,b)=>b[1]-a[1]),mx=rows.length?rows[0][1]:1;
+  // the six biggest sources, the rest folded into one row
+  let rows=Object.entries(G.dmgBy).filter(([,v])=>v>=1).sort((a,b)=>b[1]-a[1]);if(rows.length>7)rows=[...rows.slice(0,6),['__rest',rows.slice(6).reduce((a,r)=>a+r[1],0)]];const mx=rows.length?Math.max(...rows.map(r=>r[1])):1;
   $('rWeap').innerHTML=rows.length?rows.map(([k,v])=>{const w=WDEF[k],lv=G.weapons[k];
-    return`<div class="wrow"><span class="wn">${esc(w?w.name:SRCNAME[k]||k)}${lv?` <small>Lv ${lv.lvl}</small>`:''}</span><span class="wbar"><i style="width:${(v/mx*100).toFixed(1)}%"></i></span><span class="wv">${Math.round(v).toLocaleString()} <small>${Math.round(v/tot*100)}%</small></span></div>`}).join(''):'<p class="sub">No damage dealt</p>'}
+    return`<div class="wrow"><span class="wn">${esc(w?w.name:k==='__rest'?'Everything else':SRCNAME[k]||k)}${lv?` <small>Lv ${lv.lvl}</small>`:''}</span><span class="wbar"><i style="width:${(v/mx*100).toFixed(1)}%"></i></span><span class="wv">${Math.round(v).toLocaleString()} <small>${Math.round(v/tot*100)}%</small></span></div>`}).join(''):'<p class="sub">No damage dealt</p>'}
 function results(title){const T=P.tracks[G.L.id]||{best:G.t};$('overTitle').textContent=title;renderReport();
   $('rTime').textContent=fmt(G.t);$('rKills').textContent=G.kills;$('rLvl').textContent=G.level;$('rBest').textContent=fmt(T.best);
   fillAcct('oAcct',null,'oAcctFill');$('oGain').innerHTML=`+${G.gain} XP · +${G.scrapGain} <span class="scrapi"></span>scrap`;
-  lbAfterRun();$('rAchWrap').hidden=!G.newAch.length;$('rAch').innerHTML=G.newAch.map(a=>`<div class="toast">${badge(a.ic,true)}<div><b>${a.name}</b></div></div>`).join('')}
+  lbAfterRun();$('rAchWrap').hidden=!G.newAch.length;{const seen=new Set(),list=G.newAch.filter(a=>!seen.has(a.id)&&seen.add(a.id));$('rAch').innerHTML=list.slice(0,8).map(a=>`<span class="achip" title="${esc(a.desc)}"><i>${a.ic}</i>${esc(a.name)}</span>`).join('')+(list.length>8?`<span class="achip more">+${list.length-8} more</span>`:'')}}
 function gameOver(){state='over';commitRun();results(G.forfeit?'Run lost':'Wrecked');$('tip').hidden=true;const p=G.p;
   // the car blows apart: a big blast, pieces of bodywork in the car's colour, then a burning shell
   explode(p.x,p.y,170,0);G.shake=24;G.wreck={t:0,booms:[.18,.4,.65]};sfx('boom');
@@ -2242,7 +2388,7 @@ function buildChoices(){
 // a fully maxed rig: level ups and supply crates turn into banked scrap instead of pausing the game (and instead of free heals)
 function maxedOut(){const n=G.pending;G.pending=0;if(state==='levelup'){state='play';show(null);last=performance.now()}G.sack+=10*n;toast('MAX','Fully loaded',`+${10*n} scrap banked`);sfx('pick')}
 function openLevelup(){const ch=buildChoices();if(!ch.length){maxedOut();return}state='levelup';choices=ch;sfx('level');
-  $('lvlSub').textContent=`Pick a bolt-on or roll an item · keys 1 to ${choices.length} · Weapons ${Object.keys(G.weapons).length}/${slotsW()} · Upgrades ${Object.keys(G.passives).length}/${slotsP()}`;
+  $('lvlSub').textContent=`Pick a bolt-on or roll an item · keys 1 to ${choices.length} · Weapons ${Object.keys(G.weapons).length}/${slotsW()} · Upgrades ${Object.keys(G.passives).length}/${slotsP()} · Trinkets ${tkCount()}/${slotsT()}`;
   $('cards').innerHTML=choices.map((c,i)=>{
     if(c.kind==='heal')return`<button class="card" id="choice${i}" data-i="${i}"><span class="num">${i+1}</span><span class="kind">Pit stop</span><h3>Full patch-up</h3><p>Repair 50 HP. Your rig is maxed out.</p></button>`;
     if(c.kind==='roll')return`<button class="card roll" id="choice${i}" data-i="${i}"><span class="num">${i+1}</span><span class="kind">Skip · Trader's Roll</span><h3>Roll an item</h3><p>Skip the bolt-on and take a random item from the traders' stock instead.</p><span class="odds"><b style="color:${RAR.common.col}">Common 60%</b> · <b style="color:${RAR.rare.col}">Rare 30%</b> · <b style="color:${RAR.epic.col}">Epic 10%</b></span></button>`;
@@ -2295,11 +2441,12 @@ let last=performance.now();
 let wxDt=0;
 function frame(now){
   const dt=clamp((now-last)/1000,0,0.05);last=now;wxDt=dt;updateWeatherSound();
-  if(state==='play'){update(dt);if(state==='play'||state==='levelup')updateHud()}
+  DBG.ft=DBG.ft*.92+(dt*1000)*.08;if(DBG.msgT>0)DBG.msgT-=dt;
+  if(state==='play'){if(DBG.scale>1){for(let i=0;i<DBG.scale&&state==='play';i++)update(dt)}else update(dt*DBG.scale);if(state==='play'||state==='levelup')updateHud()}
   else if(state==='menu')attract(dt);
   else if(state==='over'){updateWreck(dt);updateFx(dt);G.shake*=Math.exp(-7*dt)}
   const c=G.cam,p=G.p,am=state==='menu',tx=am?ARENA/2:p.x+p.vx*.3,ty=am?ARENA/2:p.y+p.vy*.3,k=1-Math.exp(-6*dt);c.x+=(tx-c.x)*k;c.y+=(ty-c.y)*k;
-  draw();updateHover();renderRadio(false);requestAnimationFrame(frame);
+  draw();updateHover();renderRadio(false);renderDebug(false);requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);
 $('startBtn').focus();
