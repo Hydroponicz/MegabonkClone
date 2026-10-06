@@ -1717,7 +1717,7 @@ function updateRC(dt,wdt){const p=G.p,s=G.stats,W=G.weapons,up=G.passives.uplink
     // left behind or stuck somewhere: hop back to the convoy
     if(d2(m.x,m.y,p.x,p.y)>900*900){m.x=p.x-Math.cos(p.a)*30;m.y=p.y-Math.sin(p.a)*30;m.v=0;m.tg=null;if(m.k==='rc_bomb')m.st=0}
     if(m.k==='rc_medic'){rcDrive(m,hx,hy,follow,dt);m.cd-=wdt;
-      if(m.cd<=0&&p.hp<p.maxhp){const h=Math.round((3+1.5*lv)*mb*10)/10;p.hp=Math.min(p.maxhp,p.hp+h);m.cd=m.cdMax=(9-.6*lv)*mc;if(lv>=5)p.inv=Math.max(p.inv,1.2);
+      if(m.cd<=0&&p.hp<p.maxhp){const h0=p.hp;p.hp=Math.min(p.maxhp,p.hp+Math.round((3+1.5*lv)*mb*10)/10);const h=p.hp-h0;m.cd=m.cdMax=(9-.6*lv)*mc;if(lv>=5)p.inv=Math.max(p.inv,1.2);
         rcFx(m.x,m.y,p.x,p.y,'92,240,138');addText(p.x,p.y-30,'+'+Math.round(h)+' HP','#5cf08a');tone(880,.12,'triangle',.04,1320);G.rcHeal=(G.rcHeal||0)+h}}
     else if(m.k==='rc_ram'){DSRC='rc_ram';m.cd-=wdt;
       if(m.cd>0||!m.tg||m.tg.dead||d2(m.tg.x,m.tg.y,p.x,p.y)>520*520||(m.t+=dt)>3){if(m.cd<=0){m.t=0;m.tg=null;let bd=420*420;
@@ -1728,10 +1728,11 @@ function updateRC(dt,wdt){const p=G.p,s=G.stats,W=G.weapons,up=G.passives.uplink
         if(d2(m.x,m.y,e.x,e.y)<(e.r+12)**2){const dx=e.x-m.x,dy=e.y-m.y,dd=Math.hypot(dx,dy)||1;damageEnemy(e,(24+10*lv+(lv>=4?14:0))*mb*s.dmg);if(!e.big){e.kx+=dx/dd*320;e.ky+=dy/dd*320;e.ice=Math.max(e.ice||0,.5)}
           for(let i=0;i<5;i++)part(m.x,m.y,rand(-220,220),rand(-220,220),rand(.1,.25),2,'#ffe7a0','spark');sfx('crash');m.a+=Math.PI+rand(-.6,.6);m.v=220;m.cd=(.5-.03*lv)*mc*s.cd;m.tg=null}}}
     else if(m.k==='rc_bomb'){DSRC='rc_bomb';
-      if(m.st===0){m.cd-=wdt;m.x=p.x;m.y=p.y;m.a=p.a;m.v=0;if(m.cd<=0&&G.enemies.length){m.st=1;m.t=0;m.tg=null}}
+      if(m.st===0){m.cd-=wdt;m.x=p.x;m.y=p.y;m.a=p.a;m.v=0;if(m.cd<=0&&near(p.x,p.y,560).some(e=>!e.dead)){m.st=1;m.t=0;m.tg=null}}
       else{m.t+=dt;if(!m.tg||m.tg.dead){const pool=near(p.x,p.y,560).filter(e=>!e.dead);let bn=-1;for(let k=0;k<6&&pool.length;k++){const c=pool[Math.floor(Math.random()*pool.length)],cnt=near(c.x,c.y,90).length;if(cnt>bn){bn=cnt;m.tg=c}}}
         if(m.tg)rcDrive(m,m.tg.x,m.tg.y,500*ms,dt,1);else rcDrive(m,hx,hy,follow,dt);
-        let boom=m.t>4.5;if(!boom)for(const e of near(m.x,m.y,80))if(!e.dead&&d2(m.x,m.y,e.x,e.y)<(e.r+10)**2){boom=true;break}
+        if(m.t>4.5&&!m.tg){m.st=0;m.cd=.5}
+        let boom=m.st===1&&m.t>4.5;if(m.st===1&&!boom)for(const e of near(m.x,m.y,80))if(!e.dead&&d2(m.x,m.y,e.x,e.y)<(e.r+10)**2){boom=true;break}
         if(boom){explode(m.x,m.y,(80+12*lv+(lv>=2?15:0))*s.blast,(50+18*lv+(lv>=4?25:0))*mb*s.dmg,0);boomFx(m.x,m.y,70);m.st=0;m.tg=null;m.cd=m.cdMax=Math.max(2,(lv>=3?5:6.5)-.3*lv)*mc*s.cd}}}
     else if(m.k==='rc_scav'){const vac=lv>=3?70:34;m.cd-=dt;
       if(m.cd<=0||!m.tg||m.tg.got||m.tg.pull){m.cd=.3;m.tg=null;let bd=650*650;for(const g of G.gems){if(g.pull||G.rcs.some(o=>o!==m&&o.tg===g))continue;const q=d2(g.x,g.y,p.x,p.y);if(q<bd){bd=q;m.tg=g}}}
@@ -1761,7 +1762,7 @@ function drawRC(vis){
   for(const f of G.rcfx){ctx.strokeStyle=`rgba(${f.col},${f.life/.3})`;ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(f.x1,f.y1);ctx.lineTo(f.x2,f.y2);ctx.stroke()}
   // recharge rings: a bomb being rebuilt shows as a ghost car beside you that fills in; medics carry a ring that fills to a full circle
   const p=G.p;G.rcs.forEach((m,j)=>{const col=RC_COL[m.k];let k=-1,x=m.x,y=m.y;
-    if(m.k==='rc_bomb'&&m.st===0){const side=j%2?1:-1;x=p.x-Math.cos(p.a)*40-Math.sin(p.a)*side*22;y=p.y-Math.sin(p.a)*40+Math.cos(p.a)*side*22;k=1-Math.max(0,m.cd)/(m.cdMax||1);
+    if(m.k==='rc_bomb'&&m.st===0){const side=G.rcs.filter(o=>o.k==='rc_bomb').indexOf(m)%2?1:-1;x=p.x-Math.cos(p.a)*40-Math.sin(p.a)*side*22;y=p.y-Math.sin(p.a)*40+Math.cos(p.a)*side*22;k=1-Math.max(0,m.cd)/(m.cdMax||1);
       ctx.save();ctx.globalAlpha=.25+.35*k;ctx.translate(x,y);ctx.rotate(p.a);ctx.strokeStyle=col;ctx.lineWidth=1.5;ctx.setLineDash([3,3]);rr(-10.5,-6,21,12,3);ctx.stroke();ctx.setLineDash([]);ctx.restore()}
     else if(m.k==='rc_medic'&&m.cd>0)k=1-m.cd/(m.cdMax||1);
     if(k<0)return;ctx.lineWidth=3;ctx.strokeStyle='rgba(0,0,0,.5)';ctx.beginPath();ctx.arc(x,y,17,0,TAU);ctx.stroke();ctx.strokeStyle=col;ctx.beginPath();ctx.arc(x,y,17,-Math.PI/2,-Math.PI/2+TAU*clamp(k,0,1));ctx.stroke()});
@@ -2235,7 +2236,7 @@ const CAR_EXTRA={
     if(lb){ctx.fillStyle='#ffc21a';for(let i=0;i<4;i++)ctx.fillRect(-len*.4+i*len*.1,-4,len*.05,8)}
     if(ch){ctx.strokeStyle='#ff5a1f';ctx.lineWidth=3;ctx.strokeRect(-len/2-4,-wid/2-4,len+8,wid+8)}},
 };
-function carSprite(len,wid,col,flash,kind){const key=len+'|'+wid+'|'+col+'|'+(flash?1:0)+'|'+kind;let sp=spriteCache.get(key);if(sp)return sp;
+function carSprite(len,wid,col,flash,kind){const key=len+'|'+wid+'|'+col+'|'+(flash?1:0)+'|'+kind+'|'+DPR;let sp=spriteCache.get(key);if(sp)return sp;
   const pad=kind==='gun'||!kind?7:kind==='elite'?8:18,w=Math.ceil(len+pad*2),h=Math.ceil(wid+pad*2),c=document.createElement('canvas');c.width=Math.ceil(w*DPR);c.height=Math.ceil(h*DPR);
   const keep=ctx;ctx=c.getContext('2d');ctx.setTransform(DPR,0,0,DPR,w/2*DPR,h/2*DPR);
   const ex=kind==='gun'?CAR_EXTRA.gun():kind==='elite'?CAR_EXTRA.elite(len,wid):kind?CAR_EXTRA.boss(len,wid,kind[0]==='l',kind.endsWith('C')):null;
@@ -2391,7 +2392,7 @@ function updateHud(){
     // RC minions and other timed weapons: same chip, one per car that has a cooldown worth watching
     const chip=(lab,k,txt,ready,tip)=>`<span class="chip cd${ready?' ready':''}" data-tip="${tip}"><b>${lab}</b><i style="--k:${clamp(k,0,1).toFixed(2)}"></i>${txt}</span>`;
     for(const m of G.rcs){const left=Math.max(0,m.cd),k=1-left/(m.cdMax||1);
-      if(m.k==='rc_bomb')cd+=m.st?chip('BOMB RC',1,'ARMED',true,'Bomb RC|Minion|Armed and driving at the biggest crowd. A new one is built after it blows.'):chip('BOMB RC',k,'BUILDING '+Math.ceil(left)+'s',false,'Bomb RC|Minion|Building the next bomb car. It rolls out when the bar fills.');
+      if(m.k==='rc_bomb')cd+=m.st?chip('BOMB RC',1,'ARMED',true,'Bomb RC|Minion|Armed and driving at the biggest crowd. A new one is built after it blows.'):(left<=0?chip('BOMB RC',1,'WAITING',true,'Bomb RC|Minion|Built and waiting for a car to come within reach.'):chip('BOMB RC',k,'BUILDING '+Math.ceil(left)+'s',false,'Bomb RC|Minion|Building the next bomb car. It rolls out when the bar fills.'));
       else if(m.k==='rc_medic')cd+=chip('MEDIC RC',left>0?k:1,left>0?Math.ceil(left)+'s':'READY',left<=0,'Medic RC|Minion|Patches you up when the bar is full and you\'re hurt.');
       else if(m.k==='rc_scav'&&G.weapons.rc_scav.lvl>=2)cd+=chip('DIG',m.dig/20,Math.ceil((20-m.dig)/(G.weapons.rc_scav.lvl>=5?2:1))+'s',false,'Scavenger RC|Minion|Digs up a pile of bolts when the bar fills.')}
     {const w=G.weapons.hydro;if(w&&w.lvl>=5){const left=Math.max(0,w.wave??5),mx=5*G.stats.cd;cd+=chip('WAVE',1-left/mx,left>0?Math.ceil(left)+'s':'READY',left<=0,'Hydro Cannon|Tidal wave|Bursts out around the van when the bar fills and a car is close.')}}
@@ -2448,7 +2449,7 @@ function enemyCard(e){const fr=G.buffs.freeze>0||e.ice>0,st=[];if(fr)st.push('fr
   else if(e.elite){name='Chrome Hunter';kind='Elite '+ENEMY_INFO[e.type][1].toLowerCase();desc='Nine times the armour of a normal '+ENEMY_INFO[e.type][0].toLowerCase()+'. Runs and hides from you, and gets away '+(e.born!=null?Math.ceil(huntLeft(e))+'s from now':'after a minute')+'. Drops a supply crate and bolts.';if(e.born!=null)st.push('fleeing')}
   else [name,kind,desc]=ENEMY_INFO[e.type];
   return card(name,kind+(st.length?' · '+st.join(', '):''),desc,[['HP',`${Math.max(0,Math.ceil(e.hp)).toLocaleString()} / ${Math.ceil(e.maxhp).toLocaleString()}`],['Ram damage',Math.round(e.dmg)],['Top speed',Math.round(e.spd)],['XP',Math.round(e.xp)]],e.big||e.elite?'#ff3b4e':e.col,e.hp/e.maxhp)}
-function rcCard(m){const W=G.weapons[m.k],lv=W?W.lvl:1,d=WDEF[m.k],up=G.passives.uplink||0,mb=1+.15*up,s=G.stats,col=RC_COL[m.k],dealt=Math.round(G.dmgBy[m.k]||0).toLocaleString();
+function rcCard(m){const p=G.p,W=G.weapons[m.k],lv=W?W.lvl:1,d=WDEF[m.k],up=G.passives.uplink||0,mb=1+.15*up,s=G.stats,col=RC_COL[m.k],dealt=Math.round(G.dmgBy[m.k]||0).toLocaleString();
   const kind='RC minion · level '+lv+' of 5'+(up?' · boosted':''),left=Math.max(0,m.cd),k=1-left/(m.cdMax||1);
   if(m.k==='rc_medic')return card(d.name,kind,d.desc[0],[['Patch',Math.round((3+1.5*lv)*mb)+' HP'],['Recharge',((9-.6*lv)/(1+.087*up)).toFixed(1)+'s'],['Next patch',left>0?Math.ceil(left)+'s':p.hp<p.maxhp?'now':'ready (you\'re at full HP)'],['Healed this run',Math.round(G.rcHeal||0)+' HP']],col,left>0?k:1);
   if(m.k==='rc_ram')return card(d.name,kind+(m.tg&&m.cd<=0?' · charging':''),d.desc[0],[['Damage per hit',Math.round((24+10*lv+(lv>=4?14:0))*mb*s.dmg)],['Rammers',rcCount('rc_ram',lv)],['Damage this run',dealt]],col);
@@ -2537,16 +2538,19 @@ const lbClean=s=>String(s||'').replace(/[^\w .\-]/g,'').replace(/\s+/g,' ').trim
 if(lbClean(P.lbName).length<2)P.lbName='Driver '+(parseInt(P.pid.slice(0,4),16)%9000+1000);
 P.lbQueue=Object.assign({},P.lbQueue);saveProfile();
 const carIdOf=c=>Object.keys(CARS).find(k=>CARS[k]===c)||'interceptor';
-async function lbFetch(q,opts={}){const r=await fetch(LB_API+q,Object.assign({cache:'no-store'},opts));const j=await r.json().catch(()=>({}));
-  if(!r.ok)throw Object.assign(new Error('lb'),{code:j.error||r.status,env:j.environment});return j}
+async function lbFetch(q,opts={}){const r=await fetch(LB_API+q,Object.assign({cache:'no-store'},opts));const j=await r.json().catch(()=>null);
+  if(!r.ok)throw Object.assign(new Error('lb'),{code:r.status===429?429:(j&&j.error)||r.status,env:j&&j.environment});
+  // a 200 that isn't our JSON (e.g. a host serving index.html) is not a successful post
+  if(!j||typeof j!=='object')throw Object.assign(new Error('lb'),{code:'bad_response'});return j}
 const lbPost=body=>lbFetch('',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(Object.assign({pid:P.pid,name:P.lbName},body))});
 function lbQueueRun(){if(G.t<10||G.forfeit||G.dbg)return null;P.lbQueue=P.lbQueue||{};const id=G.L.id,run={track:id,t:Math.floor(G.t),kills:G.kills,level:G.level,car:carIdOf(G.car),cleared:!!G.cleared,escaped:!!G.escaped};
   const q=P.lbQueue[id];if(!q||run.t>q.t||(run.t===q.t&&run.kills>q.kills))P.lbQueue[id]=run;saveProfile();return run}
 let lbBusy=null;
 function lbFlush(){if(!lbOnline)return Promise.resolve({});if(lbBusy)return lbBusy.then(lbFlush);
   const job=(async()=>{const out={};for(const id of Object.keys(P.lbQueue)){
-    try{out[id]=await lbPost(P.lbQueue[id]);delete P.lbQueue[id]}
-    catch(e){out[id]={error:e.code};if(/^implausible|^track$/.test(e.code))delete P.lbQueue[id];if(e.code==='not_configured'||e.code===429)break}}
+    // only clear the entry we actually sent: a better run may have been queued while this one was in flight
+    const sent=P.lbQueue[id];try{out[id]=await lbPost(sent);if(P.lbQueue[id]===sent)delete P.lbQueue[id]}
+    catch(e){out[id]={error:e.code};if(/^implausible|^track$/.test(e.code)&&P.lbQueue[id]===sent)delete P.lbQueue[id];if(e.code==='not_configured'||e.code===429)break}}
     saveProfile();return out})();
   lbBusy=job;job.finally(()=>{if(lbBusy===job)lbBusy=null});return job}
 const lbErrText=(c,env)=>!lbOnline?'Online leaderboards work on the deployed site, not when the file is opened directly.':
@@ -2700,14 +2704,14 @@ function attract(dt){G.t+=dt;const p=G.p,R=clamp(Math.min(VW,VH)*.4,160,460),w=0
 resize();newGame(curLevel);show('scrMenu');refreshMenu();
 let last=performance.now();
 let wxDt=0;
-function frame(now){
+function frame(now){requestAnimationFrame(frame);
   const dt=clamp((now-last)/1000,0,0.05);last=now;wxDt=dt;updateWeatherSound();
   DBG.ft=DBG.ft*.92+(dt*1000)*.08;if(DBG.msgT>0)DBG.msgT-=dt;
   if(state==='play'){if(DBG.scale>1){for(let i=0;i<DBG.scale&&state==='play';i++)update(dt)}else update(dt*DBG.scale);if(state==='play'||state==='levelup')updateHud()}
   else if(state==='menu')attract(dt);
   else if(state==='over'){updateWreck(dt);updateFx(dt);G.shake*=Math.exp(-7*dt)}
   const c=G.cam,p=G.p,am=state==='menu',tx=am?ARENA/2:p.x+p.vx*.3,ty=am?ARENA/2:p.y+p.vy*.3,k=1-Math.exp(-6*dt);c.x+=(tx-c.x)*k;c.y+=(ty-c.y)*k;
-  draw();drawHunterCam();updateHover();renderRadio(false);renderDebug(false);requestAnimationFrame(frame);
+  draw();drawHunterCam();try{updateHover()}catch(e){$('hoverTip').hidden=true;console.error(e)}renderRadio(false);renderDebug(false);
 }
 requestAnimationFrame(frame);
 $('startBtn').focus();

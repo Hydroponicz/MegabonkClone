@@ -47,14 +47,15 @@ const scoreOf = (t, kills) => Math.floor(t) * 100000 + Math.min(kills, 99999);
 
 function readBody(req) {
   if (req.body && typeof req.body === 'object') return req.body;
-  try { return JSON.parse(req.body || '{}'); } catch (e) { return {}; }
+  try { return JSON.parse(req.body || '{}') || {}; } catch (e) { return {}; }
 }
 
 // a few sanity limits a real run can't exceed; this stops typos and casual tampering, not a determined cheater
 function plausible(b) {
   const t = +b.t, k = +b.kills, l = +b.level;
   if (!(t >= 10 && t <= MAX_T)) return 'time';
-  if (!(Number.isInteger(k) && k >= 0 && k <= 40 + t * 12)) return 'kills';
+  // late-game hordes plus ambushes can go well past 12 wrecks a second for a strong build, so allow plenty of headroom
+  if (!(Number.isInteger(k) && k >= 0 && k <= 100 + t * 40)) return 'kills';
   if (!(Number.isInteger(l) && l >= 1 && l <= 30 + t / 6)) return 'level';
   return null;
 }
@@ -79,7 +80,7 @@ module.exports = async (req, res) => {
     if (req.method === 'GET') {
       const track = String(req.query.track || '');
       if (!TRACKS.includes(track)) return res.status(400).json({ error: 'track' });
-      const limit = Math.max(1, Math.min(100, +req.query.limit || 50));
+      const limit = Math.max(1, Math.min(100, Math.floor(+req.query.limit) || 50));
       const pid = req.headers['x-player'];
       const cmds = [['ZREVRANGE', 'lb:' + track, 0, limit - 1], ['ZCARD', 'lb:' + track]];
       if (validPid(pid)) cmds.push(['ZREVRANK', 'lb:' + track, pid]);
