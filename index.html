@@ -375,6 +375,38 @@ body.nocursor,body.nocursor *{cursor:none!important}
 @media (max-width:520px){#timer{font-size:22px}.stat b{font-size:16px}.mstats div{padding:6px 12px}.mstats b{font-size:16px}}
 @media (hover:none){.hint{display:none}}
 @media (prefers-reduced-motion:reduce){.card,#banner,.mbtn,.toast{transition:none;animation:none}}
+/* level-up flair: the cards never move, only their borders, glow and the backdrop do */
+@property --lva{syntax:'<angle>';inherits:false;initial-value:0deg}
+#scrLevel .lvfx{position:fixed;inset:0;pointer-events:none;z-index:-1;overflow:hidden}
+#scrLevel .lvfx::before{content:'';position:absolute;left:50%;top:38%;width:220vmax;height:220vmax;margin:-110vmax 0 0 -110vmax;background:repeating-conic-gradient(rgba(255,194,26,.11) 0 6deg,transparent 6deg 18deg);-webkit-mask:radial-gradient(circle,#000 0,rgba(0,0,0,.6) 18%,transparent 42%);mask:radial-gradient(circle,#000 0,rgba(0,0,0,.6) 18%,transparent 42%);animation:lvspin 60s linear infinite}
+#scrLevel .lvfx::after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 40%,rgba(255,194,26,.16),transparent 55%);animation:lvbreathe 3s ease-in-out infinite alternate}
+#scrLevel .lvfx i{position:absolute;bottom:-12px;width:5px;height:5px;background:#ffe07a;box-shadow:0 0 6px 1px rgba(255,194,26,.8);transform:rotate(45deg);opacity:0;animation:lvspark linear infinite}
+@keyframes lvspin{to{transform:rotate(360deg)}}
+@keyframes lvbreathe{from{opacity:.55}to{opacity:1}}
+@keyframes lvspark{0%{opacity:0;transform:translateY(0) rotate(45deg) scale(.6)}12%{opacity:1}80%{opacity:.8}100%{opacity:0;transform:translateY(-78vh) rotate(405deg) scale(1.1)}}
+#scrLevel h2.big{background:linear-gradient(100deg,#ff9d00 0%,#ffc21a 30%,#fff6c8 45%,#ffc21a 60%,#ff9d00 100%);background-size:250% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;text-shadow:none;filter:drop-shadow(4px 4px 0 var(--ink)) drop-shadow(0 0 18px rgba(255,194,26,.35));animation:lvshine 2.6s linear infinite,lvpop .5s cubic-bezier(.2,1.6,.4,1) both}
+@keyframes lvshine{from{background-position:120% 0}to{background-position:-130% 0}}
+@keyframes lvpop{from{transform:scale(.6);opacity:0}to{transform:none;opacity:1}}
+#scrLevel .card{--g1:#ffc21a;--g2:#fff1a8;--g3:#b86b00;border:2px solid transparent;overflow:hidden;
+  background:linear-gradient(var(--panel),var(--panel)) padding-box,conic-gradient(from var(--lva),var(--g3),var(--g1),var(--g2),var(--g1),var(--g3),var(--g1),var(--g2),var(--g1),var(--g3)) border-box;
+  box-shadow:0 0 0 1px rgba(10,9,12,.9),0 0 14px rgba(255,194,26,.18),inset 0 0 22px rgba(255,194,26,.06);
+  animation:lvborder 4s linear infinite,lvglow 2.4s ease-in-out infinite alternate,lvfade .32s ease-out both;transition:box-shadow .15s,filter .15s}
+#scrLevel .card:nth-child(2){animation-delay:-1s,-.6s,.07s}#scrLevel .card:nth-child(3){animation-delay:-2s,-1.2s,.14s}#scrLevel .card:nth-child(4){animation-delay:-3s,-1.8s,.21s}
+#scrLevel .card.p{--g1:#ffc21a;--g2:#9ff5ec;--g3:#1f8f86}
+#scrLevel .card.roll{border-style:solid;--g1:#c79bff;--g2:#ffe07a;--g3:#5a2aa8}
+#scrLevel .card::after{content:'';position:absolute;inset:0;pointer-events:none;background:linear-gradient(105deg,transparent 38%,rgba(255,236,170,.16) 47%,rgba(255,255,255,.28) 50%,rgba(255,236,170,.16) 53%,transparent 62%);background-size:300% 100%;background-position:150% 0;animation:lvsheen 3.6s ease-in-out infinite}
+#scrLevel .card:nth-child(2)::after{animation-delay:.45s}#scrLevel .card:nth-child(3)::after{animation-delay:.9s}#scrLevel .card:nth-child(4)::after{animation-delay:1.35s}
+#scrLevel .card .num{color:#1a1206;background:radial-gradient(circle at 35% 30%,#fff3b8,#ffc21a 55%,#b86b00);width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-size:15px;top:9px;right:9px;box-shadow:0 0 0 2px var(--ink),0 0 10px rgba(255,194,26,.5)}
+#scrLevel .card .kind{color:#ffd24a;text-shadow:0 0 8px rgba(255,194,26,.35)}#scrLevel .card.p .kind{color:var(--xp);text-shadow:0 0 8px rgba(63,224,208,.35)}#scrLevel .card.roll .kind{color:#c79bff}
+#scrLevel .card:hover,#scrLevel .card:focus-visible{transform:none;box-shadow:0 0 0 1px rgba(10,9,12,.9),0 0 26px rgba(255,194,26,.55),inset 0 0 30px rgba(255,194,26,.14)}
+#scrLevel .card.p:hover,#scrLevel .card.p:focus-visible{box-shadow:0 0 0 1px rgba(10,9,12,.9),0 0 26px rgba(63,224,208,.5),inset 0 0 30px rgba(63,224,208,.12)}
+#scrLevel .card.roll:hover,#scrLevel .card.roll:focus-visible{box-shadow:0 0 0 1px rgba(10,9,12,.9),0 0 26px rgba(199,155,255,.55),inset 0 0 30px rgba(199,155,255,.14)}
+@keyframes lvborder{to{--lva:360deg}}
+@keyframes lvglow{from{filter:brightness(1)}to{filter:brightness(1.08)}}
+@keyframes lvfade{from{opacity:0}to{opacity:1}}
+@keyframes lvsheen{0%,55%{background-position:150% 0}100%{background-position:-50% 0}}
+@media (prefers-reduced-motion:reduce){#scrLevel .lvfx,#scrLevel .lvfx::before,#scrLevel .lvfx::after,#scrLevel .lvfx i,#scrLevel h2.big,#scrLevel .card,#scrLevel .card::after{animation:none}#scrLevel .lvfx i{display:none}}
+
 </style>
 
 <canvas id="cv"></canvas>
@@ -392,7 +424,7 @@ body.nocursor,body.nocursor *{cursor:none!important}
     <div id="wxHud" hidden></div>
     <div id="buffs"></div>
     <div id="cds"></div>
-    <div id="hunterCam" hidden data-tip="Chrome hunter|Loot piñata|Runs and hides from you, and gets away a minute after it shows up. Wreck it for a supply crate and bolts. Follow the silver arrow."><canvas id="hcam" width="168" height="96"></canvas><div class="hc"><span id="hcInfo"></span></div></div>
+    <div id="hunterCam" hidden data-tip="Chrome bandit|Loot piñata|Runs and hides from you, and gets away a minute after it shows up. Wreck it for a supply crate and bolts. Follow the silver arrow."><canvas id="hcam" width="168" height="96"></canvas><div class="hc"><span id="hcInfo"></span></div></div>
     <div id="bossWrap" hidden data-tip="Boss health|Boss|Bosses smash straight through props and most walls. Downtown, even they have to drive around the buildings."><div id="bossName">JUGGERNAUT</div><div class="bossbar"><div id="bossfill"></div></div></div>
   </div>
   <div id="loadout"></div>
@@ -548,11 +580,11 @@ body.nocursor,body.nocursor *{cursor:none!important}
       <div class="key"><i style="background:#8ce6ff;border-radius:50%"></i><span><b>Tesla pylon</b> · glows, then zaps everything close</span></div>
     </div>
     <div class="keys">
-      <div class="key"><b>Chrome hunters</b><span>A shiny loot car shows up now and then. It runs and hides, and gets away after a minute. Follow the silver arrow and the live camera in the corner, and wreck it for a supply crate and bolts.</span></div>
+      <div class="key"><b>Chrome bandits</b><span>A shiny loot car shows up now and then. It runs and hides, and gets away after a minute. Follow the silver arrow and the live camera in the corner, and wreck it for a supply crate and bolts.</span></div>
       <div class="key"><b>Juggernauts</b><span>A mini boss rolls in every 2 minutes. Wreck two of them and the level boss comes for you; while it is out, the horde thins and ambushes hold off.</span></div>
       <div class="key"><b>RC minions</b><span>Some level-ups are little remote-control cars with antennas. They take a weapon slot and work on their own: Medic patches you up, Rammer rams cars, Bomb drives into crowds and blows up, Scavenger fetches scrap and digs up bolts, Jammer hunts down packs of cars, slowing them and stopping gunners firing. Signal Booster makes them all stronger.</span></div>
       <div class="key"><b>Weather</b><span>Every run rolls its own weather, shown as the forecast on the track card. Rain and snow cost grip, blizzards shove you around, thunderstorms drop marked lightning strikes, and dust storms send tornadoes across the track.</span></div>
-      <div class="key"><b>Exit portal</b><span>Beat the level boss and a portal opens in a far corner. Drive in to end the run and bank it. Stay longer and Overdrive kicks in: tougher, faster cars every 40 seconds. Get wrecked before you escape and the run doesn't count.</span></div>
+      <div class="key"><b>Exit portal</b><span>Beat the level boss and a portal opens in a far corner: the camera shows you where, then purple arrows point the way. Drive in to end the run and bank it. Stay longer and Overdrive kicks in: tougher, faster cars every 40 seconds. Get wrecked before you escape and the run doesn't count.</span></div>
       <div class="key"><b>Traders</b><span>From about 2:00, a trader truck parks nearby every couple of minutes. Follow the light beam or the HUD arrow, drive into its ring and press F to buy items with bolts.</span></div>
       <div class="key"><b>Trader's Roll</b><span>Every level up can skip the bolt-on and roll a random item instead: Common, Rare or Epic, each with its own effect.</span></div>
       <div class="key"><b>Account level</b><span>Every run earns account XP. Higher levels open harder tracks.</span></div>
@@ -563,6 +595,7 @@ body.nocursor,body.nocursor *{cursor:none!important}
   </section>
 
   <section id="scrLevel" class="panel" hidden>
+    <div class="lvfx" id="lvfx" aria-hidden="true"></div>
     <h2 class="big">Level up</h2>
     <p class="sub" id="lvlSub">Pick a bolt-on · keys 1 to 3</p>
     <div class="cards" id="cards"></div>
@@ -656,7 +689,7 @@ let P=(()=>{const main=readKey(PKEY),bak=readKey(PBAK);if(!main&&bak&&bak.p&&typ
 let bakXp=(readKey(PBAK)||{p:{}}).p.acctXp??-1,cloudDirty=false;
 // permanent recovery code: the cloud backup is filed under it, and typing it into Transfer save on any device brings the progress back.
 // every profile gets one (fresh, loaded, reset or imported)
-function normProfile(){if(!new RegExp('^['+KEY_ABC+']{12}$').test(P.cloudKey||'')){const a=new Uint8Array(12);crypto.getRandomValues(a);P.cloudKey=[...a].map(x=>KEY_ABC[x%KEY_ABC.length]).join('')}P.ach=Object.assign({},P.ach);P.tracks=Object.assign({},P.tracks);P.garage=Object.assign({},P.garage);P.cars=Object.assign({interceptor:1},P.cars);if(!P.cars[P.car])P.car='interceptor';P.lbQueue=Object.assign({},P.lbQueue)}
+function normProfile(){if(!new RegExp('^['+KEY_ABC+']{12}$').test(P.cloudKey||'')){const a=new Uint8Array(12);crypto.getRandomValues(a);P.cloudKey=[...a].map(x=>KEY_ABC[x%KEY_ABC.length]).join('')}P.ach=Object.assign({},P.ach);/* Vandal was retired (30 achievements): drop it, but keep the Burnout Trail it unlocked */if(P.ach.vandal){delete P.ach.vandal;P.trailKept=1}P.tracks=Object.assign({},P.tracks);P.garage=Object.assign({},P.garage);P.cars=Object.assign({interceptor:1},P.cars);if(!P.cars[P.car])P.car='interceptor';P.lbQueue=Object.assign({},P.lbQueue)}
 if(!P.best){try{P.best=+localStorage.getItem('carnageBest')||0}catch(e){}}
 const saveSettings=()=>save('carnageSettings',S);
 function saveProfile(){save(PKEY,P);if((P.acctXp||0)>=bakXp&&save(PBAK,{at:Date.now(),p:P}))bakXp=P.acctXp||0;cloudDirty=true}
@@ -859,7 +892,7 @@ for(const ev of['pointerdown','keydown'])addEventListener(ev,()=>{if(!AC||AC.sta
 const DBG={on:false,god:false,ohk:false,noSpawn:false,hit:false,scale:1,ft:16,msg:'',msgT:0,infoT:0};
 const DBG_KEYS=[
   ['F1','God mode','Shift+F1','One-hit kills'],
-  ['F2','Spawn Juggernaut','Shift+F2','Spawn Chrome hunter'],
+  ['F2','Spawn Juggernaut','Shift+F2','Spawn Chrome bandit'],
   ['F3','Spawn level boss','Shift+F3','Wreck every car'],
   ['F4','Next weather','Shift+F4','Previous weather'],
   ['F5','Lightning strike ahead','Shift+F5','Tornado nearby'],
@@ -888,7 +921,7 @@ function debugKey(code,shift){const inRun=state==='play'&&G&&G.live,p=G&&G.p;
     case'F1':DBG.god=!DBG.god;dbgSay('God mode '+(DBG.god?'ON':'off'));break;
     case'F1S':DBG.ohk=!DBG.ohk;dbgSay('One-hit kills '+(DBG.ohk?'ON':'off'));break;
     case'F2':dbgSpawnMini();break;
-    case'F2S':spawnHunter();dbgSay('Chrome hunter spawned');break;
+    case'F2S':spawnHunter();dbgSay('Chrome bandit spawned');break;
     case'F3':dbgSpawnBoss();break;
     case'F3S':{DSRC='debug';let n=0;for(const e of [...G.enemies])if(!e.dead){damageEnemy(e,1e12,false);n++}dbgSay('Wrecked '+n+' cars');break}
     case'F4':dbgWeather(1);break;case'F4S':dbgWeather(-1);break;
@@ -1014,7 +1047,7 @@ const WDEF={
   laser:{name:'Rail Laser',unlock:'breaker',desc:['Fires a piercing beam straight off your hood.','Wider beam.','Faster recharge.','Adds a rear beam.','Heavier beam, faster still.']},
   scatter:{name:'Scattergun',unlock:'thousand',desc:['Blasts a cone of pellets at the nearest car and shoves it back.','More pellets.','Harder-hitting pellets.','Pellets punch through one car.','A wider blast and a faster pump.']},
   disc:{name:'Ricochet Disc',unlock:'longhaul',desc:['Throws a spinning disc that slices through cars and flies back to you.','Flies faster and farther.','Throws two discs.','Bigger discs.','Throws three discs.']},
-  trail:{name:'Burnout Trail',unlock:'vandal',desc:['Your tires leave a strip of fire behind you while you drive.','Hotter flames.','Wider strip.','Burns longer.','A roaring blaze.']},
+  trail:{name:'Burnout Trail',unlock:'chain',kept:'trailKept',desc:['Your tires leave a strip of fire behind you while you drive.','Hotter flames.','Wider strip.','Burns longer.','A roaring blaze.']},
   rc_medic:{name:'Medic RC',rc:1,desc:['A little medic RC car tags along and patches you up for a few HP every 8 seconds.','Bigger patches.','Patches more often.','A second medic car joins the convoy.','Each patch also makes you untouchable for a moment.']},
   rc_ram:{name:'Rammer RC',rc:1,desc:['A souped-up RC car rams the nearest car over and over, leaving it dazed for a moment.','Harder hits.','A second rammer.','Faster, and hits harder still.','A third rammer.']},
   rc_bomb:{name:'Bomb RC',rc:1,desc:['A rigged RC car drives into the thickest crowd and blows up. A new one is built a few seconds later.','Bigger blast.','Rebuilt faster.','Heavier charge.','Two bomb cars at a time.']},
@@ -1040,7 +1073,8 @@ const PDEF={
   recycle:{name:'Scrap Recycler',unlock:'fatwallet',desc:'Every level up repairs 4 HP.'},
 };
 // car-exclusive gear (the Hydro Cannon) only ever shows up for the car that carries it
-const unlocked=d=>d.only?!!(G&&G.car===CARS[d.only]):!d.unlock||!!P.ach[d.unlock];
+// kept: a profile flag that keeps an unlock for players who earned it under an achievement that has since been retired
+const unlocked=d=>d.only?!!(G&&G.car===CARS[d.only]):!d.unlock||!!P.ach[d.unlock]||!!(d.kept&&P[d.kept]);
 const ETYPES={
   buggy:{r:13,hp:10,spd:250,turn:3.2,dmg:6,xp:1,col:'#b8c93e',len:28,wid:16},
   sedan:{r:17,hp:20,spd:178,turn:2.3,dmg:10,xp:2,col:'#4a86d9',len:36,wid:20},
@@ -1150,7 +1184,7 @@ const ACH=[
   {id:'derby',ic:'500',name:'Demolition Derby',desc:'Wreck 500 cars in a single run.',k:'kills',n:500},
   {id:'roll',ic:'3m',name:'Still Rolling',desc:'Survive for 3 minutes.',k:'time',n:180,time:true},
   {id:'iron',ic:'10m',name:'Iron Chassis',desc:'Survive for 10 minutes.',k:'time',n:600,time:true},
-  {id:'chrome',ic:'CH',name:'Chrome Polish',desc:'Wreck a Chrome Hunter.',k:'elites',n:1},
+  {id:'chrome',ic:'CB',name:'Chrome Polish',desc:'Wreck a Chrome Bandit.',k:'elites',n:1},
   {id:'giant',ic:'JG',name:'Giant Slayer',desc:'Wreck a Juggernaut mini boss.',k:'bosses',n:1},
   {id:'baron',ic:'x10',name:'Scrap Baron',desc:'Wreck 10 Juggernauts across all runs.',k:'bosses',n:10},
   {id:'breaker',ic:'LB',name:'Boss Breaker',desc:'Defeat a level boss.',k:'clears',n:1},
@@ -1166,7 +1200,6 @@ const ACH=[
   {id:'warrior',ic:'5K',name:'Road Warrior',desc:'Wreck 5,000 cars across all runs.',k:'total',n:5000},
   {id:'vet',ic:'A10',name:'Veteran',desc:'Reach account level 10.',k:'acct',n:10},
   {id:'regular',ic:'25',name:'Repeat Offender',desc:'Start 25 runs.',k:'runs',n:25},
-  {id:'vandal',ic:'PR',name:'Vandal',desc:'Smash 100 props in a single run.',k:'props',n:100},
   {id:'powered',ic:'PU',name:'Powered Up',desc:'Grab 25 power-ups across all runs.',k:'powerups',n:25},
   {id:'tinker',ic:'G10',name:'Tinkerer',desc:'Buy 10 garage upgrades.',k:'garage',n:10},
   {id:'fleet',ic:'6V',name:'Full Fleet',desc:'Own every vehicle.',k:'cars',n:6},
@@ -1177,6 +1210,7 @@ const ACH=[
   {id:'punching',ic:'HIT',name:'Punching Bag',desc:'Take 1,000 damage in a single run.',k:'dmgTaken',n:1000},
   {id:'fatwallet',ic:'150',name:'Fat Wallet',desc:'Carry 150 bolts at once.',k:'boltsHeld',n:150},
 ];
+const achCount=p=>ACH.filter(a=>p&&p.ach&&p.ach[a.id]).length;
 const rewardOf=id=>[...Object.values(WDEF),...Object.values(PDEF)].filter(d=>d.unlock===id).map(d=>d.name).join(', ');
 const clearedCount=()=>LEVELS.filter(L=>P.tracks[L.id]&&P.tracks[L.id].cleared).length;
 // best-ever values, folding in the run in progress
@@ -1295,6 +1329,30 @@ const ZONES={napalm:{edps:55},oil:{grip:0.22},ice:{grip:0.1},lava:{dps:24,edps:6
 const OG=200,ON=Math.ceil(ARENA/OG)+1;let ocells=[];
 function gridAdd(o){const r=o.rect?Math.max(o.w,o.h)/2:o.r;const x0=clamp((o.x-r)/OG|0,0,ON-1),x1=clamp((o.x+r)/OG|0,0,ON-1),y0=clamp((o.y-r)/OG|0,0,ON-1),y1=clamp((o.y+r)/OG|0,0,ON-1);
   for(let cx=x0;cx<=x1;cx++)for(let cy=y0;cy<=y1;cy++)ocells[cx*ON+cy].push(o)}
+// juggernauts and level bosses flatten what they drive into (not city buildings or tesla pylons), leaving wreckage.
+// The cleared ground opens up in the flow field so regular cars can use the new gap too
+const UNBREAKABLE={building:1,pylon:1};
+function bossSmash(e){const r=e.r*.85,x0=clamp((e.x-r)/OG|0,0,ON-1),x1=clamp((e.x+r)/OG|0,0,ON-1),y0=clamp((e.y-r)/OG|0,0,ON-1),y1=clamp((e.y+r)/OG|0,0,ON-1);
+  for(let cx=x0;cx<=x1;cx++)for(let cy=y0;cy<=y1;cy++)for(const o of ocells[cx*ON+cy])if(o.solid&&!o.prop&&!UNBREAKABLE[o.k]&&hitsShape(o,e.x,e.y,r))wreckObs(o,e)}
+function wreckCol(o){const th=G.L.theme;return o.k==='container'?['#a23a2a','#2a6aa2','#3a8a4a','#c98a2a'][Math.floor(o.seed*4)]:o.k==='parked'?o.col:o.k==='barn'?'#8a2a22':o.k==='cabin'?'#5a3a26':o.k==='ruin'?'#3a2a26':
+  o.k==='rock'?(th==='inferno'?'#3a2a28':th==='frost'?'#7a8794':'#6e6a64'):o.k==='junk'?'#4a4652':o.k==='tree'?'#3e7a36':o.k==='pine'?'#2a5244':o.k==='burnt'?'#2a201c':o.k==='silo'?'#9aa0a8':'#55525d'}
+function wreckObs(o,e){o.solid=false;o.wreck=true;o.wa=e.a;o.wt=G.t;const big=o.rect?Math.max(o.w,o.h)/2:o.r,col=wreckCol(o),ca=Math.cos(e.a),sa=Math.sin(e.a);
+  // flattened pieces, thrown a little along the boss's heading
+  const n=o.rect?7+Math.min(5,big/30|0):o.k==='lamp'?0:6+Math.min(5,big/10|0);o.shards=[];
+  for(let i=0;i<n;i++){const t=Math.random()*.6;let dx,dy;if(o.rect){dx=rand(-o.w/2,o.w/2)*.85;dy=rand(-o.h/2,o.h/2)*.85}else{const a=rand(0,TAU),d=rand(0,big*.9);dx=Math.cos(a)*d;dy=Math.sin(a)*d}
+    const sz=o.rect?rand(.16,.32)*Math.min(o.w,o.h)+6:rand(.3,.5)*big+4;o.shards.push([dx+ca*t*big*.6,dy+sa*t*big*.6,sz,sz*rand(.45,.9),rand(0,TAU),rand(.6,1)])}
+  // rubble specks
+  o.specks=[];for(let i=0;i<(o.rect?14:8);i++){const a=rand(0,TAU),d=rand(0,big*1.15);o.specks.push([Math.cos(a)*d+ca*big*.3,Math.sin(a)*d+sa*big*.3,rand(2,4.5)])}
+  o.wcol=col;
+  // knock the boss back a touch so the hit has weight
+  if(e.v!=null)e.v*=o.rect||big>30?.8:.92;
+  if(d2(o.x,o.y,G.p.x,G.p.y)<(900+big)**2){for(let i=0;i<(S.lowFx?4:10);i++){const a=e.a+rand(-1.2,1.2),sp=rand(80,280);part(o.x+rand(-big,big)*.5,o.y+rand(-big,big)*.5,Math.cos(a)*sp,Math.sin(a)*sp,rand(.35,.8),rand(3,7),col)}
+    for(let i=0;i<(S.lowFx?2:5);i++)part(o.x,o.y,rand(-70,70),rand(-70,70),rand(.5,1),rand(10,18),null,'smoke');
+    sfx('crash');G.shake=Math.min(16,G.shake+(o.rect||big>30?7:3))}
+  G.obsSmashed=(G.obsSmashed||0)+1;patchFlow(o)}
+// re-test the flow-field cells around a changed obstacle (same tests as buildFlowBlock)
+function patchFlow(o){const R=(o.rect?Math.hypot(o.w,o.h)/2:o.r)+40,x0=clamp((o.x-R)/FC|0,0,FN-1),x1=clamp((o.x+R)/FC|0,0,FN-1),y0=clamp((o.y-R)/FC|0,0,FN-1),y1=clamp((o.y+R)/FC|0,0,FN-1);
+  for(let cx=x0;cx<=x1;cx++)for(let cy=y0;cy<=y1;cy++){const x=cx*FC+FC/2,y=cy*FC+FC/2,i=cx*FN+cy;fBlock[i]=solidAt(x,y,4)?1:0;fWide[i]=solidAt(x,y,22)?1:0;fTruck[i]=solidAt(x,y,32)?1:0}}
 function hitsShape(o,x,y,r){if(o.rect){const cx=clamp(x,o.x-o.w/2,o.x+o.w/2),cy=clamp(y,o.y-o.h/2,o.y+o.h/2);return d2(x,y,cx,cy)<r*r}return d2(x,y,o.x,o.y)<(o.r+r)**2}
 // checks every grid cell the circle overlaps, not just the one under its centre
 function solidAt(x,y,r){if(!ocells.length)return false;const x0=clamp((x-r)/OG|0,0,ON-1),x1=clamp((x+r)/OG|0,0,ON-1),y0=clamp((y-r)/OG|0,0,ON-1),y1=clamp((y+r)/OG|0,0,ON-1);
@@ -1469,7 +1527,7 @@ function drawObstacles(vis){const th=G.L.theme;
   for(const o of G.props){if(o.dead||!vis(o.x,o.y,20))continue;drawPropArt(o.k,o.x,o.y,o.r,o.rot||0,o.seed||0)}
   // knocked-over props lie on their side (squashed), spin as they slide, and fade in their last second
   for(const u of G.tumbles){if(!vis(u.x,u.y,30))continue;ctx.save();ctx.globalAlpha=clamp(u.life-u.t,0,1);ctx.translate(u.x,u.y);ctx.rotate(u.rot);ctx.scale(1,.6);drawPropArt(u.k,0,0,u.r,0,u.seed);ctx.restore()}
-  for(const o of G.obs){const R=o.rect?Math.max(o.w,o.h)/2:o.r;if(!vis(o.x,o.y,R+20))continue;const k=o.k;
+  for(const o of G.obs){const R=o.rect?Math.max(o.w,o.h)/2:o.r;if(!vis(o.x,o.y,R+30))continue;const k=o.k;if(o.wreck){drawWreck(o,R);continue}
     if(o.rect){const x=o.x-o.w/2,y=o.y-o.h/2;ctx.fillStyle='rgba(0,0,0,.45)';ctx.fillRect(x+8,y+10,o.w,o.h);
       if(k==='building'){ctx.fillStyle=o.col;ctx.fillRect(x,y,o.w,o.h);ctx.fillStyle='rgba(255,255,255,.05)';ctx.fillRect(x+8,y+8,o.w-16,o.h-16);ctx.strokeStyle=th==='city'?G.L.wall:'#555';ctx.globalAlpha=.55;ctx.lineWidth=2;ctx.strokeRect(x+1,y+1,o.w-2,o.h-2);ctx.globalAlpha=1;
         ctx.fillStyle='#14121c';const n=Math.min(4,Math.floor(o.w*o.h/9000));for(let i=0;i<n;i++){const a=o.seed*97+i*31;ctx.fillRect(x+14+(a*13%(o.w-40)),y+14+(a*7%(o.h-40)),14,10)}}
@@ -1491,6 +1549,22 @@ function drawObstacles(vis){const th=G.L.theme;
       if(ch>0){ctx.strokeStyle=`rgba(140,230,255,${.25+.5*ch})`;ctx.lineWidth=2;ctx.setLineDash([10,8]);ctx.beginPath();ctx.arc(o.x,o.y,170,0,TAU);ctx.stroke();ctx.setLineDash([])}
       ctx.fillStyle='#3a3644';ctx.beginPath();ctx.arc(o.x,o.y,o.r,0,TAU);ctx.fill();ctx.strokeStyle='#8ce6ff';ctx.lineWidth=3;ctx.beginPath();ctx.arc(o.x,o.y,o.r*.55,0,TAU);ctx.stroke();ctx.fillStyle=`rgba(200,245,255,${.4+.6*ch})`;ctx.beginPath();ctx.arc(o.x,o.y,4+ch*4,0,TAU);ctx.fill()}}
 }
+// what a boss leaves behind: a scuffed footprint, flattened pieces in the object's colour, rubble, and a type-specific remnant
+function drawWreck(o,R){const k=o.k,c=o.wcol;
+  ctx.fillStyle='rgba(0,0,0,.28)';if(o.rect)ctx.fillRect(o.x-o.w/2+4,o.y-o.h/2+4,o.w-8,o.h-8);else{ctx.beginPath();ctx.arc(o.x,o.y,R*.85,0,TAU);ctx.fill()}
+  if(k==='tree'||k==='pine'||k==='burnt'){// stump with rings, the canopy flattened beside it
+    const ca=Math.cos(o.wa),sa=Math.sin(o.wa);ctx.fillStyle=c;ctx.globalAlpha=.75;ctx.beginPath();poly(o.x+ca*R*.9,o.y+sa*R*.9,o.pts,.8);ctx.fill();ctx.globalAlpha=1;
+    ctx.strokeStyle=k==='burnt'?'#140e0c':'#4a3220';ctx.lineWidth=Math.max(5,R*.3);ctx.lineCap='round';ctx.beginPath();ctx.moveTo(o.x,o.y);ctx.lineTo(o.x+ca*R*.8,o.y+sa*R*.8);ctx.stroke();ctx.lineCap='butt';
+    ctx.fillStyle=k==='burnt'?'#241a16':'#6a4a2c';ctx.beginPath();ctx.arc(o.x,o.y,Math.max(5,R*.32),0,TAU);ctx.fill();ctx.strokeStyle=k==='burnt'?'#140e0c':'#3a2614';ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(o.x,o.y,Math.max(2.5,R*.17),0,TAU);ctx.stroke()}
+  else if(k==='lamp'){// pole bent over along the boss's path, smashed bulb
+    const ca=Math.cos(o.wa),sa=Math.sin(o.wa);ctx.strokeStyle='#55525d';ctx.lineWidth=5;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(o.x,o.y);ctx.lineTo(o.x+ca*38-sa*6,o.y+sa*38+ca*6);ctx.stroke();ctx.lineCap='butt';
+    ctx.fillStyle='#3a3842';ctx.beginPath();ctx.arc(o.x,o.y,5,0,TAU);ctx.fill();ctx.fillStyle='rgba(255,243,192,.7)';for(let i=0;i<4;i++){ctx.fillRect(o.x+ca*42-sa*6+(i*7%5)-2,o.y+sa*42+ca*6+(i*5%7)-3,2,2)}}
+  for(const [dx,dy,w,h,rot,sh] of o.shards){ctx.save();ctx.translate(o.x+dx,o.y+dy);ctx.rotate(rot);ctx.fillStyle=c;ctx.globalAlpha=1;ctx.fillRect(-w/2,-h/2,w,h);ctx.fillStyle=`rgba(0,0,0,${(1-sh)*.6+.12})`;ctx.fillRect(-w/2,-h/2,w,h);ctx.fillStyle='rgba(255,255,255,.08)';ctx.fillRect(-w/2,-h/2,w,Math.max(1.5,h*.25));ctx.restore()}
+  if(k==='silo'){ctx.strokeStyle='#6a7078';ctx.lineWidth=4;ctx.beginPath();ctx.arc(o.x,o.y,o.r*.75,o.wa+.6,o.wa+2.4);ctx.stroke();ctx.beginPath();ctx.arc(o.x,o.y,o.r*.6,o.wa+3.4,o.wa+5.2);ctx.stroke()}
+  if(k==='container'){ctx.strokeStyle='rgba(0,0,0,.35)';ctx.lineWidth=2;ctx.strokeRect(o.x-o.w/2+3,o.y-o.h/2+3,o.w-6,o.h-6)}
+  ctx.fillStyle='rgba(30,28,34,.85)';for(const [dx,dy,r] of o.specks){ctx.fillRect(o.x+dx-r/2,o.y+dy-r/2,r,r)}
+  // a wisp of smoke for a few seconds after the hit
+  const age=G.t-o.wt;if(age<4&&Math.random()<.08*(1-age/4)&&!S.lowFx)part(o.x+rand(-R,R)*.4,o.y+rand(-R,R)*.4,rand(-15,15),rand(-40,-15),rand(.8,1.4),rand(8,14),null,'smoke')}
 function drawPropArt(k,x,y,r,rot,seed){
   if(k==='crate'){ctx.save();ctx.translate(x,y);ctx.rotate(rot);ctx.fillStyle='#8a5a32';ctx.fillRect(-13,-13,26,26);ctx.strokeStyle='#4a2e16';ctx.lineWidth=2;ctx.strokeRect(-13,-13,26,26);ctx.beginPath();ctx.moveTo(-13,-13);ctx.lineTo(13,13);ctx.moveTo(13,-13);ctx.lineTo(-13,13);ctx.stroke();ctx.restore()}
   else if(k==='hay'){ctx.fillStyle='#c9a24a';ctx.beginPath();ctx.arc(x,y,r,0,TAU);ctx.fill();ctx.strokeStyle='#8a6a28';ctx.lineWidth=2;ctx.beginPath();ctx.arc(x,y,r*.6,0,TAU);ctx.stroke()}
@@ -1812,13 +1886,22 @@ function updateWeatherSound(){if(!AC||!master)return;const X=G&&G.wx,W=X&&X.W,on
 
 
 /* ---------- RC minions: tiny remote-control cars with antennas, each with its own job ---------- */
-const JAM_LEASH=300; // the jammer never parks more than this far from you
+const JAM_LEASH=400; // the jammer never parks more than this far from you
 // battery: seconds of jamming per charge, and seconds to recharge beside your car
 const jamCap=lv=>4+1.2*lv,jamRecharge=(lv,mc)=>(3.5-.2*lv)*mc;
 const RC_COL={rc_medic:'#5cf08a',rc_ram:'#ff5a3a',rc_bomb:'#ffc21a',rc_scav:'#c9a46a',rc_jam:'#b07aff'};
 const rcCount=(k,lv)=>k==='rc_medic'?(lv>=4?2:1):k==='rc_ram'?[0,1,1,2,2,3][lv]:k==='rc_bomb'?(lv>=5?2:1):k==='rc_scav'?(lv>=4?2:1):(lv>=5?2:1);
+// minions steer round walls instead of pinning themselves against them: with no clear line to the goal they take the
+// flow field when the goal is beside you, otherwise they feel along the wall, keeping to one side until the way is clear
+function rcSteer(m,tx,ty,want,d,dt){if(d<30){m.side=0;return want}
+  if((m.nav=(m.nav||0)-dt)<=0){m.nav=.2;m.blk=!segClear(m.x,m.y,tx,ty,8)}
+  if(!m.blk){m.side=0;return want}
+  if(d2(tx,ty,G.p.x,G.p.y)<160*160){const f=fDir[clamp(m.x/FC|0,0,FN-1)*FN+clamp(m.y/FC|0,0,FN-1)];if(f===f)return f}
+  const L=38,free=a=>!solidAt(m.x+Math.cos(a)*L,m.y+Math.sin(a)*L,8);if(free(want))return want;
+  if(!m.side){for(let k=1;k<=7&&!m.side;k++){if(free(want+k*.42))m.side=1;else if(free(want-k*.42))m.side=-1}if(!m.side)m.side=1}
+  for(let k=1;k<=7;k++){const a=want+m.side*k*.42;if(free(a))return a}return want+m.side*Math.PI/2}
 function rcDrive(m,tx,ty,spd,dt,charge){const dx=tx-m.x,dy=ty-m.y,d=Math.hypot(dx,dy);
-  if(d>4){const tr=charge?(d<90?40:16):10;m.a+=clamp(angDiff(m.a,Math.atan2(dy,dx)),-tr*dt,tr*dt)}const tgt=charge?spd:d<10?0:Math.min(spd,d*6);m.v+=(tgt-m.v)*Math.min(1,7*dt);
+  if(d>4){const tr=charge?(d<90?40:16):10;m.a+=clamp(angDiff(m.a,rcSteer(m,tx,ty,Math.atan2(dy,dx),d,dt)),-tr*dt,tr*dt)}const tgt=charge?spd:d<10?0:Math.min(spd,d*6);m.v+=(tgt-m.v)*Math.min(1,7*dt);
   m.x+=Math.cos(m.a)*m.v*dt;m.y+=Math.sin(m.a)*m.v*dt;rcKnock(m);collideObs(m,7);m.x=clamp(m.x,20,ARENA-20);m.y=clamp(m.y,20,ARENA-20);return d}
 // minions bowl over tire stacks, hay, cones and the like (knockable props only; crates and barrels are left for you)
 function rcKnock(m){if(m.v<60)return;const r=9,x0=clamp((m.x-r)/OG|0,0,ON-1),x1=clamp((m.x+r)/OG|0,0,ON-1),y0=clamp((m.y-r)/OG|0,0,ON-1),y1=clamp((m.y+r)/OG|0,0,ON-1);
@@ -1837,8 +1920,8 @@ function updateRC(dt,wdt){const p=G.p,s=G.stats,W=G.weapons,up=G.passives.uplink
       if(m.cd<=0&&p.hp<p.maxhp){const h0=p.hp;p.hp=Math.min(p.maxhp,p.hp+Math.round((3+1.5*lv)*mb*10)/10);const h=p.hp-h0;m.cd=m.cdMax=(9-.6*lv)*mc;if(lv>=5)p.inv=Math.max(p.inv,.6);
         rcFx(m.x,m.y,p.x,p.y,'92,240,138');addText(p.x,p.y-30,'+'+Math.round(h)+' HP','#5cf08a');tone(880,.12,'triangle',.04,1320);G.rcHeal=(G.rcHeal||0)+h}}
     else if(m.k==='rc_ram'){DSRC='rc_ram';m.cd-=wdt;
-      if(m.cd>0||!m.tg||m.tg.dead||d2(m.tg.x,m.tg.y,p.x,p.y)>520*520||(m.t+=dt)>3){if(m.cd<=0){m.t=0;m.tg=null;let bd=420*420;
-          for(const e of near(p.x,p.y,490)){if(e.dead||G.rcs.some(o=>o!==m&&o.tg===e))continue;const q=d2(e.x,e.y,p.x,p.y);if(q<bd){bd=q;m.tg=e}}}
+      if(m.cd>0||!m.tg||m.tg.dead||d2(m.tg.x,m.tg.y,p.x,p.y)>520*520||(m.t+=dt)>3){if(m.cd<=0){if(m.t>3&&m.tg){m.skip=m.tg;m.skipT=G.t+4}m.t=0;m.tg=null;let bd=420*420;
+          for(const e of near(p.x,p.y,490)){if(e.dead||(e===m.skip&&G.t<m.skipT)||G.rcs.some(o=>o!==m&&o.tg===e))continue;const q=d2(e.x,e.y,p.x,p.y);if(q<bd){bd=q;m.tg=e}}}
         // after a hit it skids back and brakes, then picks the next car from where it is
         if(m.cd>0){m.v*=Math.exp(-5*dt);m.x+=Math.cos(m.a)*m.v*dt;m.y+=Math.sin(m.a)*m.v*dt;rcKnock(m);collideObs(m,7)}else if(!m.tg)rcDrive(m,hx,hy,follow,dt)}
       if(m.tg&&m.cd<=0){const e=m.tg;rcDrive(m,e.x,e.y,(lv>=4?640:540)*ms,dt,1);
@@ -1846,7 +1929,7 @@ function updateRC(dt,wdt){const p=G.p,s=G.stats,W=G.weapons,up=G.passives.uplink
           for(let i=0;i<5;i++)part(m.x,m.y,rand(-220,220),rand(-220,220),rand(.1,.25),2,'#ffe7a0','spark');sfx('crash');m.a+=Math.PI+rand(-.6,.6);m.v=220;m.cd=(.4-.03*lv)*mc*s.cd;m.tg=null}}}
     else if(m.k==='rc_bomb'){DSRC='rc_bomb';
       if(m.st===0){m.cd-=wdt;m.x=p.x;m.y=p.y;m.a=p.a;m.v=0;if(m.cd<=0&&near(p.x,p.y,560).some(e=>!e.dead)){m.st=1;m.t=0;m.tg=null}}
-      else{m.t+=dt;if(!m.tg||m.tg.dead){const pool=near(p.x,p.y,560).filter(e=>!e.dead);let bn=-1;for(let k=0;k<6&&pool.length;k++){const c=pool[Math.floor(Math.random()*pool.length)],cnt=near(c.x,c.y,90).length;if(cnt>bn){bn=cnt;m.tg=c}}}
+      else{m.t+=dt;if(!m.tg||m.tg.dead){const pool=near(p.x,p.y,560).filter(e=>!e.dead);let bn=-1;for(let k=0;k<6&&pool.length;k++){const c=pool[Math.floor(Math.random()*pool.length)],cnt=near(c.x,c.y,90).filter(e=>!e.dead).length;if(cnt>bn){bn=cnt;m.tg=c}}}
         if(m.tg)rcDrive(m,m.tg.x,m.tg.y,500*ms,dt,1);else rcDrive(m,hx,hy,follow,dt);
         if(m.t>4.5&&!m.tg){m.st=0;m.cd=.5}
         let boom=m.st===1&&m.t>4.5;if(m.st===1&&!boom)for(const e of near(m.x,m.y,80))if(!e.dead&&d2(m.x,m.y,e.x,e.y)<(e.r+10)**2){boom=true;break}
@@ -1864,19 +1947,22 @@ function updateRC(dt,wdt){const p=G.p,s=G.stats,W=G.weapons,up=G.passives.uplink
       // hunt for the biggest pack near you (gunners count double, closer packs count more), park in its middle,
       // and leave a pack another jammer is already sitting on
       if(m.jx===undefined)m.cd=0;
-      if((m.cd-=dt)<=0){m.cd=.4;m.jx=null;const pool=near(p.x,p.y,JAM_LEASH+R).filter(e=>!e.dead&&!e.big&&d2(e.x,e.y,p.x,p.y)<(JAM_LEASH+R)**2);let best=0;
-        for(let c=0;c<Math.min(10,pool.length);c++){const e0=pool[Math.floor(Math.random()*pool.length)];let n=0,sx=0,sy=0;
+      if((m.cd-=dt)<=0){m.cd=.3;m.jx=null;const pool=shuffle(near(p.x,p.y,JAM_LEASH+R).filter(e=>!e.dead&&!e.big&&d2(e.x,e.y,p.x,p.y)<(JAM_LEASH+R)**2));let best=0;
+        for(let c=0;c<Math.min(18,pool.length);c++){const e0=pool[c];let n=0,sx=0,sy=0;
           for(const e of near(e0.x,e0.y,R+40))if(!e.dead&&d2(e.x,e.y,e0.x,e0.y)<R*R){const w=e.shoots?2:1;n+=w;sx+=e.x*w;sy+=e.y*w}
-          if(!n)continue;const cx=sx/n,cy=sy/n,cd=Math.hypot(cx-p.x,cy-p.y);if(cd>JAM_LEASH+R*.9)continue;/* still worth it if the field can reach the pack from the end of the leash */let sc=n*(1.3-Math.min(1,cd/(JAM_LEASH+R))*.6);
+          if(!n)continue;const cx=sx/n,cy=sy/n,cd=Math.hypot(cx-p.x,cy-p.y);if(cd>JAM_LEASH+R*.9||solidAt(cx,cy,14))continue;/* still worth it if the field can reach the pack from the end of the leash */let sc=n*(1.2-Math.min(1,cd/(JAM_LEASH+R))*.35);
           for(const o of G.rcs)if(o!==m&&o.k==='rc_jam'&&o.jx!=null&&d2(o.jx,o.jy,cx,cy)<(R*1.4)**2)sc*=.3;
           // stick with the current pack unless a clearly bigger one turns up
           if(m.lx!=null&&d2(m.lx,m.ly,cx,cy)<(R*.6)**2)sc*=1.25;
           if(sc>best){best=sc;m.jx=cx;m.jy=cy}}
-        if(best<2)m.jx=null;m.lx=m.jx;m.ly=m.jy}
+        // two cars (or one gunner) is a pack worth driving to
+        if(best<1.6)m.jx=null;m.lx=m.jx;m.ly=m.jy}
       // the parking spot is pulled back onto the leash every frame, so the jammer keeps up when you drive off
       if(m.jx!=null){let tx=m.jx,ty=m.jy;const lx=tx-p.x,ly=ty-p.y,ld=Math.hypot(lx,ly);if(ld>JAM_LEASH){tx=p.x+lx/ld*JAM_LEASH;ty=p.y+ly/ld*JAM_LEASH}rcDrive(m,tx,ty,Math.max(follow,420*ms),dt)}else rcDrive(m,p.x+Math.cos(G.t*1.1+j)*120,p.y+Math.sin(G.t*1.1+j)*120,follow,dt);
+      // the field only runs on the way to and over a pack, so stray cars don't flatten the battery while it waits beside you
+      m.on=m.jx!=null;if(!m.on)return;
       let hit=0;for(const e of near(m.x,m.y,R+60)){if(e.dead||d2(e.x,e.y,m.x,m.y)>(R+e.r)**2)continue;hit++;e.jam=.3;if(lv>=4){DSRC='rc_jam';damageEnemy(e,16*mb*s.dmg*dt,false)}}
-      m.on=true;if(hit){m.bat-=dt;if(m.bat<=0){m.bat=0;m.home=true;m.jx=null;tone(240,.18,'sawtooth',.03,120)}}
+if(hit){m.bat-=dt;if(m.bat<=0){m.bat=0;m.home=true;m.jx=null;tone(240,.18,'sawtooth',.03,120)}}
       if(lv>=3)for(const b of G.ebullets)if(b.life>0&&d2(b.x,b.y,m.x,m.y)<R*R){b.life=0;for(let i=0;i<3;i++)part(b.x,b.y,rand(-90,90),rand(-90,90),.15,2,'#b07aff','spark')}}
   });
   for(const f of G.rcfx)f.life-=dt;prune(G.rcfx,f=>f.life>0)}
@@ -1901,10 +1987,10 @@ function drawRC(vis){
       const sw=Math.sin(m.sway)*3.5,bx=-L*.32,by=-Wd*.28,tx=bx-11,ty=by-4+sw;ctx.strokeStyle='#d9d6e0';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(bx,by);ctx.quadraticCurveTo(bx-6,by-1+sw*.4,tx,ty);ctx.stroke();
       ctx.fillStyle=col;ctx.beginPath();ctx.arc(tx,ty,2.3,0,TAU);ctx.fill()})}}
 
-/* ---------- chrome hunters: loot piñatas that run, hide, and get away after a minute ---------- */
+/* ---------- chrome bandits (internally "hunters"): loot piñatas that run, hide, and get away after a minute ---------- */
 const HUNT_LIFE=60;
-function spawnHunter(){const e=spawnEnemy(Math.random()<.5?'truck':'sedan',{elite:true,hpMul:9,scale:1.3,xpMul:5,col:'#e8e4ee',spdMul:1.1});e.born=G.t;e.want=Math.atan2(e.y-G.p.y,e.x-G.p.x);
-  showBanner('Chrome hunter spotted','It runs and hides · wreck it within a minute for a supply crate and bolts');return e}
+function spawnHunter(){const e=spawnEnemy(Math.random()<.5?'truck':'sedan',{elite:true,hpMul:9,scale:1.3,xpMul:5,col:'#e8e4ee',spdMul:1.1});e.born=G.t;e.turn=Math.max(e.turn,2.8);/* a getaway driver: it can swerve round a barrel even in the truck */e.want=Math.atan2(e.y-G.p.y,e.x-G.p.x);
+  showBanner('Chrome bandit spotted','It runs and hides · wreck it within a minute for a supply crate and bolts');return e}
 // pick an escape heading: away from you, clear of walls and the arena edge, preferring spots you can't see.
 // It only drifts once it's well clear of you (over ~1,000px), so it stays on the radar
 // chrome hunters crash through the scenery as they flee: knockable props go flying, crates burst open and barrels get lit
@@ -1914,10 +2000,26 @@ function hunterBump(e){const r=e.r,x0=clamp((e.x-r)/OG|0,0,ON-1),x1=clamp((e.x+r
     if(KNOCK[o.k])tipProp(o,e.x-Math.cos(e.a)*6,e.y-Math.sin(e.a)*6,e.v);else breakProp(o);e.v*=.6;e.boost=0}
   for(const b of G.barrels)if(b.alive&&b.fuse<0&&Math.abs(b.x-e.x)<b.r+r&&Math.abs(b.y-e.y)<b.r+r&&d2(b.x,b.y,e.x,e.y)<(b.r+r)**2){
     b.fuse=0.35;e.v*=.5;e.boost=0;const dx=e.x-b.x,dy=e.y-b.y,dd=Math.hypot(dx,dy)||1;e.kx+=dx/dd*160;e.ky+=dy/dd*160;sfx('crash')}}
+// what a fleeing bandit would rather not drive through: live barrels (worst), smashable props, and hazard zones.
+// Returns a penalty for a point; checked along each candidate heading
+const BANDIT_ZONE={lava:1,acid:1,spikes:1,oil:.5,ice:.4};
+function banditHazard(x,y,r,near){let pen=0;
+  for(const b of G.barrels)if(b.alive&&b.fuse<0&&Math.abs(b.x-x)<b.r+r+22&&Math.abs(b.y-y)<b.r+r+22&&d2(b.x,b.y,x,y)<(b.r+r+22)**2)pen+=near?1400:700;
+  const R=r+10,x0=clamp((x-R)/OG|0,0,ON-1),x1=clamp((x+R)/OG|0,0,ON-1),y0=clamp((y-R)/OG|0,0,ON-1),y1=clamp((y+R)/OG|0,0,ON-1);
+  for(let cx=x0;cx<=x1;cx++)for(let cy=y0;cy<=y1;cy++)for(const o of ocells[cx*ON+cy])if(o.prop&&!o.dead&&d2(o.x,o.y,x,y)<(o.r+R)**2)pen+=near?260:130;
+  for(const z of G.zones){const w=BANDIT_ZONE[z.k];if(w&&zoneHit(z,x,y,r))pen+=(near?500:250)*w}
+  return pen}
+// something nasty right in front: plan again now instead of waiting for the next look round
+function banditReflex(e){const ca=Math.cos(e.a),sa=Math.sin(e.a),L=Math.max(50,e.v*.28);
+  for(const b of G.barrels)if(b.alive&&b.fuse<0){const dx=b.x-e.x,dy=b.y-e.y,f=dx*ca+dy*sa;if(f>0&&f<L&&Math.abs(-dx*sa+dy*ca)<b.r+e.r+10)return true}return false}
 function hunterSteer(e,dt,d){const p=G.p;
-  if((e.react-=dt)<=0){e.react=rand(.25,.4);let best=e.want||0,bs=-1e9;const toP=Math.atan2(p.y-e.y,p.x-e.x);
-    for(let i=0;i<12;i++){const a=i/12*TAU+rand(-.12,.12),cx=Math.cos(a),cy=Math.sin(a);let sc=0;
+  const danger=banditReflex(e);e.reflexCd=(e.reflexCd||0)-dt;
+  // last-moment swerve: ease sideways away from a barrel it's about to brush past
+  for(const b of G.barrels){if(!b.alive||b.fuse>=0)continue;const dx=e.x-b.x,dy=e.y-b.y,R=e.r+b.r+28;if(Math.abs(dx)>R||Math.abs(dy)>R)continue;const dd=Math.hypot(dx,dy)||1;if(dd<R){const k=(R-dd)/R*1500*dt;e.kx+=dx/dd*k;e.ky+=dy/dd*k}}
+  if((e.react-=dt)<=0||danger&&e.reflexCd<=0){e.react=rand(.25,.4);if(danger)e.reflexCd=.15;let best=e.want||0,bs=-1e9;const toP=Math.atan2(p.y-e.y,p.x-e.x);
+    for(let i=0;i<16;i++){const a=i/16*TAU+rand(-.1,.1),cx=Math.cos(a),cy=Math.sin(a);let sc=0;
       for(const L of[90,180]){const x=e.x+cx*L,y=e.y+cy*L;if(x<90||y<90||x>ARENA-90||y>ARENA-90)sc-=600;if(solidAt(x,y,e.r+6))sc-=L===90?1000:500}
+      for(const L of[35,75,120,170])sc-=banditHazard(e.x+cx*L,e.y+cy*L,e.r,L<100);
       const x=e.x+cx*200,y=e.y+cy*200,nd=Math.hypot(x-p.x,y-p.y);
       sc+=d>1000?-Math.abs(nd-1050)*0.6:(nd-d)*1.4;
       sc-=Math.max(0,Math.cos(angDiff(a,toP)))*140;
@@ -1928,9 +2030,10 @@ function hunterSteer(e,dt,d){const p=G.p;
   // when you get close it hits a nitro burst to slip away (every 5s)
   e.boostCd=(e.boostCd??2)-dt;if(d<320&&e.boostCd<=0){e.boost=1.1;e.boostCd=5}
   if(e.boost>0){e.boost-=dt;if(Math.random()<.7)part(e.x-Math.cos(e.a)*e.len*.5,e.y-Math.sin(e.a)*e.len*.5,rand(-30,30),rand(-30,30),rand(.2,.35),rand(5,9),'#6fa8ff','spark')}
-  SH_T=Math.max(e.spd,300)*(d<450?1.25:d>1000?0.8:1.1)*(e.boost>0?1.45:1);return e.want}
+  // lift off when a barrel is right ahead so the swerve has room
+  SH_T=Math.max(e.spd,300)*(d<450?1.25:d>1000?0.8:1.1)*(e.boost>0?1.45:1)*(danger?.7:1);return e.want}
 function hunterEscapes(e){e.dead=true;for(let i=0;i<(S.lowFx?6:16);i++)part(e.x+rand(-20,20),e.y+rand(-20,20),rand(-60,60),rand(-60,60),rand(.6,1.1),rand(10,18),null,'smoke');
-  toast('CH','Chrome hunter','Got away with the loot')}
+  toast('CB','Chrome bandit','Got away with the loot')}
 const huntLeft=e=>Math.max(0,HUNT_LIFE-(G.t-(e.born??G.t)));
 // live picture-in-picture of the nearest hunter: the real car sprites, drawn into a small canvas around it
 let hcamCtx=null;
@@ -1949,7 +2052,7 @@ function drawHunterCam(){if((hcamTick^=1)&&!$('hunterCam').hidden)return;const e
     if(Math.abs(G.p.x-e.x)<R&&Math.abs(G.p.y-e.y)<R){ctx.setTransform(r*sc,0,0,r*sc,r*(W/2-e.x*sc),r*(H/2-e.y*sc));ctx.fillStyle=G.car.col;ctx.beginPath();ctx.arc(G.p.x,G.p.y,16,0,TAU);ctx.fill();ctx.strokeStyle='#0a090c';ctx.lineWidth=4;ctx.stroke()}}
   finally{ctx=pc;DPR=pd}
   c2.setTransform(r,0,0,r,0,0);c2.strokeStyle='rgba(232,228,238,.9)';c2.lineWidth=1.5;const bl=Math.floor(G.t*3)%2;c2.strokeRect(W/2-22,H/2-22,44,44);
-  c2.fillStyle=bl?'#ff3b4e':'rgba(255,59,78,.35)';c2.beginPath();c2.arc(10,10,4,0,TAU);c2.fill();c2.fillStyle='#e8e4ee';c2.font='700 9px ui-monospace,monospace';c2.fillText('LIVE',17,13);c2.textAlign='right';c2.fillText('CHROME HUNTER',W-6,13);c2.textAlign='left';
+  c2.fillStyle=bl?'#ff3b4e':'rgba(255,59,78,.35)';c2.beginPath();c2.arc(10,10,4,0,TAU);c2.fill();c2.fillStyle='#e8e4ee';c2.font='700 9px ui-monospace,monospace';c2.fillText('LIVE',17,13);c2.textAlign='right';c2.fillText('CHROME BANDIT',W-6,13);c2.textAlign='left';
   const dx=e.x-G.p.x,dy=e.y-G.p.y,left=huntLeft(e);
   {const h=`${Math.ceil(left)}s · ${Math.round(Math.hypot(dx,dy)/10)}m <span class="tarr" style="transform:rotate(${(Math.round(Math.atan2(dy,dx)*10)/10).toFixed(1)}rad)"><i>▶</i></span>`;if(hudCache.hc!==h){hudCache.hc=h;$('hcInfo').innerHTML=h}}el.classList.toggle('urgent',left<15)}
 
@@ -1978,13 +2081,15 @@ function openPortal(){const p=G.p,m=230;
   const [x,y]=spot;
   // clear loose props off the pad
   for(const o of G.props)if(!o.dead&&d2(o.x,o.y,x,y)<110*110)o.dead=true;
-  G.portal={x,y,r:58,t:0};G.odStart=G.t;G.odTier=0;
+  G.portal={x,y,r:58,t:0};G.odStart=G.t;G.odTier=1;
+  showBanner('Exit portal open','Follow the purple arrows · drive in to bank your run · stay longer for Overdrive');
+  // a short fly-over so you see where it opened: the world holds still while the camera visits it and comes back
+  if(d2(x,y,p.x,p.y)>520*520)G.reveal={t:0};
   G.nextAmbush=Math.min(G.nextAmbush,G.t+20);G.nextElite=Math.min(G.nextElite,G.t+12);G.nextMini=Math.min(G.nextMini,G.t+50);
   sfx('boss');G.shake=12}
 function updatePortal(dt){const o=G.portal,h=odHeat();o.t+=dt;
   const tier=odTierOf(h);if(tier>G.odTier){G.odTier=tier;
-    if(tier===1)showBanner('Exit portal open','Drive in to bank your run · stay for Overdrive');
-    else{showBanner('Overdrive '+roman(tier),'They hit harder and drive faster · the portal is still open');sfx('boss')}}
+    {showBanner('Overdrive '+roman(tier),'They hit harder and drive faster · the portal is still open');sfx('boss')}}
   if(!S.lowFx||Math.random()<.4){const a=rand(0,TAU),R=o.r*rand(1.3,2.2);part(o.x+Math.cos(a)*R,o.y+Math.sin(a)*R,-Math.cos(a)*R*2.2,-Math.sin(a)*R*2.2,.45,rand(2,4),Math.random()<.5?'#c78bff':'#3fe0d0','spark')}
   const p=G.p;if(G.exitT<0&&state==='play'&&d2(p.x,p.y,o.x,o.y)<(o.r-12)**2){G.exitT=0.9;p.inv=2;sfx('level');showBanner('Escaped','Banking your run…')}}
 function pullIntoPortal(dt){const p=G.p,o=G.portal,k=Math.min(1,7*dt);p.x+=(o.x-p.x)*k;p.y+=(o.y-p.y)*k;p.vx=p.vy=0;p.a+=9*dt;p.inv=Math.max(p.inv,.5)}
@@ -1995,15 +2100,18 @@ function fitReport(){const pn=$('scrOver');if(pn.hidden)return;pn.style.zoom='';
   // zoom reflows the text a little, so measure again after each step
   const avail=$('overlay').clientHeight-56;let z=1;for(let i=0;i<4;i++){const h=pn.getBoundingClientRect().height;if(h<=avail)break;z=Math.max(.6,z*avail/h);pn.style.zoom=z.toFixed(3)}}
 addEventListener('resize',()=>{if(cur==='scrOver')fitReport()});
-function drawPortal(o){const t=G.t,r=o.r*Math.min(1,o.t/0.8);if(r<=1)return;
+function drawPortal(o){const t=vclock,r=o.r*Math.min(1,o.t/0.8);if(r<=1)return;
   ctx.save();ctx.globalCompositeOperation='lighter';
+  // beacon: rings of light roll outward so the portal catches your eye from across the screen
+  for(let i=0;i<3;i++){const ph=(t*.55+i/3)%1,R=r+ph*520;ctx.strokeStyle=`rgba(${i%2?'63,224,208':'199,139,255'},${(1-ph)*.55})`;ctx.lineWidth=3+(1-ph)*5;ctx.beginPath();ctx.arc(o.x,o.y,R,0,TAU);ctx.stroke()}
   const g=ctx.createRadialGradient(o.x,o.y,r*.2,o.x,o.y,r*2.6);g.addColorStop(0,'rgba(170,90,255,.6)');g.addColorStop(1,'rgba(170,90,255,0)');ctx.fillStyle=g;ctx.beginPath();ctx.arc(o.x,o.y,r*2.6,0,TAU);ctx.fill();
   for(let i=0;i<3;i++){ctx.strokeStyle=i===1?'rgba(63,224,208,.85)':'rgba(205,130,255,.9)';ctx.lineWidth=4;ctx.beginPath();
     for(let k=0;k<=26;k++){const f=k/26,a=t*(2.6+i*.7)+i*TAU/3+f*4.2,rr=r*(1-f*.86),x=o.x+Math.cos(a)*rr,y=o.y+Math.sin(a)*rr;k?ctx.lineTo(x,y):ctx.moveTo(x,y)}ctx.stroke()}
   ctx.restore();
   ctx.fillStyle='#0b0612';ctx.beginPath();ctx.arc(o.x,o.y,r*.4,0,TAU);ctx.fill();
   ctx.strokeStyle='#c78bff';ctx.lineWidth=5;ctx.setLineDash([14,10]);ctx.lineDashOffset=-t*40;ctx.beginPath();ctx.arc(o.x,o.y,r,0,TAU);ctx.stroke();ctx.setLineDash([]);ctx.lineDashOffset=0;
-  ctx.font='700 13px "Chakra Petch",sans-serif';ctx.textAlign='center';ctx.fillStyle='#ecdcff';ctx.fillText('EXIT',o.x,o.y-r-12);ctx.textAlign='left'}
+  ctx.textAlign='center';ctx.lineWidth=4;ctx.strokeStyle='#0b0612';ctx.font='700 22px "Chakra Petch",sans-serif';const by=o.y-r-18+Math.sin(t*4)*3;ctx.strokeText('EXIT',o.x,by);ctx.fillStyle='#ecdcff';ctx.fillText('EXIT',o.x,by);
+  ctx.font='700 11px "Chakra Petch",sans-serif';ctx.strokeText('DRIVE IN',o.x,o.y+r+20);ctx.fillStyle='#c78bff';ctx.fillText('DRIVE IN',o.x,o.y+r+20);ctx.textAlign='left'}
 
 function spawnTrader(){const p=G.p;let k;do k=Math.floor(Math.random()*3);while(k===G.lastTrader);G.lastTrader=k;const T=TRADERS[k];
   // park somewhere open near the player, then find a drive in from ~900px away along the streets
@@ -2118,8 +2226,8 @@ function updateEnemies(dt){
     e.x+=Math.cos(e.a)*e.v*dt+e.kx*dt;e.y+=Math.sin(e.a)*e.v*dt+e.ky*dt;
     const kd=Math.exp(-5*dt);e.kx*=kd;e.ky*=kd;
     e.x=clamp(e.x,e.r,ARENA-e.r);e.y=clamp(e.y,e.r,ARENA-e.r);
-    // regular cars follow the flow field round walls; bosses plough straight through
-    if(!e.big)collideObs(e,e.r);else if(G.L.bossWalls)collideObs(e,e.r*.85,'building');
+    // regular cars follow the flow field round walls; bosses plough straight through, wrecking what they hit
+    if(!e.big)collideObs(e,e.r);else{bossSmash(e);if(G.L.bossWalls)collideObs(e,e.r*.85,'building')}
     if(e.elite&&e.born!=null&&e.v>40)hunterBump(e);
     if(tr){const R=44+e.r,q=d2(e.x,e.y,tr.x,tr.y);if(q<R*R){const dq=Math.sqrt(q)||1;e.x=tr.x+(e.x-tr.x)/dq*R;e.y=tr.y+(e.y-tr.y)/dq*R}}
     const rr=e.r+p.r;
@@ -2265,11 +2373,11 @@ function updateProjectiles(dt){
   prune(G.mines,m=>m.life>0);
   for(const r of G.rings){r.r+=640*dt;if(!r.dmg||!r.hit)continue;for(const e of G.enemies){if(e.dead||r.hit.has(e))continue;const d=Math.hypot(e.x-r.x,e.y-r.y);if(d<r.r+e.r){r.hit.add(e);DSRC=r.src||'other';if(r.soak)e.wet=3;damageEnemy(e,r.dmg);const k=e.big?40:380;e.kx+=(e.x-r.x)/(d||1)*k;e.ky+=(e.y-r.y)/(d||1)*k}}}
   prune(G.rings,r=>r.r<r.max);
-  for(const b of G.barrels){if(!b.alive){b.respawn-=dt;if(b.respawn<=0&&d2(b.x,b.y,p.x,p.y)>500*500){b.alive=true;b.fuse=-1}continue}
+  for(const b of G.barrels){if(!b.alive){b.respawn-=dt;if(b.respawn<=0&&d2(b.x,b.y,p.x,p.y)>500*500&&!G.enemies.some(e=>e.elite&&!e.dead&&d2(b.x,b.y,e.x,e.y)<220*220)){b.alive=true;b.fuse=-1}continue}
     if(b.fuse>=0){b.fuse-=dt;if(b.fuse<0){const B=BTYPES[b.t];b.alive=false;b.respawn=20;G.barrelBooms++;DSRC='barrels';explode(b.x,b.y,B.R,B.dmg*G.stats.dmg,B.hurt);if(B.acid)G.zones.push({k:'acid',x:b.x,y:b.y,r:B.R*.9,life:8,pts:blob(B.R*.9,10,.3)})}}}
 }
 
-function foldGems(bolts){let v=0,x=0,y=0,n=0;prune(G.gems,g=>{if(!!g.b!==bolts||n>=60)return true;if(!n){x=g.x;y=g.y}n++;v+=g.v;return false});
+function foldGems(bolts){let v=0,x=0,y=0,n=0;prune(G.gems,g=>{if(!!g.b!==bolts||n>=60)return true;if(!n){x=g.x;y=g.y}n++;v+=g.v;g.got=true;return false});
   if(n)G.gems.push(bolts?{x,y,v,b:true,vx:0,vy:0,pull:false,sp:0}:{x,y,v,vx:0,vy:0,pull:false,sp:0})}
 function updatePickups(dt){
   const p=G.p,mag=G.stats.magnet;
@@ -2436,7 +2544,7 @@ function draw(){
   // mortar targets
   ctx.strokeStyle='rgba(255,90,31,.6)';ctx.lineWidth=2;ctx.setLineDash([8,6]);ctx.beginPath();for(const s of G.shells){if(!vis(s.tx,s.ty,s.R))continue;const r=s.R*(0.4+0.6*s.t/s.dur);ctx.moveTo(s.tx+r,s.ty);ctx.arc(s.tx,s.ty,r,0,TAU)}ctx.stroke();ctx.setLineDash([]);
   for(const b of G.barrels){if(!b.alive||!vis(b.x,b.y,24))continue;ctx.fillStyle='rgba(0,0,0,.4)';ctx.beginPath();ctx.arc(b.x+3,b.y+4,b.r,0,TAU);ctx.fill();drawBarrel(b)}
-  if(G.portal&&vis(G.portal.x,G.portal.y,160))drawPortal(G.portal);
+  if(G.portal&&vis(G.portal.x,G.portal.y,600))drawPortal(G.portal);
   if(G.trader&&vis(G.trader.x,G.trader.y,150))drawTrader(G.trader);
   // enemies
   const frz=G.buffs.freeze>0;
@@ -2493,21 +2601,27 @@ function draw(){
     const a=Math.atan2(sy2-VH/2,sx2-VW/2),ex=clamp(sx2,28,VW-28),ey=clamp(sy2,110,VH-50);ctx.save();ctx.translate(ex,ey);ctx.rotate(a);ctx.fillStyle=col;ctx.beginPath();ctx.moveTo(14,0);ctx.lineTo(-8,-10);ctx.lineTo(-8,10);ctx.closePath();ctx.fill();ctx.restore()};
   if(state!=='menu')for(const q of G.enemies)if(q.elite&&!q.dead)hunterArrow(q);
   if(state!=='menu')for(const m of G.rcs)if(m.k==='rc_scav')scavArrow(m);
-  if(state!=='menu'){for(const k of G.pickups)if(k.type==='chest')arrow(k.x,k.y,'#ffc21a');else if(k.type!=='wrench'&&k.type!=='magnet')arrow(k.x,k.y,DROPS[k.type].col);if(G.trader&&G.trader.phase!=='leave')traderArrow();if(G.portal)portalArrow()}
-  // chrome hunter off screen: a silver arrow with a CH tag and the seconds it has left
+  if(state!=='menu'){for(const k of G.pickups)if(k.type==='chest')arrow(k.x,k.y,'#ffc21a');else if(k.type!=='wrench'&&k.type!=='magnet')arrow(k.x,k.y,DROPS[k.type].col);if(G.trader&&G.trader.phase!=='leave')traderArrow();if(G.portal&&G.portal.t>.3){portalArrow();portalCompass()}}
+  // chrome bandit (hunter) off screen: a silver arrow with a CB tag and the seconds it has left
   function hunterArrow(e){const sx2=e.x+ox,sy2=e.y+oy;if(sx2>0&&sx2<VW&&sy2>0&&sy2<VH)return;const a=Math.atan2(sy2-VH/2,sx2-VW/2),ex=clamp(sx2,44,VW-44),ey=clamp(sy2,ex>VW-340?250:200,VH-80),left=huntLeft(e),pl=1+(left<15?.18:.08)*Math.sin(G.t*(left<15?10:5));
     ctx.save();ctx.translate(ex,ey);ctx.save();ctx.rotate(a);ctx.scale(pl,pl);ctx.fillStyle='#e8e4ee';ctx.beginPath();ctx.moveTo(26,0);ctx.lineTo(-6,-16);ctx.lineTo(-6,16);ctx.closePath();ctx.fill();ctx.strokeStyle='#0a090c';ctx.lineWidth=2;ctx.stroke();ctx.restore();
     ctx.fillStyle='#0a090c';ctx.beginPath();ctx.arc(0,0,13,0,TAU);ctx.fill();ctx.strokeStyle=left<15?'#ff3b4e':'#e8e4ee';ctx.lineWidth=2;ctx.stroke();ctx.fillStyle='#e8e4ee';ctx.font='700 10px "Chakra Petch",sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';
-    ctx.fillText('CH',0,1);ctx.font='700 11px "Chakra Petch",sans-serif';ctx.fillText(Math.ceil(left)+'s',0,24);ctx.textAlign='left';ctx.textBaseline='alphabetic';ctx.restore()}
+    ctx.fillText('CB',0,1);ctx.font='700 11px "Chakra Petch",sans-serif';ctx.fillText(Math.ceil(left)+'s',0,24);ctx.textAlign='left';ctx.textBaseline='alphabetic';ctx.restore()}
   // scavenger RC off screen: a smaller tan arrow with a little RC badge (and its antenna) so you can see where it went
   function scavArrow(m){const sx2=m.x+ox,sy2=m.y+oy;if(sx2>-8&&sx2<VW+8&&sy2>-8&&sy2<VH+8)return;const a=Math.atan2(sy2-VH/2,sx2-VW/2),ex=clamp(sx2,40,VW-40),ey=clamp(sy2,ex>VW-340?240:190,VH-70),col=RC_COL.rc_scav;
     ctx.save();ctx.translate(ex,ey);ctx.scale(1.3,1.3);ctx.save();ctx.rotate(a);ctx.fillStyle=col;ctx.beginPath();ctx.moveTo(21,0);ctx.lineTo(-4,-12);ctx.lineTo(-4,12);ctx.closePath();ctx.fill();ctx.strokeStyle='#0a090c';ctx.lineWidth=2;ctx.stroke();ctx.restore();
     ctx.strokeStyle='#d9d6e0';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(5,-8);ctx.quadraticCurveTo(9,-16,6+Math.sin(G.t*8)*2,-21);ctx.stroke();ctx.fillStyle=col;ctx.beginPath();ctx.arc(6+Math.sin(G.t*8)*2,-21,2.2,0,TAU);ctx.fill();
     ctx.fillStyle='#0a090c';ctx.beginPath();ctx.arc(0,0,11,0,TAU);ctx.fill();ctx.strokeStyle=col;ctx.lineWidth=2;ctx.stroke();ctx.fillStyle=col;ctx.font='700 9px "Chakra Petch",sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('RC',0,1);ctx.textAlign='left';ctx.textBaseline='alphabetic';ctx.restore()}
   // exit portal off screen: a pulsing purple arrow with a ring
-  function portalArrow(){const o=G.portal,sx2=o.x+ox,sy2=o.y+oy;if(sx2>0&&sx2<VW&&sy2>0&&sy2<VH)return;const a=Math.atan2(sy2-VH/2,sx2-VW/2),ex=clamp(sx2,44,VW-44),ey=clamp(sy2,190,VH-70),pl=1+.15*Math.sin(G.t*7);
-    ctx.save();ctx.translate(ex,ey);ctx.save();ctx.rotate(a);ctx.scale(pl,pl);ctx.fillStyle='#c78bff';ctx.beginPath();ctx.moveTo(30,0);ctx.lineTo(-6,-19);ctx.lineTo(-6,19);ctx.closePath();ctx.fill();ctx.restore();
-    ctx.fillStyle='#0b0612';ctx.beginPath();ctx.arc(0,0,14,0,TAU);ctx.fill();ctx.strokeStyle='#c78bff';ctx.lineWidth=4;ctx.beginPath();ctx.arc(0,0,9,0,TAU);ctx.stroke();ctx.restore()}
+  function portalArrow(){const o=G.portal,sx2=o.x+ox,sy2=o.y+oy;if(sx2>0&&sx2<VW&&sy2>0&&sy2<VH)return;const a=Math.atan2(sy2-VH/2,sx2-VW/2),ex=clamp(sx2,52,VW-52),ey=clamp(sy2,200,VH-80),pl=1+.15*Math.sin(vclock*7);
+    ctx.save();ctx.translate(ex,ey);ctx.save();ctx.rotate(a);ctx.scale(pl,pl);ctx.fillStyle='#c78bff';ctx.strokeStyle='#0b0612';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(40,0);ctx.lineTo(-6,-25);ctx.lineTo(-6,25);ctx.closePath();ctx.stroke();ctx.fill();ctx.restore();
+    ctx.fillStyle='#0b0612';ctx.beginPath();ctx.arc(0,0,20,0,TAU);ctx.fill();ctx.strokeStyle='#c78bff';ctx.lineWidth=3;ctx.stroke();
+    ctx.fillStyle='#ecdcff';ctx.font='700 10px "Chakra Petch",sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('EXIT',0,1);
+    ctx.font='700 11px "Chakra Petch",sans-serif';ctx.fillStyle='#c78bff';ctx.fillText(Math.round(Math.hypot(o.x-G.p.x,o.y-G.p.y)/10)+'m',0,32);ctx.textAlign='left';ctx.textBaseline='alphabetic';ctx.restore()}
+  // two purple chevrons hugging your car that always point at the exit
+  function portalCompass(){const o=G.portal,p=G.p,dx=o.x-p.x,dy=o.y-p.y;if(dx*dx+dy*dy<(o.r+140)**2)return;const a=Math.atan2(dy,dx),R=50+Math.sin(vclock*6)*5;
+    ctx.save();ctx.translate(p.x+ox+Math.cos(a)*R,p.y+oy+Math.sin(a)*R);ctx.rotate(a);ctx.fillStyle='#c78bff';ctx.strokeStyle='#0b0612';ctx.lineWidth=2.5;
+    for(let i=0;i<2;i++){const o2=i*15;ctx.globalAlpha=.6+.4*Math.max(0,Math.sin(vclock*6-i*1.2));ctx.beginPath();ctx.moveTo(13+o2,0);ctx.lineTo(-4+o2,-13);ctx.lineTo(2+o2,0);ctx.lineTo(-4+o2,13);ctx.closePath();ctx.stroke();ctx.fill()}ctx.restore()}
   // trader off screen: a big arrow with a coin sign pinned to the edge
   function traderArrow(){const tr=G.trader,sx2=tr.x+ox,sy2=tr.y+oy;if(sx2>0&&sx2<VW&&sy2>0&&sy2<VH)return;const a=Math.atan2(sy2-VH/2,sx2-VW/2),ex=clamp(sx2,40,VW-40),ey=clamp(sy2,130,VH-60),pl=1+.12*Math.sin(G.t*6);
     ctx.save();ctx.translate(ex,ey);ctx.save();ctx.rotate(a);ctx.scale(pl,pl);ctx.fillStyle=tr.T.col;ctx.beginPath();ctx.moveTo(26,0);ctx.lineTo(-6,-17);ctx.lineTo(-6,17);ctx.closePath();ctx.fill();ctx.restore();
@@ -2551,7 +2665,7 @@ function updateHud(){
   const b=G.lboss&&!G.lboss.dead?G.lboss:G.mini&&!G.mini.dead?G.mini:null;$('bossWrap').hidden=!b;
   if(b){setT('bossName',b.type==='lboss'?L.boss.name:'JUGGERNAUT '+['I','II','III','IV','V','VI','VII','VIII'][Math.min(7,(b.num||1)-1)]);setW('bossfill',b.hp/b.maxhp)}
   let obj;
-  if(G.portal){const po=G.portal,dm=Math.round(Math.hypot(po.x-p.x,po.y-p.y)/10),a=Math.atan2(po.y-p.y,po.x-p.x);obj=`<span class="odtag">Overdrive ${roman(Math.max(1,G.odTier))}</span> Exit portal <b>${dm}m</b> <span class="tarr" style="transform:rotate(${a.toFixed(1)}rad)"><i>▶</i></span> · drive in to bank your run`}
+  if(G.portal){const po=G.portal,dm=Math.round(Math.hypot(po.x-p.x,po.y-p.y)/10),a=Math.atan2(po.y-p.y,po.x-p.x);obj=`<span class="odtag">Overdrive ${roman(Math.max(1,G.odTier))}</span> <b style="color:#c78bff">Exit portal</b> <b>${dm}m</b> <span class="tarr" style="transform:rotate(${a.toFixed(1)}rad)"><i>▶</i></span> · drive in to bank your run`}
   else if(G.cleared)obj=`Track cleared · <b>exit portal opening…</b>`;
   else if(G.lboss||G.bossDue>0)obj=`Level boss · <b>${L.boss.name}</b>`;
   else obj=`Juggernauts <b>${G.miniKills} / ${L.minis}</b> · next in <b>${fmt(Math.max(0,G.nextMini-G.t))}</b>`;
@@ -2619,7 +2733,7 @@ const statRows=rows=>`<div class="ts">${rows.map(([k,v])=>`<span>${k}</span><b>$
 const card=(title,kind,desc,rows,col,bar)=>({col,html:`<div class="tt">${esc(title)}</div><div class="tk">${esc(kind)}</div>${bar!=null?`<div class="tb"><i style="width:${(clamp(bar,0,1)*100).toFixed(1)}%"></i></div>`:''}${rows&&rows.length?statRows(rows):''}${desc?`<div class="td">${esc(desc)}</div>`:''}`});
 function enemyCard(e){const fr=G.buffs.freeze>0||e.ice>0,st=[];if(fr)st.push('frozen');if(e.charge>0)st.push('charging');if(e.burn>0)st.push('on fire');
   let name,kind,desc;if(e.type==='lboss'){name=G.L.boss.name;kind='Level boss';desc='Wreck it to clear '+G.L.name+'. It '+Object.keys(e.ab).map(k=>ABIL[k]).join(', ')+'.'}
-  else if(e.elite){name='Chrome Hunter';kind='Elite '+ENEMY_INFO[e.type][1].toLowerCase();desc='Nine times the armour of a normal '+ENEMY_INFO[e.type][0].toLowerCase()+'. Runs and hides from you, and gets away '+(e.born!=null?Math.ceil(huntLeft(e))+'s from now':'after a minute')+'. Drops a supply crate and bolts.';if(e.born!=null)st.push('fleeing')}
+  else if(e.elite){name='Chrome Bandit';kind='Elite '+ENEMY_INFO[e.type][1].toLowerCase();desc='Nine times the armour of a normal '+ENEMY_INFO[e.type][0].toLowerCase()+'. Runs and hides from you, and gets away '+(e.born!=null?Math.ceil(huntLeft(e))+'s from now':'after a minute')+'. Drops a supply crate and bolts.';if(e.born!=null)st.push('fleeing')}
   else [name,kind,desc]=ENEMY_INFO[e.type];
   return card(name,kind+(st.length?' · '+st.join(', '):''),desc,[['HP',`${Math.max(0,Math.ceil(e.hp)).toLocaleString()} / ${Math.ceil(e.maxhp).toLocaleString()}`],['Ram damage',Math.round(e.dmg)],['Top speed',Math.round(e.spd)],['XP',Math.round(e.xp)]],e.big||e.elite?'#ff3b4e':e.col,e.hp/e.maxhp)}
 function rcCard(m){const p=G.p,W=G.weapons[m.k],lv=W?W.lvl:1,d=WDEF[m.k],up=G.passives.uplink||0,mb=1+.15*up,s=G.stats,col=RC_COL[m.k],dealt=Math.round(G.dmgBy[m.k]||0).toLocaleString();
@@ -2629,7 +2743,7 @@ function rcCard(m){const p=G.p,W=G.weapons[m.k],lv=W?W.lvl:1,d=WDEF[m.k],up=G.pa
   if(m.k==='rc_bomb')return card(d.name,kind+' · armed',d.desc[0],[['Blast damage',Math.round((50+18*lv+(lv>=4?25:0))*mb*s.dmg)],['Blast radius',Math.round((80+12*lv+(lv>=2?15:0))*s.blast)],['Damage this run',dealt]],col);
   if(m.k==='rc_scav')return card(d.name,kind+(m.tg?' · fetching':''),d.desc[0],[['Vacuum reach',(lv>=3?70:34)+'px'],['Next bolt dig',lv>=2?Math.ceil((20-m.dig)/(lv>=5?2:1))+'s':'from level 2']],col,lv>=2?m.dig/20:null);
   const jammed=G.enemies.filter(e=>!e.dead&&e.jam>0&&d2(e.x,e.y,m.x,m.y)<(m.R+e.r)**2).length;
-  return card(d.name,kind+(m.home?' · recharging at your car':m.jx!=null?' · jamming a pack':' · circling you'),d.desc[0],[['Field radius',Math.round(m.R||0)+'px'],['Battery',`${(m.bat||0).toFixed(1)} / ${(m.cap||0).toFixed(1)}s`],['Recharge',jamRecharge(lv,1/(1+.087*up)).toFixed(1)+'s'],['Cars jammed now',jammed],['Bullets fried',lv>=3?'yes':'from level 3'],['Damage this run',dealt]],col)}
+  return card(d.name,kind+(m.home?' · recharging at your car':m.jx!=null?' · jamming a pack':' · looking for a pack (field off)'),d.desc[0],[['Field radius',Math.round(m.R||0)+'px'],['Battery',`${(m.bat||0).toFixed(1)} / ${(m.cap||0).toFixed(1)}s`],['Recharge',jamRecharge(lv,1/(1+.087*up)).toFixed(1)+'s'],['Cars jammed now',jammed],['Bullets fried',lv>=3?'yes':'from level 3'],['Damage this run',dealt]],col)}
 // what's under the cursor, top-most first
 function pickHover(wx,wy){const p=G.p,in2=(x,y,r)=>d2(wx,wy,x,y)<r*r;
   // RC minions are small and drive among the enemies, so they're checked first
@@ -2650,7 +2764,8 @@ function pickHover(wx,wy){const p=G.p,in2=(x,y,r)=>d2(wx,wy,x,y)<r*r;
   for(const o of c){if(o.prop){if(!o.dead&&in2(o.x,o.y,o.r+4)){const [n,d]=PROP_INFO[o.k];return card(n,KNOCK[o.k]?'Knock-over prop':'Smashable prop',d,null,'#c9a24a')}continue}
     if(!hitsShape(o,wx,wy,3))continue;
     if(o.k==='pylon')return card('Tesla pylon','Hazard','Glows, then zaps every car and you within 170px.',[['Next zap',Math.max(0,4.5-o.py.t).toFixed(1)+'s'],['Damage to you',Math.round(14*(0.7+0.3*G.L.diff))]],'#8ce6ff');
-    return card(OBS_INFO[o.k]||'Obstacle','Solid obstacle','Blocks you and regular cars. Bosses plough straight through.',null,'#8f8a9c')}
+    if(o.wreck)return card('Wrecked '+(OBS_INFO[o.k]||'obstacle').toLowerCase(),'Wreckage','Flattened by a boss. Drive right over it.',null,'#8f8a9c');
+    return card(OBS_INFO[o.k]||'Obstacle','Solid obstacle',UNBREAKABLE[o.k]?'Blocks you and regular cars. Even bosses can\'t break it.':'Blocks you and regular cars. Juggernauts and bosses smash it flat.',null,'#8f8a9c')}
   for(const z of G.zones){if(!zoneHit(z,wx,wy,0))continue;const [n,d]=ZONE_INFO[z.k],Z=ZONES[z.k],rows=[];if(Z.dps)rows.push(['Damage to you',Z.dps+'/s'],['Damage to cars',Math.round(Z.edps*G.L.diff)+'/s']);if(Z.grip)rows.push(['Grip',Math.round(Z.grip*100)+'%']);if(z.life!=null)rows.push(['Dries up in',Math.ceil(z.life)+'s']);
     return card(n,'Hazard',d,rows,z.k==='lava'?'#ff7a14':z.k==='acid'?'#7ad13a':z.k==='ice'?'#9fe4ff':z.k==='spikes'?'#c9c6d0':'#786ac8')}
   return null}
@@ -2675,7 +2790,7 @@ function goBack(){const top=navStack.pop()||{id:'scrMenu',focus:null},id=top.id;
   let f=top.focus;if(f&&!f.isConnected)f=f.dataset&&f.dataset.car?$(id).querySelector(`[data-car="${f.dataset.car}"]`):null;(f||$(id).querySelector('button')).focus()}
 function fillAcct(lvId,xpId,fillId){const a=acctInfo(P.acctXp);$(lvId).textContent=a.lv;if(xpId)$(xpId).textContent=`${a.into} / ${a.need} XP`;$(fillId).style.width=(a.into/a.need*100)+'%';return a}
 function refreshMenu(){fillAcct('mAcct','mAcctXp','mAcctFill');$('restoreBtn').hidden=(P.runs||0)>0;
-  $('mBest').textContent=fmt(P.best);$('mKills').textContent=P.kills.toLocaleString();$('mClears').textContent=clearedCount()+' / '+LEVELS.length;$('mAch').textContent=Object.keys(P.ach).length+' / '+ACH.length;$('mScrap').textContent=P.scrap.toLocaleString()+' scrap'}
+  $('mBest').textContent=fmt(P.best);$('mKills').textContent=P.kills.toLocaleString();$('mClears').textContent=clearedCount()+' / '+LEVELS.length;$('mAch').textContent=achCount(P)+' / '+ACH.length;$('mScrap').textContent=P.scrap.toLocaleString()+' scrap'}
 function carCard(id,mode){const C=CARS[id],own=!!P.cars[id],sel=P.car===id,bar=(v,m)=>`<i style="width:${clamp(v/m,0,1)*100}%"></i>`;
   const gear=[...Object.keys(C.start.w).map(k=>WDEF[k].name),...Object.keys(C.start.p||{}).map(k=>PDEF[k].name)].join(' + ');
   const btn=mode==='pick'?(own?(sel?'Driving':'Drive this'):`Garage · <span class="scrapi"></span>${C.cost}`):own?(sel?'Selected':'Select'):`Buy · <span class="scrapi"></span>${C.cost}`;
@@ -2713,7 +2828,7 @@ async function parseSave(txt){const m=/^(CL[01])\.([A-Za-z0-9_-]+)$/.exec(String
   if(m[1]==='CL1'&&!window.DecompressionStream)throw new Error('browser');
   // anything cut short or mangled fails to decode: report it as a bad save, not a network problem
   let o;try{let u=b64u.dec(m[2]);if(m[1]==='CL1')u=await zipBytes(u,false);o=JSON.parse(new TextDecoder().decode(u))}catch(e){throw new Error('format')}if(!o||o.v!==1||!o.p||typeof o.p!=='object'||typeof o.p.acctXp!=='number')throw new Error('format');return o}
-const saveSummary=p=>{const cars=Object.keys(p.cars||{}).filter(k=>CARS[k]).length;return`Account level ${acctInfo(p.acctXp||0).lv} · ${(p.scrap||0).toLocaleString()} scrap · ${cars} of ${Object.keys(CARS).length} vehicles · ${Object.keys(p.ach||{}).length} of ${ACH.length} achievements · best run ${fmt(p.best||0)}`};
+const saveSummary=p=>{const cars=Object.keys(p.cars||{}).filter(k=>CARS[k]).length;return`Account level ${acctInfo(p.acctXp||0).lv} · ${(p.scrap||0).toLocaleString()} scrap · ${cars} of ${Object.keys(CARS).length} vehicles · ${achCount(p)} of ${ACH.length} achievements · best run ${fmt(p.best||0)}`};
 let xPending=null,xTimer=0;
 const xMsg=(t,cls)=>{const m=$('xMsg');m.textContent=t;m.className=cls||''};
 function renderXfer(){xPending=null;$('xConfirm').hidden=true;$('xIn').value='';$('xKey').textContent=fmtKey(P.cloudKey);renderCloud();
@@ -2838,7 +2953,7 @@ function renderReport(){const od=G.odStart>=0?(G.escaped||G.forfeit?G.t-G.odStar
     G.cleared?'':`Wreck ${G.L.boss.name} to open the exit portal.`;
   $('rNote').hidden=!note;$('rNote').textContent=note;
   const tot=Object.values(G.dmgBy).reduce((a,b)=>a+b,0);
-  const st=[['Juggernauts',G.miniKills],['Chrome hunters',G.eliteKills],['Ram wrecks',G.ramKills],['Barrels popped',G.barrelBooms],['Props smashed',G.propsBroken],['Power-ups',G.powerups],
+  const st=[['Juggernauts',G.miniKills],['Chrome bandits',G.eliteKills],['Ram wrecks',G.ramKills],['Barrels popped',G.barrelBooms],['Props smashed',G.propsBroken],['Power-ups',G.powerups],
     ['Bolts earned',G.boltsGot],['Items',items],['Damage dealt',Math.round(tot).toLocaleString()],['Damage taken',Math.round(G.dmgTaken).toLocaleString()],['Distance',(G.dist/10000).toFixed(1)+' km'],
     G.clearT>=0?[G.L.boss.name,'down at '+fmt(G.clearT)]:['Boss','not reached']];
   if(od>=0)st.push(['Overdrive',`${fmt(od)} · tier ${roman(Math.max(1,G.odTier))}`]);
@@ -2860,7 +2975,7 @@ function gameOver(title){state='over';commitRun();results(title||(G.forfeit?'Run
 function updateWreck(dt){const w=G.wreck,p=G.p;if(!w)return;w.t+=dt;
   while(w.booms.length&&w.t>=w.booms[0]){w.booms.shift();boomFx(p.x+rand(-28,28),p.y+rand(-22,22),rand(70,125))}
   if(Math.random()<.6){part(p.x+rand(-14,14),p.y+rand(-10,10),rand(-25,25),rand(-70,-20),rand(.35,.7),rand(6,13),null,'fire');part(p.x+rand(-8,8),p.y,rand(-15,15),rand(-55,-20),rand(1,1.9),rand(10,18),null,'smoke')}}
-function renderAch(){const r=rec(),n=Object.keys(P.ach).length;
+function renderAch(){const r=rec(),n=achCount(P);
   $('achCount').textContent=`${n} of ${ACH.length} unlocked`;$('achFill').style.width=(n/ACH.length*100)+'%';
   const val=(a,v)=>a.time?fmt(v):Math.floor(v).toLocaleString();
   $('achGrid').innerHTML=ACH.map(a=>{const on=P.ach[a.id],v=Math.min(r[a.k],a.n),rw=rewardOf(a.id);
@@ -2890,7 +3005,8 @@ function maxedOut(){const n=G.pending;G.pending=0;if(state==='levelup'){state='p
 const rerollCost=()=>{const n=G.rerolls||0;return n===0?0:Math.round(5*n*(1+0.15*(n-1)))};
 function rerollLevelup(){if(state!=='levelup')return;const c=rerollCost();if(G.bolts<c)return;G.bolts-=c;G.rerolls=(G.rerolls||0)+1;
   const ch=buildChoices();if(!ch.length)return;choices=ch;sfx('buy');renderLevelup();const f=$('choice0');if(f)f.focus()}
-function openLevelup(){const ch=buildChoices();if(!ch.length){maxedOut();return}state='levelup';choices=ch;sfx('level');renderLevelup();
+function lvSparks(){const fx=$('lvfx');if(fx.childElementCount)return;let h='';for(let i=0;i<16;i++)h+=`<i style="left:${(i*6.3+Math.random()*5).toFixed(1)}%;animation-duration:${(3.5+Math.random()*3).toFixed(2)}s;animation-delay:${(-Math.random()*6).toFixed(2)}s"></i>`;fx.innerHTML=h}
+function openLevelup(){lvSparks();const ch=buildChoices();if(!ch.length){maxedOut();return}state='levelup';choices=ch;sfx('level');renderLevelup();
   show('scrLevel');touch.active=false;for(const k in keys)keys[k]=false;
   const first=$('choice0');if(first)setTimeout(()=>first.focus(),50);
 }
@@ -2947,13 +3063,20 @@ function attract(dt){G.t+=dt;const p=G.p,R=clamp(Math.min(VW,VH)*.4,160,460),w=0
 resize();newGame(curLevel);show('scrMenu');refreshMenu();
 let last=performance.now();
 let wxDt=0;
+// real-time clock for things that keep animating while the world is held still (the portal fly-over)
+let vclock=0;const REVEAL_T=2.7;
+// any key or tap cuts the fly-over short and swings the camera straight back
+addEventListener('keydown',()=>{if(G&&G.reveal&&G.reveal.t<2)G.reveal.t=2});addEventListener('pointerdown',()=>{if(G&&G.reveal&&G.reveal.t<2)G.reveal.t=2});
 function frame(now){requestAnimationFrame(frame);
-  const ms=now-last,dt=clamp(ms/1000,0,0.05);last=now;wxDt=dt;updateWeatherSound();autoQuality(ms);
+  const ms=now-last,dt=clamp(ms/1000,0,0.05);last=now;vclock+=dt;wxDt=dt;updateWeatherSound();autoQuality(ms);
   DBG.ft=DBG.ft*.92+(dt*1000)*.08;if(DBG.msgT>0)DBG.msgT-=dt;
-  if(state==='play'){if(DBG.scale>1){for(let i=0;i<DBG.scale&&state==='play';i++)update(dt)}else update(dt*DBG.scale);if(state==='play'||state==='levelup')updateHud()}
+  if(state==='play'&&G.reveal){G.reveal.t+=dt;if(G.portal)G.portal.t+=dt;G.shake*=Math.exp(-5*dt);if(G.reveal.t>=REVEAL_T)G.reveal=null;updateHud()}
+  else if(state==='play'){if(DBG.scale>1){for(let i=0;i<DBG.scale&&state==='play';i++)update(dt)}else update(dt*DBG.scale);if(state==='play'||state==='levelup')updateHud()}
   else if(state==='menu')attract(dt);
   else if(state==='over'){updateWreck(dt);updateFx(dt);G.shake*=Math.exp(-7*dt)}
-  const c=G.cam,p=G.p,am=state==='menu',tx=am?ARENA/2:p.x+p.vx*.3,ty=am?ARENA/2:p.y+p.vy*.3,k=1-Math.exp(-6*dt);c.x+=(tx-c.x)*k;c.y+=(ty-c.y)*k;
+  const c=G.cam,p=G.p,am=state==='menu';let tx=am?ARENA/2:p.x+p.vx*.3,ty=am?ARENA/2:p.y+p.vy*.3,k=1-Math.exp(-6*dt);
+  if(G.reveal&&G.portal&&state!=='menu'){const t=G.reveal.t,e=x=>x*x*(3-2*x),w=t<.8?e(t/.8):t<2?1:t<REVEAL_T?1-e((t-2)/(REVEAL_T-2)):0;tx+=(G.portal.x-tx)*w;ty+=(G.portal.y-ty)*w;k=1}
+  c.x+=(tx-c.x)*k;c.y+=(ty-c.y)*k;
   draw();drawHunterCam();try{updateHover()}catch(e){$('hoverTip').hidden=true;console.error(e)}renderRadio(false);renderDebug(false);
 }
 requestAnimationFrame(frame);

@@ -72,7 +72,7 @@ Preconnect hints to `fonts.googleapis.com` and `fonts.gstatic.com` are at lines 
 | I3 | Car body (shadow, wheels, body, roof, windows, lights) shared by player and enemies | `drawCar()` line 1307, `rr()` line 1304 | Procedural · user-provided code; wheel scaling added by Claude |
 | I4 | Player vehicles: six body styles plus every weapon and upgrade attachment drawn on the car | `drawRig()` line 879, `drawPlayer()` line 1320 | Procedural · Claude (the original spikes/turret detail came from the upload) |
 | I5 | Vehicle preview thumbnails: rendered to a canvas and turned into a `data:image/png` URL | `carThumb()` line 912 (`toDataURL`), shown via `<img>` in `carCard()` line 1551 | Procedural · Claude |
-| I6 | Enemy car sprite cache (buggy, sedan, truck, gunner, Chrome Hunter, Juggernaut, level boss; normal, hit-flash and frozen tints) | `CAR_EXTRA` line 1343, `carSprite()` line 1350, `blitCar()` | Procedural · Claude. The boss plough, gunner turret and elite outline designs were in the upload; level-boss stripes and caching are Claude's |
+| I6 | Enemy car sprite cache (buggy, sedan, truck, gunner, Chrome Bandit, Juggernaut, level boss; normal, hit-flash and frozen tints) | `CAR_EXTRA` line 1343, `carSprite()` line 1350, `blitCar()` | Procedural · Claude. The boss plough, gunner turret and elite outline designs were in the upload; level-boss stripes and caching are Claude's |
 | I7 | Trader trucks | `drawTrader()` line 1326 | Procedural · Claude |
 | I8 | Track obstacles: containers, junk piles, tire stacks, trees, pines, burnt trees, rocks, barns, silos, cabins, ruins, buildings, street lamps, parked cars, tesla pylons; plus smashable props (crates, hay, cones, hydrants, snowmen) and city sidewalks | `drawObstacles()` line 825; outline generator `blob()` line 747 | Procedural · Claude |
 | I9 | Hazard zones: oil, ice, lava, acid, spike strips | `drawZones()` line 816 | Procedural · Claude |
@@ -88,6 +88,7 @@ Preconnect hints to `fonts.googleapis.com` and `fonts.gstatic.com` are at lines 
 | I19 | Floating damage numbers (Chakra Petch text cached to small canvases) | `textSprite()` line 1359 | Procedural · Claude (uses font F2) |
 | I20 | Low-HP red screen vignette | `createRadialGradient` line 1446 | Procedural · user-provided code |
 | I21 | Off-screen arrows, touch joystick, airstrike flash, freeze tint | `draw()` | Procedural · user-provided code (arrows, joystick); flash and freeze tint by Claude |
+| I22 | Boss wreckage: flattened containers, barns, cabins, ruins and silos, rubble, tree stumps and bent street lamps left where a Juggernaut or level boss smashed through | `wreckObs()` and `drawWreck()` in `index.html` | Procedural · Claude |
 
 ### UI graphics (CSS)
 
