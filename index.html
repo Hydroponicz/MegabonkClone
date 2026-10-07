@@ -404,6 +404,7 @@ body.nocursor,body.nocursor *{cursor:none!important}
 .dtree .achbar i{background:var(--c)}
 .dpts{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:10px 0 2px;font-size:13px}.dpts b{color:var(--hazard);font-size:18px}
 .dpts .btn{padding:6px 12px;font-size:12px}
+.dtrain{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:8px 0 2px;padding:8px 10px;background:var(--ink);font-size:12px;color:var(--dim)}.dtrain .btn{padding:6px 12px;font-size:12px;white-space:nowrap}
 .dnote{margin:4px 0 10px;font-size:12px;color:var(--dim);line-height:1.4}
 .dcareer{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:14px}.dcareer div{background:var(--ink);padding:8px 10px}.dcareer span{display:block;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--dim)}.dcareer b{font-family:var(--display);font-weight:400;font-size:20px;color:var(--c)}
 .tree{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
@@ -417,6 +418,14 @@ body.nocursor,body.nocursor *{cursor:none!important}
 .link{display:block;width:2px;height:10px;margin:0 auto;background:var(--line)}.link.on{background:var(--b)}
 @media (max-width:820px){.drvlist{grid-template-columns:repeat(3,minmax(0,1fr))}#drvBody{grid-template-columns:1fr}.dhero{grid-template-columns:120px minmax(0,1fr);gap:12px;padding:10px}}
 @media (max-width:520px){.tree{grid-template-columns:1fr}.node{min-height:0}.dhero{grid-template-columns:96px minmax(0,1fr)}.did blockquote{font-size:13px}}
+.upg .pips i.x{border:1px solid rgba(255,194,26,.35)}.upg .pips i.x.on{background:#ffc21a}.upg.mk2{border-color:rgba(255,194,26,.45)}.upg b em{font-style:normal;font-family:var(--body);font-size:10px;font-weight:700;letter-spacing:.12em;color:var(--ink);background:var(--hazard);padding:1px 5px;margin-left:4px;vertical-align:2px}
+.paintcar{display:flex;align-items:center;gap:14px;width:100%;box-sizing:border-box;background:var(--panel);border:1px solid var(--line);padding:8px 12px;text-align:left}.paintcar img{width:150px;height:auto}.paintcar b{display:block;font-family:var(--display);font-weight:400;font-size:20px}.paintcar small{color:var(--dim);font-size:12px}
+.paintgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:8px;width:100%}
+.paint{display:flex;flex-direction:column;align-items:flex-start;gap:4px;background:var(--panel);border:2px solid var(--line);color:var(--fg);font-family:var(--body);padding:8px;cursor:pointer;text-align:left}
+.paint i{display:block;width:100%;height:26px;background:linear-gradient(135deg,color-mix(in srgb,var(--pc) 65%,#fff) 0%,var(--pc) 40%,color-mix(in srgb,var(--pc) 70%,#000) 100%);border:1px solid rgba(0,0,0,.5)}
+.paint b{font-size:13px;font-weight:700}.paint span{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}
+.paint.on{border-color:var(--pc);box-shadow:0 0 14px -4px var(--pc)}.paint.on span{color:var(--pc)}.paint:hover:not(:disabled),.paint:focus-visible{border-color:var(--pc);outline:none}.paint:disabled{opacity:.5;cursor:not-allowed}.paint.locked i{filter:saturate(.6)}
+@media (max-width:520px){.paintcar img{width:100px}}
 @media (prefers-reduced-motion:reduce){.card,#banner,.mbtn,.toast{transition:none;animation:none}}
 /* level-up flair: the cards never move, only their borders, glow and the backdrop do */
 @property --lva{syntax:'<angle>';inherits:false;initial-value:0deg}
@@ -527,6 +536,9 @@ body.nocursor,body.nocursor *{cursor:none!important}
     <div class="cargrid" id="carGrid"></div>
     <p class="sub secthead">Permanent upgrades</p>
     <div class="upgrid" id="upGrid"></div>
+    <p class="sub secthead">Paint shop</p>
+    <div class="paintcar" id="paintCar"></div>
+    <div class="paintgrid" id="paintGrid"></div>
   </section>
 
   <section id="scrDrivers" class="panel" hidden>
@@ -742,7 +754,7 @@ let P=(()=>{const main=readKey(PKEY),bak=readKey(PBAK);if(!main&&bak&&bak.p&&typ
 let bakXp=(readKey(PBAK)||{p:{}}).p.acctXp??-1,cloudDirty=false;
 // permanent recovery code: the cloud backup is filed under it, and typing it into Transfer save on any device brings the progress back.
 // every profile gets one (fresh, loaded, reset or imported)
-function normProfile(){if(!new RegExp('^['+KEY_ABC+']{12}$').test(P.cloudKey||'')){const a=new Uint8Array(12);crypto.getRandomValues(a);P.cloudKey=[...a].map(x=>KEY_ABC[x%KEY_ABC.length]).join('')}P.ach=Object.assign({},P.ach);/* Vandal was retired (30 achievements): drop it, but keep the Burnout Trail it unlocked */if(P.ach.vandal){delete P.ach.vandal;P.trailKept=1}P.tracks=Object.assign({},P.tracks);P.garage=Object.assign({},P.garage);P.cars=Object.assign({interceptor:1},P.cars);if(!P.cars[P.car])P.car='interceptor';P.lbQueue=Object.assign({},P.lbQueue);P.drivers=Object.assign({},P.drivers);if(!P.driver)P.driver='rook'}
+function normProfile(){if(!new RegExp('^['+KEY_ABC+']{12}$').test(P.cloudKey||'')){const a=new Uint8Array(12);crypto.getRandomValues(a);P.cloudKey=[...a].map(x=>KEY_ABC[x%KEY_ABC.length]).join('')}P.ach=Object.assign({},P.ach);/* Vandal was retired (30 achievements): drop it, but keep the Burnout Trail it unlocked */if(P.ach.vandal){delete P.ach.vandal;P.trailKept=1}P.tracks=Object.assign({},P.tracks);P.garage=Object.assign({},P.garage);P.cars=Object.assign({interceptor:1},P.cars);if(!P.cars[P.car])P.car='interceptor';P.lbQueue=Object.assign({},P.lbQueue);P.drivers=Object.assign({},P.drivers);if(!P.driver)P.driver='rook';P.paints=Object.assign({},P.paints);P.paint=Object.assign({},P.paint)}
 if(!P.best){try{P.best=+localStorage.getItem('carnageBest')||0}catch(e){}}
 const saveSettings=()=>save('carnageSettings',S);
 function saveProfile(){save(PKEY,P);if((P.acctXp||0)>=bakXp&&save(PBAK,{at:Date.now(),p:P}))bakXp=P.acctXp||0;cloudDirty=true}
@@ -1127,7 +1139,7 @@ const PDEF={
 };
 // car-exclusive gear (the Hydro Cannon) only ever shows up for the car that carries it
 // kept: a profile flag that keeps an unlock for players who earned it under an achievement that has since been retired
-const unlocked=d=>d.only?!!(G&&G.car===CARS[d.only]):!d.unlock||!!P.ach[d.unlock]||!!(d.kept&&P[d.kept]);
+const unlocked=d=>d.only?!!(G&&G.carId===d.only):!d.unlock||!!P.ach[d.unlock]||!!(d.kept&&P[d.kept]);
 const ETYPES={
   buggy:{r:13,hp:10,spd:250,turn:3.2,dmg:6,xp:1,col:'#b8c93e',len:28,wid:16},
   sedan:{r:17,hp:20,spd:178,turn:2.3,dmg:10,xp:2,col:'#4a86d9',len:36,wid:20},
@@ -1332,14 +1344,14 @@ const GARAGE={
   wslots:{name:'Weapon Bay',desc:'One more weapon slot every run (you start with 2).',max:3,cost:90},
   pslots:{name:'Upgrade Rack',desc:'One more upgrade slot every run (you start with 2).',max:3,cost:80},
   tslots:{name:'Trinket Case',desc:'One more trinket slot every run (you start with 4).',max:4,cost:100},
-  frame:{name:'Reinforced Frame',desc:'+10 max HP per level.',max:5,cost:40},
-  engine:{name:'Tuned Engine',desc:'+3% top speed per level.',max:5,cost:50},
-  ammo:{name:'Better Ammo',desc:'+5% weapon damage per level.',max:5,cost:60},
-  loader:{name:'Quick Loader',desc:'Weapons recharge 3% faster per level.',max:5,cost:60},
-  magnet:{name:'Wide Magnet',desc:'+10% pickup radius per level.',max:5,cost:35},
-  luck:{name:'Lucky Charm',desc:'+15% chance of random drops per level.',max:5,cost:50},
-  salvage:{name:'Salvager',desc:'+10% scrap banked after each run per level.',max:5,cost:45},
-  wallet:{name:'Bolt Stash',desc:'Start every run with 8 more bolts per level.',max:5,cost:30},
+  frame:{name:'Reinforced Frame',desc:'+10 max HP per level.',max:10,mk2:1,cost:40},
+  engine:{name:'Tuned Engine',desc:'+3% top speed per level.',max:8,mk2:1,cost:50},
+  ammo:{name:'Better Ammo',desc:'+5% weapon damage per level.',max:10,mk2:1,cost:60},
+  loader:{name:'Quick Loader',desc:'Weapons recharge 3% faster per level.',max:10,mk2:1,cost:60},
+  magnet:{name:'Wide Magnet',desc:'+10% pickup radius per level.',max:10,mk2:1,cost:35},
+  luck:{name:'Lucky Charm',desc:'+15% chance of random drops per level.',max:10,mk2:1,cost:50},
+  salvage:{name:'Salvager',desc:'+10% scrap banked after each run per level.',max:10,mk2:1,cost:45},
+  wallet:{name:'Bolt Stash',desc:'Start every run with 8 more bolts per level.',max:10,mk2:1,cost:30},
   kit:{name:'Starter Kit',desc:'One more free bolt-on at the start of every run.',max:3,cost:120},
   revive:{name:'Second Wind',desc:'Survive one more wreck every run.',max:2,cost:400},
 };
@@ -1347,6 +1359,11 @@ const gl=k=>P.garage[k]||0;
 // how many different weapons / upgrades a run can carry
 const slotsW=()=>2+gl('wslots'),slotsP=()=>2+gl('pslots'),slotsT=()=>4+gl('tslots');
 const gcost=k=>Math.round(GARAGE[k].cost*Math.pow(1.6,gl(k)));
+// paint shop: paint jobs bought once and applied per car (cosmetic only)
+const PAINTS={factory:{name:'Factory',cost:0},black:{name:'Midnight',col:'#2b2a33',cost:300},white:{name:'Arctic',col:'#e8eef4',cost:300},red:{name:'Racing Red',col:'#e0283c',cost:300},blue:{name:'Electric Blue',col:'#2f7bff',cost:300},green:{name:'Toxic',col:'#7ad13a',cost:300},orange:{name:'Sunset',col:'#ff7a1f',cost:300},purple:{name:'Royal Purple',col:'#8a3cff',cost:300},
+  pink:{name:'Hot Pink',col:'#ff4fd8',cost:600},teal:{name:'Lagoon',col:'#21c7b8',cost:600},camo:{name:'Army Drab',col:'#5a6a3a',cost:600},chrome:{name:'Chrome',col:'#c9d1db',cost:1500},kick:{name:'Kick Green',col:'#53fc18',cost:2000},gold:{name:'24K Gold',col:'#e3b234',cost:3000}};
+const paintOf=id=>{const k=(P.paint||{})[id];return k&&PAINTS[k]&&PAINTS[k].col&&(P.paints||{})[k]?k:'factory'};
+const paintCol=id=>{const k=paintOf(id);return k==='factory'?CARS[id].col:PAINTS[k].col};
 
 /* ---------- drivers: who's behind the wheel. Each has their own traits, levels up from the XP of runs they drive,
    and spends a skill point per level on their own three-branch skill tree ---------- */
@@ -1968,18 +1985,18 @@ function drawRig(x,y,a,C,W,Pa,blink,t,flameOn){const len=C.len,wid=C.wid,st=C.st
   },st==='monster'?1.6:st==='dozer'?1.2:1)}
 const thumbs={};
 // small preview of a car with its starting loadout, rendered once to an image
-function carThumb(id){if(thumbs[id])return thumbs[id];const C=CARS[id],c=document.createElement('canvas');c.width=240;c.height=130;const keep=ctx;ctx=c.getContext('2d');
-  ctx.setTransform(2.6,0,0,2.6,120,62);const W={};for(const k in C.start.w)W[k]={lvl:C.start.w[k],aim:-0.35};drawRig(0,0,-0.35,C,W,C.start.p||{},false,0,false);ctx=keep;return thumbs[id]=c.toDataURL()}
+function carThumb(id,col){col=col||paintCol(id);const key=id+col;if(thumbs[key])return thumbs[key];const C=col===CARS[id].col?CARS[id]:Object.assign({},CARS[id],{col}),c=document.createElement('canvas');c.width=240;c.height=130;const keep=ctx;ctx=c.getContext('2d');
+  ctx.setTransform(2.6,0,0,2.6,120,62);const W={};for(const k in C.start.w)W[k]={lvl:C.start.w[k],aim:-0.35};drawRig(0,0,-0.35,C,W,C.start.p||{},false,0,false);ctx=keep;return thumbs[key]=c.toDataURL()}
 
 /* ---------- state ---------- */
 let state='menu',G=null,choices=[],curLevel=clamp(P.lastLevel|0,0,LEVELS.length-1),eid=0;
 
-function newGame(li){const L=LEVELS[li];curLevel=li;const wk=FORECAST[L.id]||rollWeather(L);groundPat=makeGround(L);const C=CARS[P.cars[P.car]?P.car:'interceptor'],Wd=buildWorld(L),start={};
+function newGame(li){const L=LEVELS[li];curLevel=li;const wk=FORECAST[L.id]||rollWeather(L);groundPat=makeGround(L);const CID=P.cars[P.car]?P.car:'interceptor',C=paintOf(CID)==='factory'?CARS[CID]:Object.assign({},CARS[CID],{col:paintCol(CID)}),Wd=buildWorld(L),start={};
   for(const k in C.start.w)start[k]={lvl:C.start.w[k],cd:0.4,aim:-Math.PI/2};
   G={L,t:0,kills:0,level:1,xp:0,xpNeed:6,pending:0,shake:0,hurtFlash:0,live:false,
     miniKills:0,minisSpawned:0,eliteKills:0,ramKills:0,barrelBooms:0,lowAt:-1,newAch:[],achT:0,
     bolts:0,tk:{},bought:0,trader:null,lastTrader:-1,near:false,nextTrader:100+rand(0,40),
-    bossDue:-1,lboss:null,mini:null,cleared:false,clearT:-1,portalT:-1,portal:null,odStart:-1,odTier:0,exitT:-1,escaped:false,forfeit:false,dmgBy:{},dmgTaken:0,dist:0,boltsGot:0,shieldT:0,gain:0,car:C,scrapRaw:0,sack:0,scrapGain:0,propsBroken:0,powerups:0,flashT:0,
+    bossDue:-1,lboss:null,mini:null,cleared:false,clearT:-1,portalT:-1,portal:null,odStart:-1,odTier:0,exitT:-1,escaped:false,forfeit:false,dmgBy:{},dmgTaken:0,dist:0,boltsGot:0,shieldT:0,gain:0,car:C,carId:CID,scrapRaw:0,sack:0,scrapGain:0,propsBroken:0,powerups:0,flashT:0,
     buffs:{nitro:0,fury:0,freeze:0,bubble:0},discs:[],trail:[],treads:[],drones:[],rcs:[],rcfx:[],glove:[],tumbles:[],flowT:0,frame:0,leashT:1,recycled:0,revives:gl('revive'),obs:Wd.obs,props:Wd.props,zones:Wd.zones,pylons:Wd.pylons,deco:Wd.deco,
     p:{x:ARENA/2,y:ARENA/2+200,a:-Math.PI/2,vx:0,vy:0,hp:100,maxhp:100,r:Math.max(C.len,C.wid)*.43,inv:0},
     stats:{},weapons:start,passives:Object.assign({},C.start.p),
@@ -3133,8 +3150,15 @@ function carCard(id,mode){const C=CARS[id],own=!!P.cars[id],sel=P.car===id,bar=(
 function renderGarage(){$('garScrap').textContent=P.scrap.toLocaleString();
   $('carGrid').innerHTML=Object.keys(CARS).filter(id=>!CARS[id].secret||P.cars[id]).map(id=>carCard(id,'shop')).join('');
   $('upGrid').innerHTML=Object.keys(GARAGE).map(k=>{const U=GARAGE[k],l=gl(k),max=l>=U.max,c=gcost(k);
-    return`<button class="upg" data-up="${k}" ${max||P.scrap<c?'disabled':''}><b>${U.name}</b><span class="d">${U.desc}</span><span class="pips">${Array.from({length:U.max},(_,i)=>`<i class="${i<l?'on':''}"></i>`).join('')}</span><span class="cost">${max?'Maxed':`<span class="scrapi"></span>${c}`}</span></button>`}).join('')}
-function garageClick(e){const c=e.target.closest('.car'),u=e.target.closest('.upg');
+    return`<button class="upg${U.mk2&&l>=5?' mk2':''}" data-up="${k}" ${max||P.scrap<c?'disabled':''}><b>${U.name}${U.mk2&&l>=5?' <em>Mk II</em>':''}</b><span class="d">${U.desc}</span><span class="pips">${Array.from({length:U.max},(_,i)=>`<i class="${i<l?'on':''}${i>=5?' x':''}"></i>`).join('')}</span><span class="cost">${max?'Maxed':`<span class="scrapi"></span>${c.toLocaleString()}`}</span></button>`}).join('');
+  renderPaint()}
+// paint shop: the selected car in the chosen paint, and a swatch for every paint job
+function renderPaint(){const id=P.car,C=CARS[id],cur=paintOf(id);$('paintCar').innerHTML=`<img src="${carThumb(id)}" alt=""><span><b style="color:${paintCol(id)}">${C.name}</b><small>Painting the car you're driving. Pick another in Vehicles above.</small></span>`;
+  $('paintGrid').innerHTML=Object.keys(PAINTS).map(k=>{const Pn=PAINTS[k],own=k==='factory'||!!(P.paints||{})[k],on=cur===k,col=Pn.col||C.col;
+    return`<button class="paint${on?' on':''}${own?'':' locked'}" data-paint="${k}" style="--pc:${col}" ${!own&&P.scrap<Pn.cost?'disabled':''}><i></i><b>${Pn.name}</b><span>${on?'On this car':own?'Apply':`<span class="scrapi"></span>${Pn.cost.toLocaleString()}`}</span></button>`}).join('')}
+function garageClick(e){const c=e.target.closest('.car'),u=e.target.closest('.upg'),pt=e.target.closest('.paint');
+  if(pt&&!pt.disabled){const k=pt.dataset.paint,Pn=PAINTS[k];P.paints=P.paints||{};P.paint=P.paint||{};if(k!=='factory'&&!P.paints[k]){if(P.scrap<Pn.cost)return;P.scrap-=Pn.cost;P.paints[k]=1;sfx('buy');toast('▶','Paint bought',Pn.name)}else sfx('pick');
+    P.paint[P.car]=k;saveProfile();renderGarage();const f=$('paintGrid').querySelector(`[data-paint="${k}"]`);if(f)f.focus();return}
   if(c){const id=c.dataset.car,C=CARS[id];if(P.cars[id])P.car=id;else if(P.scrap>=C.cost){P.scrap-=C.cost;P.cars[id]=1;P.car=id;sfx('buy');toast('▶','Vehicle bought',C.name)}else return;saveProfile();checkAch();renderGarage();$('carGrid').querySelector(`[data-car="${id}"]`).focus()}
   if(u&&!u.disabled){const k=u.dataset.up,c2=gcost(k);if(P.scrap<c2||gl(k)>=GARAGE[k].max)return;P.scrap-=c2;P.garage[k]=gl(k)+1;sfx('buy');saveProfile();checkAch();renderGarage();const n=$('upGrid').querySelector(`[data-up="${k}"]`);(n.disabled?$('upGrid').querySelector('.upg:not(:disabled)')||$('scrGarage').querySelector('.back'):n).focus()}}
 /* ---------- Drivers screen ---------- */
@@ -3158,12 +3182,16 @@ function renderDrivers(){if(!DRIVERS[drvView])drvView=curDriver();const id=drvVi
       <p class="sub secthead" style="margin-top:14px">Career with you</p><div class="dcareer"><div><span>Runs</span><b>${(st.runs||0).toLocaleString()}</b></div><div><span>Best run</span><b>${fmt(st.best||0)}</b></div><div><span>Wrecks</span><b>${(st.kills||0).toLocaleString()}</b></div><div><span>Tracks cleared</span><b>${(st.clears||0).toLocaleString()}</b></div></div></div>
     <div class="dtree" style="--c:${D.col}"><div class="dlv"><span>Driver level <b>${L.lv}</b>${L.lv>=DRV_MAX?' · max':''}</span><span>${L.lv>=DRV_MAX?'All levels earned':`${L.into} / ${L.need} XP`}</span></div><div class="achbar"><i style="width:${L.lv>=DRV_MAX?100:L.into/L.need*100}%"></i></div>
       <div class="dpts"><span>${own?`<b>${pts}</b> skill point${pts===1?'':'s'} to spend`:'Hire this driver to start their skill tree'}</span>${own&&drvSpent(id)?'<button class="btn alt" id="drvReset">Reset skills</button>':''}</div>
+      ${own&&L.lv<DRV_MAX?`<div class="dtrain"><span>Training camp: pay for laps instead of racing them. Takes ${D.nick} straight to level ${L.lv+1}.</span><button class="btn alt" id="drvTrain" ${P.scrap<drvTrainCost(id)?'disabled':''}>Train · <span class="scrapi"></span>${drvTrainCost(id).toLocaleString()}</button></div>`:''}
       <p class="dnote">Drivers earn the same XP as your account from every run they drive, and get a skill point each level.</p>
       <div class="tree">${tree}</div></div>`}
+// training: scrap buys the XP that's left to the next level, at 3 scrap per XP
+const drvTrainCost=id=>{const L=drvLevel(drvState(id).xp);return L.lv>=DRV_MAX?0:(L.need-L.into)*3};
 function drvClick(e){const c=e.target.closest('.drv'),n=e.target.closest('.node'),id=drvView;
   if(c){drvView=c.dataset.drv;renderDrivers();const f=$('drvList').querySelector(`[data-drv="${drvView}"]`);if(f)f.focus();return}
   if(e.target.closest('#drvUse')){P.driver=id;saveProfile();sfx('pick');toast('▶','Driver',DRIVERS[id].name);renderDrivers();refreshMenu();return}
   if(e.target.closest('#drvHire')){const D=DRIVERS[id];if(drvOwned(id)||P.scrap<D.cost)return;P.scrap-=D.cost;drvState(id).own=1;P.driver=id;sfx('buy');toast('▶','Driver hired',D.name);saveProfile();renderDrivers();refreshMenu();return}
+  if(e.target.closest('#drvTrain')){const c=drvTrainCost(id),st=drvState(id);if(!drvOwned(id)||!c||P.scrap<c)return;const L=drvLevel(st.xp);P.scrap-=c;st.xp+=L.need-L.into;sfx('level');toast('★',DRIVERS[id].nick+' trained',`Driver level ${L.lv+1} · 1 skill point to spend`);saveProfile();renderDrivers();refreshMenu();const f=$('drvTrain');if(f)f.focus();return}
   if(e.target.closest('#drvReset')){drvState(id).sk={};sfx('pick');saveProfile();renderDrivers();return}
   if(n&&drvOwned(id)){const [bi,t]=n.dataset.node.split(',').map(Number);if(!drvCanLearn(id,bi,t))return;drvState(id).sk[DRIVERS[id].tree[bi].nodes[t].id]=1;sfx('buy');saveProfile();renderDrivers();
     const f=$('drvBody').querySelector(`[data-node="${bi},${t}"]`);if(f)f.focus()}}
@@ -3257,7 +3285,7 @@ if(!/^[a-f0-9]{32}$/.test(P.pid||'')){const a=new Uint8Array(16);crypto.getRando
 const lbClean=s=>String(s||'').replace(/[^\w .\-]/g,'').replace(/\s+/g,' ').trim().slice(0,16);
 if(lbClean(P.lbName).length<2)P.lbName='Driver '+(parseInt(P.pid.slice(0,4),16)%9000+1000);
 P.lbQueue=Object.assign({},P.lbQueue);saveProfile();
-const carIdOf=c=>Object.keys(CARS).find(k=>CARS[k]===c)||'interceptor';
+const carIdOf=c=>(G&&G.car===c&&G.carId)||Object.keys(CARS).find(k=>CARS[k]===c)||'interceptor';
 async function lbFetch(q,opts={}){const r=await fetch(LB_API+q,Object.assign({cache:'no-store'},opts));const j=await r.json().catch(()=>null);
   if(!r.ok)throw Object.assign(new Error('lb'),{code:r.status===429?429:(j&&j.error)||r.status,env:j&&j.environment});
   // a 200 that isn't our JSON (e.g. a host serving index.html) is not a successful post
@@ -3394,7 +3422,7 @@ function pickChoice(i){const c=choices[i];if(!c||state!=='levelup')return;
 $('cards').addEventListener('click',e=>{const b=e.target.closest('.card');if(b)pickChoice(+b.dataset.i)});
 $('shopCards').addEventListener('click',e=>{const b=e.target.closest('.card');if(b)buy(+b.dataset.i)});
 $('lvGrid').addEventListener('click',e=>{const b=e.target.closest('.lv');if(b&&!b.disabled)startGame(+b.dataset.i)});
-$('carGrid').addEventListener('click',garageClick);$('upGrid').addEventListener('click',garageClick);
+$('carGrid').addEventListener('click',garageClick);$('paintGrid').addEventListener('click',garageClick);$('upGrid').addEventListener('click',garageClick);
 $('carPick').addEventListener('click',e=>{const c=e.target.closest('.car');if(!c)return;const id=c.dataset.car;if(P.cars[id]){P.car=id;saveProfile();renderLevels();$('carPick').querySelector(`[data-car="${id}"]`).focus();newGame(curLevel)}else openSub('scrGarage',c)});
 $('garBtn').onclick=e=>openSub('scrGarage',e.currentTarget);
 $('drvBtn').onclick=e=>openSub('scrDrivers',e.currentTarget);
