@@ -1533,7 +1533,8 @@ const ADS_CFG={
 };
 // the game's own server. When the page comes from somewhere else (a portal, the app-store build) it is called by its full address
 const API_HOME='https://games.hydroponicz.wtf';
-const PORTAL=(()=>{const q=(location.search.match(/[?&]portal=(crazygames|poki)\b/)||[])[1];if(q)return q;const h=location.hostname;return /(^|\.)crazygames\./.test(h)?'crazygames':/(^|\.)poki(-gdn)?\./.test(h)?'poki':''})();
+// a portal build carries its own flag (window.CL_PORTAL, added to the upload zip), so it never depends on the portal's web address
+const PORTAL=(()=>{if(/^(crazygames|poki)$/.test(window.CL_PORTAL||''))return window.CL_PORTAL;const q=(location.search.match(/[?&]portal=(crazygames|poki)\b/)||[])[1];if(q)return q;const h=location.hostname;return /(^|\.)crazygames\./.test(h)?'crazygames':/(^|\.)poki(-gdn)?\./.test(h)?'poki':''})();
 const IN_APP=!!(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform());
 const API_BASE=!IN_APP&&/^https?:$/.test(location.protocol)&&(/\.vercel\.app$|^localhost$|^127\.0\.0\.1$/.test(location.hostname)||location.hostname===new URL(API_HOME).hostname)?'':API_HOME;
 const ADS_PROVIDER=ADS_CFG.provider!=='auto'?ADS_CFG.provider:PORTAL||(!IN_APP&&ADS_CFG.adsenseClient?'h5':'placeholder');
