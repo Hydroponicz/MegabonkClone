@@ -570,10 +570,10 @@ body.nocursor,body.nocursor *{cursor:none!important}
     <div class="row">
       <div class="left"><div class="stat" data-tip="Run level|This run|Goes up as the XP bar fills. Every level up lets you pick a new weapon or upgrade.">Lvl<b id="lvl">1</b></div><div class="stat" data-tip="Bolts|Currency|Dropped by wrecked cars. Spend them at trader trucks on trinkets for this run."><span class="nut"></span><b id="bolts">0</b></div><div class="stat" data-tip="Scrap banked|Garage currency|Scrap you'll bank when this run ends: a quarter of the scrap you pick up, plus Juggernaut, track-clear and scrap-sack bonuses. Spend it in the Garage."><span class="scrapi"></span><b id="scrapH">0</b></div></div>
       <div id="timer" data-tip="Time survived|Run clock|A Juggernaut arrives every 2 minutes. Traders start showing up after 5:00.">00:00</div>
-      <div class="right"><div class="stat" data-tip="Wrecks|This run|Cars you've destroyed this run. Counts toward achievements and account XP.">Wrecks<b id="kills">0</b></div><button id="pauseBtn" aria-label="Pause" data-tip="Pause|P or Esc|Pause the run, change settings or quit to the menu.">II</button></div>
+      <div class="right"><div class="stat" data-tip="Wrecks|This run|Cars you've destroyed this run. Counts toward achievements and account XP.">Wrecks<b id="kills">0</b></div><button id="pauseBtn" aria-label="Pause" data-tip="Pause|{KeyP}|Pause the run, change settings or quit to the menu.">II</button></div>
     </div>
     <div class="row"><div class="hpwrap"><div id="drvFace" class="dface" data-tip="Your driver|Behind the wheel|Their face shows how the run is going: sweating when you're low, fired up on power-ups, wincing when hit."></div><div class="hpcol"><div class="hp" data-tip="Health|Your car|Ramming at full speed hurts you less. At zero you're wrecked, unless you have a Spare Tire or Second Wind."><div id="hpfill"></div><div id="hptext">100 / 100</div></div><div id="drvTag" class="dtag"></div></div></div><div id="objective" data-tip="Objective|Track progress|Wreck enough Juggernaut mini bosses and the track's level boss comes for you. Beat it to clear the track."></div></div>
-    <div id="traderHud" hidden data-tip="Trader|Shop on wheels|Drive into the dashed ring around the truck and press F (or tap the prompt) to buy items with bolts. Items also come from the Trader's Roll on level up."></div>
+    <div id="traderHud" hidden data-tip="Trader|Shop on wheels|Drive into the dashed ring around the truck and press {KeyF} (or tap the prompt) to buy items with bolts. Items also come from the Trader's Roll on level up."></div>
     <div id="wxHud" hidden></div>
     <div id="buffs"></div>
     <div id="cds"></div>
@@ -731,14 +731,14 @@ body.nocursor,body.nocursor *{cursor:none!important}
     <div class="subhead"><button class="back">‹ Back</button><h2 class="big">How to play</h2></div>
     <div class="btns" style="justify-content:flex-start;margin:0 0 14px"><button class="btn" id="tutReplay">▶ Play the tutorial</button></div>
     <div class="keys">
-      <div class="key"><b>Drive</b><span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> or arrows</span></div>
+      <div class="key"><b>Drive</b><span><kbd data-code="KeyW">W</kbd><kbd data-code="KeyA">A</kbd><kbd data-code="KeyS">S</kbd><kbd data-code="KeyD">D</kbd> or arrows</span></div>
       <div class="key"><b>Handbrake drift</b><span><kbd>Space</kbd></span></div>
-      <div class="key"><b>Trade</b><span><kbd>F</kbd> next to a parked trader</span></div>
-      <div class="key"><b>Reroll level-up picks</b><span><kbd>R</kbd> or the Reroll button · first one each run is free, then it costs more bolts each time</span></div>
+      <div class="key"><b>Trade</b><span><kbd data-code="KeyF">F</kbd> next to a parked trader</span></div>
+      <div class="key"><b>Reroll level-up picks</b><span><kbd data-code="KeyR">R</kbd> or the Reroll button · first one each run is free, then it costs more bolts each time</span></div>
       <div class="key" id="howDev"><b>Developer console</b><span><kbd>`</kbd> toggles it · F1–F10 and Shift+F1–F10 for test cheats. Debug runs don't post to the leaderboard</span></div>
-      <div class="key"><b>Use glovebox item</b><span><kbd>Q</kbd> or tap a glovebox slot (bottom right)</span></div>
-      <div class="key"><b>Next radio track</b><span><kbd>N</kbd> or the SEEK button</span></div>
-      <div class="key"><b>Pause</b><span><kbd>P</kbd> or <kbd>Esc</kbd></span></div>
+      <div class="key"><b>Use glovebox item</b><span><kbd data-code="KeyQ">Q</kbd> or tap a glovebox slot (bottom right)</span></div>
+      <div class="key"><b>Next radio track</b><span><kbd data-code="KeyN">N</kbd> or the SEEK button</span></div>
+      <div class="key"><b>Pause</b><span><kbd data-code="KeyP">P</kbd> or the II button (top right)</span></div>
       <div class="key"><b>Touch</b><span>Drag anywhere to steer. Tap the trader prompt to trade</span></div>
     </div>
     <div class="legend">
@@ -768,7 +768,7 @@ body.nocursor,body.nocursor *{cursor:none!important}
       <div class="key"><b>RC minions</b><span>Some level-ups are little remote-control cars with antennas. They take a weapon slot and work on their own: Medic patches you up, Rammer rams cars, Bomb drives into crowds and blows up, Scavenger fetches scrap and digs up bolts, Jammer hunts down packs of cars, slowing them and stopping gunners firing. Signal Booster makes them all stronger.</span></div>
       <div class="key"><b>Weather</b><span>Every run rolls its own weather, shown as the forecast on the track card. Rain and snow cost grip, blizzards shove you around, thunderstorms drop marked lightning strikes, and dust storms send tornadoes across the track.</span></div>
       <div class="key"><b>Exit portal</b><span>Beat the level boss and a portal opens in a far corner: the camera shows you where, then purple arrows point the way. Drive in to end the run and bank it. Stay longer and Overdrive kicks in: tougher, faster cars every 40 seconds. Get wrecked before you escape and the run doesn't count.</span></div>
-      <div class="key"><b>Traders</b><span>From about 2:00, a trader truck parks nearby every couple of minutes. Follow the light beam or the HUD arrow, drive into its ring and press F to buy items with bolts.</span></div>
+      <div class="key"><b>Traders</b><span>From about 2:00, a trader truck parks nearby every couple of minutes. Follow the light beam or the HUD arrow, drive into its ring and press <kbd data-code="KeyF">F</kbd> to buy items with bolts.</span></div>
       <div class="key"><b>Trader's Roll</b><span>Every level up can skip the bolt-on and roll a random item instead: Common, Rare or Epic, each with its own effect.</span></div>
       <div class="key"><b>Account level</b><span>Every run earns account XP. Higher levels open harder tracks.</span></div>
       <div class="key"><b>Unlocks</b><span>Some achievements add new weapons and upgrades to the level-up pool.</span></div>
@@ -787,7 +787,7 @@ body.nocursor,body.nocursor *{cursor:none!important}
 
   <section id="scrShop" class="panel" hidden>
     <div class="shophead"><span class="who" id="shopTitle">Firepower</span><h2 class="big" id="shopName">Trader</h2><span class="wallet"><span class="nut"></span><span id="shopBolts">0</span></span><span class="sub" id="shopSlots"></span></div>
-    <p class="sub">Buy with keys 1 to 3 · <kbd>R</kbd> to restock · <kbd>F</kbd> or <kbd>Esc</kbd> to leave</p>
+    <p class="sub">Buy with keys 1 to 3 · <kbd data-code="KeyR">R</kbd> to restock · <kbd data-code="KeyF">F</kbd> to leave</p>
     <div class="cards" id="shopCards"></div>
     <div class="btns"><button class="btn alt" id="shopReroll">Restock</button><button class="btn alt" id="shopLeave">Hit the road</button></div>
   </section>
@@ -1150,7 +1150,34 @@ function drawDebugWorld(vis){if(!DBG.on||!DBG.hit)return;const p=G.p;ctx.lineWid
   for(let x=c.x-VW/2;x<c.x+VW/2;x+=FC*2)for(let y=c.y-VH/2;y<c.y+VH/2;y+=FC*2){const cx=clamp(x/FC|0,0,FN-1),cy=clamp(y/FC|0,0,FN-1),a=arr[cx*FN+cy];if(a!==a)continue;const X=cx*FC+FC/2,Y=cy*FC+FC/2;ctx.moveTo(X,Y);ctx.lineTo(X+Math.cos(a)*18,Y+Math.sin(a)*18)}ctx.stroke()}
 /* ---------- input ---------- */
 const keys={};
+/* ---------- keyboard layouts ----------
+   Controls use physical key positions (e.code), so WASD is ZQSD on a French AZERTY keyboard without any setup.
+   What changes is the label: every key shown on screen is drawn from the player's own layout. */
+const KEY_LBL={};
+const KT=c=>KEY_LBL[c]||(/^Key[A-Z]$/.test(c)?c.slice(3):/^Digit\d$/.test(c)?c.slice(5):c==='Space'?'Space':c);
+const K=c=>`<kbd data-code="${c}">${KT(c)}</kbd>`;
+function relabelKeys(){
+  for(const k of document.querySelectorAll('kbd[data-code]')){const l=KT(k.dataset.code);if(k.textContent!==l)k.textContent=l}
+  for(const el of document.querySelectorAll('[data-tip*="{Key"],[data-tip-t]')){if(!el.dataset.tipT)el.dataset.tipT=el.dataset.tip;el.dataset.tip=el.dataset.tipT.replace(/\{(Key[A-Z])\}/g,(_,c)=>KT(c))}}
+function learnKey(code,lbl){lbl=String(lbl).toUpperCase();if(!/^Key[A-Z]$/.test(code)||!/^\p{L}$/u.test(lbl)||KEY_LBL[code]===lbl)return;KEY_LBL[code]=lbl;
+  // one telltale key is enough to know an AZERTY keyboard: fill in its other swapped letters straight away
+  if((code==='KeyW'&&lbl==='Z')||(code==='KeyQ'&&lbl==='A')||(code==='KeyA'&&lbl==='Q'))for(const [c,l] of [['KeyW','Z'],['KeyA','Q'],['KeyQ','A'],['KeyZ','W']])KEY_LBL[c]=l;
+  relabelKeys()}
+// a French keyboard is almost always AZERTY (Canada aside); the real layout replaces this guess as soon as it's known
+if(/^fr(-(fr|be|ch|lu|mc))?$/i.test(navigator.language||'')&&!/^fr-ca/i.test(navigator.language))Object.assign(KEY_LBL,{KeyW:'Z',KeyA:'Q',KeyQ:'A',KeyZ:'W'});
+try{navigator.keyboard&&navigator.keyboard.getLayoutMap&&navigator.keyboard.getLayoutMap().then(m=>{for(const [c,l] of m)if(/^Key[A-Z]$/.test(c))KEY_LBL[c]=String(l).toUpperCase();relabelKeys()}).catch(()=>{})}catch(e){}
+/* Escape leaves fullscreen and Ctrl/Cmd+W closes the tab, so the game never needs either:
+   pause is P (or the II button), menus go back with Backspace or their Back buttons.
+   Esc still works as a spare pause/back key on our own site, but never on portals, where players are often in fullscreen. */
+const escOk=()=>!PORTAL;
+const isFs=()=>!!(document.fullscreenElement||document.webkitFullscreenElement);
+for(const ev of['fullscreenchange','webkitfullscreenchange'])document.addEventListener(ev,()=>{
+  try{if(isFs())navigator.keyboard&&navigator.keyboard.lock&&navigator.keyboard.lock(['KeyW']).catch(()=>{});else{navigator.keyboard&&navigator.keyboard.unlock&&navigator.keyboard.unlock();if(state==='play')togglePause()}}catch(e){}});
 addEventListener('keydown',e=>{
+  if(e.key&&e.key.length===1&&!e.repeat)learnKey(e.code,e.key);
+  // browser shortcuts (Ctrl/Cmd/Alt + key) are never game controls; in fullscreen, Ctrl/Cmd+W is held back so a held W can't close the tab
+  if(e.ctrlKey||e.metaKey||e.altKey){if(e.code==='KeyW'&&isFs())e.preventDefault();return}
+  const back=e.code==='Backspace'||(e.code==='Escape'&&escOk());
   if(codeOpen){codeKeydown(e);return}
   if(!(e.target&&e.target.tagName==='INPUT')){
     if(e.code==='Backquote'&&!e.repeat&&DEV_OK){e.preventDefault();toggleDebug();return}
@@ -1160,16 +1187,16 @@ addEventListener('keydown',e=>{
   keys[e.code]=true;
   // held keys repeat: never let that toggle pause, re-trigger a pick, or click a button that just took focus
   if(e.repeat&&(/^(Digit[1-4]|KeyP|KeyF|KeyR|Escape)$/.test(e.code)||(state!=='play'&&/^(Space|Enter|NumpadEnter)$/.test(e.code)))){if(state!=='play')e.preventDefault();return}
-  // an ad, the revive offer or a chest reveal has the screen: only its own buttons (and Esc to close a reveal) work
+  // an ad, the revive offer or a chest reveal has the screen: only its own buttons (and Backspace to close a reveal) work
   if(!$('adOverlay').hidden||!$('gateBox').hidden||state==='revive')return;
-  if(!$('chestOpen').hidden){if(e.code==='Escape'){$('chestOpen').hidden=true;renderStore()}return}
+  if(!$('chestOpen').hidden){if(back){e.preventDefault();$('chestOpen').hidden=true;renderStore()}return}
   if(state!=='play'&&(e.code==='ArrowUp'||e.code==='ArrowDown'))menuNav(e);
-  if(SUBS.includes(cur)){if(e.code==='Escape')goBack();return}
+  if(SUBS.includes(cur)){if(back&&!(e.target&&e.target.tagName==='INPUT')){e.preventDefault();goBack()}return}
   if(e.code==='KeyN'&&!e.repeat&&!(e.target&&e.target.tagName==='INPUT')){skipSong();if(state==='play')return}
-  if(state==='shop'){if(e.code==='Escape'||e.code==='KeyF')closeShop();else if(e.code==='KeyR')restock();else if(/^Digit[1-3]$/.test(e.code))buy(+e.code.slice(5)-1);return}
+  if(state==='shop'){if(back||e.code==='KeyF')closeShop();else if(e.code==='KeyR')restock();else if(/^Digit[1-3]$/.test(e.code))buy(+e.code.slice(5)-1);return}
   if(e.code==='KeyF'&&state==='play'&&G.near){openShop();return}
   if(e.code==='KeyQ'&&state==='play'&&!e.repeat){useGlove(0);return}
-  if(e.code==='KeyP'||e.code==='Escape')togglePause();
+  if(e.code==='KeyP'||(e.code==='Escape'&&escOk()))togglePause();
   if(state==='levelup'&&/^Digit[1-4]$/.test(e.code))pickChoice(+e.code.slice(5)-1);
   if(state==='levelup'&&e.code==='KeyR'&&!e.repeat)rerollLevelup();
 });
@@ -1188,7 +1215,7 @@ function codeKey(k){initAudio();if(codeIn.length>=KONAMI.length)codeIn='';codeIn
   renderCode('','')}
 function codeKeydown(e){const k={ArrowUp:'U',ArrowDown:'D',ArrowLeft:'L',ArrowRight:'R',KeyB:'B',KeyA:'A'}[e.code];
   if(k){e.preventDefault();if(!e.repeat)codeKey(k);return}
-  if(e.code==='Escape'){e.preventDefault();closeCode();return}
+  if(e.code==='Backspace'||(e.code==='Escape'&&escOk())){e.preventDefault();closeCode();return}
   // Tab cycles through the box's own buttons; Enter/Space only work on them; everything else is ignored while the box is open
   const btns=[...$('codeBox').querySelectorAll('button')],inBox=btns.includes(document.activeElement);
   if(e.code==='Tab'){e.preventDefault();const i=btns.indexOf(document.activeElement);btns[(i<0?0:i+(e.shiftKey?-1:1)+btns.length)%btns.length].focus();return}
@@ -1347,7 +1374,7 @@ function useGlove(i=0){if(state!=='play'||G.exitT>=0)return;const id=G.glove[i];
   updateGlove()}
 const coarse=()=>matchMedia('(pointer: coarse)').matches;
 function updateGlove(){const el=$('glove');if(!el||!G)return;let h='';const tap=coarse();for(let i=0;i<GLOVE_MAX;i++){const id=G.glove[i],d=id&&TRINKETS[id];
-    h+=d?`<button class="gslot" data-i="${i}" aria-label="Use ${esc(d.name)}" data-tip="${esc(d.name)}|Glovebox · ${tap?'tap to use':i?'click to use':'Q or click to use'}|${esc(d.desc)}"><b>${d.glove}</b><small>${tap?'TAP':i?'':'Q'}</small></button>`:`<span class="gslot empty"></span>`}
+    h+=d?`<button class="gslot" data-i="${i}" aria-label="Use ${esc(d.name)}" data-tip="${esc(d.name)}|Glovebox · ${tap?'tap to use':i?'click to use':KT('KeyQ')+' or click to use'}|${esc(d.desc)}"><b>${d.glove}</b><small>${tap?'TAP':i?'':'Q'}</small></button>`:`<span class="gslot empty"></span>`}
   el.innerHTML=h}
 function grantItem(id){if(!TRINKETS[id].shop&&!itemOpen(id))return;if(TRINKETS[id].glove){if(G.glove.length<GLOVE_MAX)G.glove.push(id);updateGlove()}else if(id==='voucher')G.pending++;else{G.tk[id]=(G.tk[id]||0)+1;recalc()}updateLoadout()}
 const stockFor=cat=>{const ks=Object.keys(TRINKETS).filter(k=>TRINKETS[k].cat===cat),items=shuffle(ks.filter(k=>!TRINKETS[k].shop&&itemOpen(k))),cons=shuffle(ks.filter(k=>TRINKETS[k].shop));
@@ -2744,13 +2771,13 @@ function spawnTrader(){const p=G.p;let k;do k=Math.floor(Math.random()*3);while(
   // nowhere to drive in from right now: try again shortly instead of driving through walls
   if(!path){G.nextTrader=G.t+15;return}const f=path[0];
   G.trader={T,x:sx,y:sy,px,py,a:Math.atan2(f[1]-sy,f[0]-sx),v:320,phase:'arrive',stay:60,path,wi:0,home:[sx,sy],offers:stockFor(T.cat),restocks:0};
-  showBanner(T.name+' is in town','Pull up to the truck and press F to trade');sfx('horn')}
+  showBanner(T.name+' is in town','Pull up to the truck and press '+KT('KeyF')+' to trade');sfx('horn')}
 // follow tr.path; returns true at the last waypoint
 function driveTrader(tr,dt,brake){const w=tr.path[tr.wi],dx=w[0]-tr.x,dy=w[1]-tr.y,d=Math.hypot(dx,dy),last=tr.wi===tr.path.length-1;
   if(d<(last?4:24)){if(last)return true;tr.wi++;return false}
   tr.v=brake&&last?Math.min(320,40+d*1.2):Math.min(380,tr.v+260*dt);tr.a+=angDiff(tr.a,Math.atan2(dy,dx))*Math.min(1,5*dt);tr.x+=dx/d*Math.min(d,tr.v*dt);tr.y+=dy/d*Math.min(d,tr.v*dt);return false}
 function updateTrader(dt){const tr=G.trader,p=G.p;G.near=false;if(!tr)return;
-  if(tr.phase==='arrive'){if(driveTrader(tr,dt,true)){tr.phase='parked';tr.v=0;sfx('horn');toast('$',tr.T.name+' has parked',coarse()?'Drive into the ring to trade':'Drive into the ring and press F to trade')}}
+  if(tr.phase==='arrive'){if(driveTrader(tr,dt,true)){tr.phase='parked';tr.v=0;sfx('horn');toast('$',tr.T.name+' has parked',coarse()?'Drive into the ring to trade':'Drive into the ring and press '+KT('KeyF')+' to trade')}}
   else if(tr.phase==='parked'){tr.stay-=dt;if(tr.stay<=0){tr.phase='leave';tr.v=60;
     // drive back out the way it came in
     tr.path=tr.path.slice(0,-1).reverse().concat([tr.home]);tr.wi=0;showBanner(tr.T.name+' is leaving','')}}
@@ -3304,7 +3331,7 @@ function updateHud(){updateDriverFace();
     if(hudCache.tr!==t){hudCache.tr=t;th.innerHTML=t}if(th.hidden)th.hidden=false}else if(!th.hidden)th.hidden=true;
   // trader prompt floats over the truck while you are close enough
   const tip=$('tip');if(G.near){const tr=G.trader;tip.hidden=false;tip.style.setProperty('--c',tr.T.col);
-    const t=`<kbd>F</kbd> Trade with ${tr.T.name}`;if(hudCache.tip!==t){hudCache.tip=t;tip.innerHTML=t}
+    const t=`${K('KeyF')} Trade with ${tr.T.name}`;if(hudCache.tip!==t){hudCache.tip=t;tip.innerHTML=t}
     tip.style.left=clamp(tr.x+G.view.ox,90,VW-90)+'px';tip.style.top=clamp(tr.y+G.view.oy-78,40,VH-20)+'px'}else if(!tip.hidden)tip.hidden=true;
 }
 const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -3381,7 +3408,7 @@ function pickHover(wx,wy){const p=G.p,in2=(x,y,r)=>d2(wx,wy,x,y)<r*r;
   if(G.wx){for(const st of G.wx.strikes)if(in2(st.x,st.y,st.R))return card('Lightning strike','Weather hazard','Lands in a moment and wrecks everything inside the ring, you included. Get out.',[['Lands in',st.t.toFixed(1)+'s']],'#a98bff');
     for(const tw of G.wx.twisters)if(in2(tw.x,tw.y,tw.pull))return card(tw.fire?'Fire twister':'Tornado','Weather hazard',tw.fire?'Pulls cars in, spins them and burns them. It will spin and singe you too.':'Pulls cars in, spins them and chews them up. It will spin you too.',[['Blows out in',Math.ceil(tw.life)+'s']],tw.fire?'#ff7a3a':'#e0b070')}
   const po=G.portal;if(po&&in2(po.x,po.y,po.r))return card('Exit portal','Way out','Drive in to end the run and bank it on the leaderboard. Get wrecked before you reach it and the run is lost.',[['Overdrive',`${roman(Math.max(1,G.odTier))} · ${fmt(odHeat())}`],['Next tier in',Math.ceil(40-odHeat()%40)+'s']],'#c78bff');
-  const tr=G.trader;if(tr&&in2(tr.x,tr.y,52))return card(tr.T.name,'Trader · '+tr.T.title,tr.phase==='parked'?`Parked for ${Math.ceil(tr.stay)}s more. Pull up and press F (or tap the prompt) to trade.`:tr.phase==='arrive'?'Pulling in. Wait for it to park.':'Leaving town.',[['Sells',tr.offers.map(o=>TRINKETS[o.id].name).join(', ')]],tr.T.col);
+  const tr=G.trader;if(tr&&in2(tr.x,tr.y,52))return card(tr.T.name,'Trader · '+tr.T.title,tr.phase==='parked'?`Parked for ${Math.ceil(tr.stay)}s more. Pull up and press ${KT('KeyF')} (or tap the prompt) to trade.`:tr.phase==='arrive'?'Pulling in. Wait for it to park.':'Leaving town.',[['Sells',tr.offers.map(o=>TRINKETS[o.id].name).join(', ')]],tr.T.col);
   if(in2(p.x,p.y,p.r+6)){const W=Object.keys(G.weapons).map(k=>WDEF[k].name+' '+G.weapons[k].lvl),Pa=Object.keys(G.passives).map(k=>PDEF[k].name+' '+G.passives[k]);
     return card(G.car.name,'Your car · level '+G.level,'Everything bolted on is drawn on the car.',[['HP',`${Math.ceil(p.hp)} / ${p.maxhp}`],['Weapons',W.join(', ')||'none'],['Upgrades',Pa.join(', ')||'none'],['Speed',Math.round(Math.hypot(p.vx,p.vy))]],G.car.col,p.hp/p.maxhp)}
   for(const k of G.pickups){if(!in2(k.x,k.y,22))continue;const [n,d]=PICK_INFO[k.type];return card(n,k.type==='chest'?'Pickup':'Power-up',d,k.type==='chest'?null:[['Disappears in',Math.max(0,Math.ceil(35-k.t))+'s']],k.type==='chest'?'#ffc21a':k.type==='wrench'?'#2fbf74':DROPS[k.type].col)}
@@ -3537,7 +3564,7 @@ function grownUpGate(){return new Promise(res=>{const a=6+Math.floor(Math.random
   el.innerHTML=`<div class="gatecard"><b>Ask a grown-up</b><span>This costs real money. To carry on, a grown-up can answer:</span><div class="gq">${a} × ${b} = <input id="gateIn" inputmode="numeric" maxlength="3" autocomplete="off" aria-label="Answer"></div><div class="btns"><button class="btn" id="gateOk">Continue</button><button class="btn alt" id="gateNo">Cancel</button></div><small id="gateMsg"></small><small class="gterms">By continuing you agree to the <a href="${API_BASE?API_HOME+'/':''}terms.html" target="_blank" rel="noopener">Terms of Service</a>. Crystals have no cash value, are delivered straight away, aren\u2019t refundable except where the law requires, and can be lost if the game changes or closes.</small></div>`;el.hidden=false;$('gateIn').focus();
   const done=v=>{el.hidden=true;res(v)};$('gateNo').onclick=()=>done(false);
   const check=()=>{if(+$('gateIn').value===a*b)done(true);else{$('gateMsg').textContent='That’s not right. Ask a grown-up to help.';$('gateIn').value='';setTimeout(()=>done(false),1200)}};
-  $('gateOk').onclick=check;$('gateIn').addEventListener('keydown',e=>{if(e.code==='Enter'||e.code==='NumpadEnter'){e.preventDefault();check()}if(e.code==='Escape')done(false)})})}
+  $('gateOk').onclick=check;$('gateIn').addEventListener('keydown',e=>{if(e.code==='Enter'||e.code==='NumpadEnter'){e.preventDefault();check()}if(e.code==='Escape'&&escOk())done(false)})})}
 
 /* ---------- ads in the run: a revive once per run, double scrap on the report ---------- */
 function offerRevive(){if(!Ads.on()||G.adRevived||G.dbg||state!=='play')return false;G.adRevived=true;state='revive';updateHud();const el=$('reviveBox');let left=8;
@@ -3573,10 +3600,10 @@ function tutStep(s){const T=G.tut;if(!T)return;T.s=s;T.t=0;T.k0=G.kills;
   if(s>3){tutEnd();return}
   const dots=`<div class="tsteps">${[0,1,2,3].map(i=>`<i class="${i<=s?'on':''}"></i>`).join('')}</div>`;
   const vis=[
-    TUT_TOUCH?`<div class="drag"><i></i></div>`:`<div class="kc"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd></div><span>or</span><div class="kc"><kbd>↑</kbd><kbd>←</kbd><kbd>↓</kbd><kbd>→</kbd></div>`,
+    TUT_TOUCH?`<div class="drag"><i></i></div>`:`<div class="kc">${K('KeyW')}${K('KeyA')}${K('KeyS')}${K('KeyD')}</div><span>or</span><div class="kc"><kbd>↑</kbd><kbd>←</kbd><kbd>↓</kbd><kbd>→</kbd></div>`,
     `<div class="shots"><b></b><i></i><i></i><i></i><u></u></div>`,
     `<div class="gems"><i></i><i></i><i></i><span class="bar"><u></u></span></div>`,
-    TUT_TOUCH?'':`<div class="kc" style="grid-template-columns:34px;grid-template-rows:34px"><kbd style="grid-column:1">P</kbd></div><span>pause</span>`][s];
+    TUT_TOUCH?'':`<div class="kc" style="grid-template-columns:34px;grid-template-rows:34px"><kbd style="grid-column:1" data-code="KeyP">${KT('KeyP')}</kbd></div><span>pause</span>`][s];
   const big=[TUT_TOUCH?'Drag to drive':'Drive','Guns fire on their own','Grab scrap to level up','Survive and beat the boss'][s];
   const sm=['','Shoot and ram the cars','Then pick an upgrade','Good luck out there!'][s];
   $('tut').innerHTML=`<div class="tcard">${dots}<div class="tvis">${vis}</div><div class="tbig">${big}</div>${sm?`<div class="tsm">${sm}</div>`:''}</div>${s<3?'<button id="tutSkip">Skip tutorial</button>':''}`;
@@ -3797,7 +3824,7 @@ function renderLevelup(){
     const d=c.kind==='w'?WDEF[c.k]:PDEF[c.k];const kind=c.kind==='w'?(WDEF[c.k].rc?(c.next===1?'New minion':'Minion · Lv '+c.next):c.next===1?'New weapon':'Weapon · Lv '+c.next):(c.next===1?'New upgrade':'Upgrade · Lv '+c.next);
     const desc=c.kind==='w'?d.desc[c.next-1]:d.desc;
     return`<button class="card ${c.kind}" id="choice${i}" data-i="${i}"><span class="num">${i+1}</span><span class="kind">${kind}${d.unlock?' · Unlocked':''}</span><h3>${d.name}</h3><p>${desc}</p></button>`}).join('');
-  const rc=rerollCost(),rb=$('lvReroll');rb.innerHTML=rc?`Reroll · <span class="nut"></span>${rc} <kbd>R</kbd>`:`Reroll · free <kbd>R</kbd>`;rb.disabled=G.bolts<rc;
+  const rc=rerollCost(),rb=$('lvReroll');rb.innerHTML=rc?`Reroll · <span class="nut"></span>${rc} ${K('KeyR')}`:`Reroll · free ${K('KeyR')}`;rb.disabled=G.bolts<rc;
   rb.dataset.tip=`Reroll|New picks|${rc?`Costs ${rc} bolts (you have ${G.bolts}). Each reroll this run costs more.`:'Your first reroll this run is free. After that it costs bolts, more each time.'}`}
 function pickChoice(i){const c=choices[i];if(!c||state!=='levelup')return;
   if(c.kind==='w'){if(G.weapons[c.k])G.weapons[c.k].lvl++;else G.weapons[c.k]={lvl:1,cd:0.3,aim:G.p.a}}
@@ -3849,7 +3876,7 @@ function attract(dt){G.t+=dt;const p=G.p,R=clamp(Math.min(VW,VH)*.4,160,460),w=0
   if(Math.random()<(S.lowFx?.3:.8)){const fx=Math.cos(p.a),fy=Math.sin(p.a);for(const sd of[-1,1])part(p.x-fx*16-fy*sd*10,p.y-fy*16+fx*sd*10,rand(-20,20),rand(-20,20),rand(.6,1),rand(6,10),null,'smoke')}
   updateFx(dt)}
 resize();newGame(curLevel);show('scrMenu');refreshMenu();
-$('howDev').hidden=!DEV_OK;
+$('howDev').hidden=!DEV_OK;relabelKeys();
 // a brand-new player skips the menus and lands straight in a run, with the tutorial on top
 if(P.tutDone==null)P.tutDone=P.runs>0?1:0;
 const tutBoot=!P.tutDone&&!(P.runs>0);
