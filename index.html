@@ -1471,7 +1471,7 @@ const ADS_CFG={
   interstitialEvery:0   // your own site: an ad before every Nth run (0 = never). Portals always get one between runs
 };
 // the game's own server. When the page comes from somewhere else (a portal, the app-store build) it is called by its full address
-const API_HOME='https://vibecodingmegabonkclone.vercel.app';
+const API_HOME='https://games.hydroponicz.wtf';
 const PORTAL=(()=>{const q=(location.search.match(/[?&]portal=(crazygames|poki)\b/)||[])[1];if(q)return q;const h=location.hostname;return /(^|\.)crazygames\./.test(h)?'crazygames':/(^|\.)poki(-gdn)?\./.test(h)?'poki':''})();
 const IN_APP=!!(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform());
 const API_BASE=!IN_APP&&/^https?:$/.test(location.protocol)&&(/\.vercel\.app$|^localhost$|^127\.0\.0\.1$/.test(location.hostname)||location.hostname===new URL(API_HOME).hostname)?'':API_HOME;
