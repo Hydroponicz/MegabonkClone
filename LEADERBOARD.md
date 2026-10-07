@@ -101,7 +101,7 @@ from `openssl rand -hex 24`, then redeploy. Keep the token secret. Without it, t
 All tool calls are `POST /api/scores` with `{"action":"admin","token":"<ADMIN_TOKEN>","op":...}`:
 
 ```sh
-SITE=https://vibecodingmegabonkclone.vercel.app; TOKEN=...   # your ADMIN_TOKEN
+SITE=https://games.hydroponicz.wtf; TOKEN=...   # your ADMIN_TOKEN
 # 1. look at a track's top runs with their player ids
 curl -s -X POST $SITE/api/scores -H 'content-type: application/json' -d "{\"action\":\"admin\",\"token\":\"$TOKEN\",\"op\":\"top\",\"track\":\"yard\"}"
 # 2. ban a player id (also wipes their runs on every track)
