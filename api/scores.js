@@ -79,6 +79,11 @@ async function rows(track, pids) {
 
 module.exports = async (req, res) => {
   res.setHeader('Cache-Control', 'no-store');
+  // the portal and app-store builds call this from other origins; no cookies are involved, so any origin may
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, x-player');
+  if (req.method === 'OPTIONS') return res.status(204).end();
   // GET /api/scores?diag=1 : which storage variables this deployment can see (names only, never values)
   if (req.method === 'GET' && req.query.diag) {
     const seen = Object.keys(process.env).filter(k => /KV|REDIS|UPSTASH/i.test(k)).sort();

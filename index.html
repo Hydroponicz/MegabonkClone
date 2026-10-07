@@ -488,6 +488,7 @@ body.nocursor,body.nocursor *{cursor:none!important}
 .rvbar{height:5px;background:var(--ink)}.rvbar i{display:block;height:100%;background:var(--hp);animation:rvdrain 8s linear forwards}@keyframes rvdrain{from{width:100%}to{width:0}}.rvcard .btns{justify-content:center}
 .mbtn small.free{background:var(--hazard);color:var(--ink);padding:1px 6px;font-weight:700;letter-spacing:.1em;animation:tpulse 1s ease-in-out infinite alternate}
 @media (max-width:820px){.skinwrap{grid-template-columns:1fr}}
+.hint a.privlink{color:var(--dim)}.hint a.privlink:hover{color:var(--hazard)}a.btn.privlink{text-decoration:none;display:inline-block}
 @media (prefers-reduced-motion:reduce){.card,#banner,.mbtn,.toast{transition:none;animation:none}}
 /* level-up flair: the cards never move, only their borders, glow and the backdrop do */
 @property --lva{syntax:'<angle>';inherits:false;initial-value:0deg}
@@ -589,7 +590,7 @@ body.nocursor,body.nocursor *{cursor:none!important}
       <button class="mbtn" id="howBtn"><span>How to play</span><span class="arr">›</span></button>
       <button class="mbtn" id="restoreBtn" hidden><span>Played before? Restore your progress</span><span class="arr">›</span></button>
     </nav>
-    <p class="hint"><kbd>↑</kbd><kbd>↓</kbd> to choose · <kbd>Enter</kbd> to select</p>
+    <p class="hint"><kbd>↑</kbd><kbd>↓</kbd> to choose · <kbd>Enter</kbd> to select · <a class="privlink" href="privacy.html" target="_blank" rel="noopener">Privacy</a></p>
     <div class="hazard-stripe"></div>
   </section>
 
@@ -619,7 +620,7 @@ body.nocursor,body.nocursor *{cursor:none!important}
     <div class="chests" id="stChests"></div>
     <p class="sub secthead">Vehicle skins</p>
     <div class="skinwrap"><div id="skinPrev"></div><div class="skingrid" id="skinGrid"></div></div>
-    <p class="sub secthead">Nitro Crystals</p>
+    <p class="sub secthead" id="stPacksHead">Nitro Crystals</p>
     <div class="packs" id="stPacks"></div>
     <p class="fine">Nitro Crystals are the premium currency for vehicle skins. Skins are cosmetic and change nothing about how a car drives.</p>
   </section>
@@ -664,6 +665,7 @@ body.nocursor,body.nocursor *{cursor:none!important}
       <div class="set-row"><div><b>Low-detail mode</b><span class="d">Fewer particles and lower resolution for slower devices</span></div><button class="switch" role="switch" data-set="lowFx" aria-label="Low-detail mode"></button></div>
       <div class="set-row"><div><b>Auto-pause</b><span class="d">Pause when the window loses focus</span></div><button class="switch" role="switch" data-set="autoPause" aria-label="Auto-pause"></button></div>
       <div class="set-row"><div><b>Transfer save</b><span class="d">Move your unlocks and progress to another phone or computer</span></div><button class="btn alt" id="xferBtn">Transfer</button></div>
+      <div class="set-row"><div><b>Privacy policy</b><span class="d">What the game stores, ads, purchases and your choices</span></div><a class="btn alt privlink" href="privacy.html" target="_blank" rel="noopener">Read</a></div>
       <div class="set-row"><div><b>Input code</b><span class="d">Heard about a secret code? Punch it in here</span></div><button class="btn alt" id="codeBtn">Input code</button></div>
       <div class="set-row danger"><div><b>Reset progress</b><span class="d">Wipes account level, scrap, garage, stats and achievements. A backup is kept in Transfer save in case you change your mind.</span></div><button class="btn warn" id="resetBtn">Reset</button></div>
     </div>
@@ -1445,14 +1447,32 @@ const PAINTS={factory:{name:'Factory',cost:0},black:{name:'Midnight',col:'#2b2a3
 const paintOf=id=>{const k=(P.paint||{})[id];return k&&PAINTS[k]&&PAINTS[k].col&&(P.paints||{})[k]?k:'factory'};
 const paintCol=id=>{const k=paintOf(id);return k==='factory'?CARS[id].col:PAINTS[k].col};
 /* ---------- monetization framework: ads, the Nitro Crystal wallet, chests and vehicle skins ----------
-   ADS_CFG.provider picks how ads are shown:
-     'placeholder'  a built-in test ad with a countdown (default, so the whole loop can be played before integration)
-     'h5'           Google H5 Games Ads (Ad Placement API): add their adsbygoogle script with your data-ad-client to
-                    index.html, then set provider:'h5'. adBreak/adConfig are called below.
-     'none'         ads switched off: ad buttons hide and nothing is offered
+   Real ads, the short version (SHOP.md has the full checklist):
+     your own site   paste your AdSense publisher id into adsenseClient below. Google's H5 Games Ads then run the
+                     revive, double-scrap and sponsor-chest ads. Keep adsenseTest:true until AdSense approves the site.
+     CrazyGames/Poki nothing to do: the game spots it's running on the portal, loads that portal's SDK and uses its ads
+                     (and hides crystal packs, which portals don't allow). Add ?portal=poki or ?portal=crazygames to a
+                     URL to try a portal's SDK in its test mode.
+     app stores      the Capacitor build uses the placeholder until an AdMob adapter is added (see SHOP.md).
    The wallet talks to api/shop.js when the site has a backend. Without one (opened as a file, or no database yet)
-   it runs on a local test wallet kept in the save, so everything stays testable. See SHOP.md. */
-const ADS_CFG={provider:'placeholder',placeholderSecs:5,adChestsPerDay:3,adChestCooldown:300,interstitialEvery:0/* runs between interstitials, 0 = off */};
+   it runs on a local test wallet kept in the save, so everything stays testable. */
+const ADS_CFG={
+  provider:'auto',      // 'auto' picks from where the game runs; or force 'placeholder' | 'h5' | 'crazygames' | 'poki' | 'none'
+  adsenseClient:'',     // your AdSense publisher id, e.g. 'ca-pub-1234567890123456'. '' = placeholder ads on your site
+  adsenseTest:true,     // Google serves test ads while true. Set false once AdSense has approved the site
+  placeholderSecs:5,adChestsPerDay:3,adChestCooldown:300,
+  interstitialEvery:0   // your own site: an ad before every Nth run (0 = never). Portals always get one between runs
+};
+// the game's own server. When the page comes from somewhere else (a portal, the app-store build) it is called by its full address
+const API_HOME='https://vibecodingmegabonkclone.vercel.app';
+const PORTAL=(()=>{const q=(location.search.match(/[?&]portal=(crazygames|poki)\b/)||[])[1];if(q)return q;const h=location.hostname;return /(^|\.)crazygames\./.test(h)?'crazygames':/(^|\.)poki(-gdn)?\./.test(h)?'poki':''})();
+const IN_APP=!!(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform());
+const API_BASE=!IN_APP&&/^https?:$/.test(location.protocol)&&(/\.vercel\.app$|^localhost$|^127\.0\.0\.1$/.test(location.hostname)||location.hostname===new URL(API_HOME).hostname)?'':API_HOME;
+const ADS_PROVIDER=ADS_CFG.provider!=='auto'?ADS_CFG.provider:PORTAL||(!IN_APP&&ADS_CFG.adsenseClient?'h5':'placeholder');
+// portals and the app stores don't allow your own in-game purchases, so crystal packs only show on your own site
+const IAP_OK=!PORTAL&&!IN_APP;
+// the privacy policy lives on the game's own site, wherever the game is being played
+if(API_BASE)addEventListener('DOMContentLoaded',()=>document.querySelectorAll('.privlink').forEach(a=>a.href=API_HOME+'/privacy.html'));
 const SKINS={
   stripes:{name:'Racing Stripes',pat:'stripes',col:'#1f4fd8',acc:'#f2f4f8',price:120,rar:'Common'},
   hazard:{name:'Hazard Wrap',pat:'hazard',col:'#ffc21a',acc:'#141318',price:150,rar:'Common'},
@@ -1469,28 +1489,56 @@ const SKINS={
 const SKIN_RAR={Common:'#c9c6d0',Rare:'#4fa8ff',Epic:'#b07aff',Legendary:'#ffd23f'};
 const PACKS=[{sku:'c100',n:100,price:'$0.99'},{sku:'c550',n:550,price:'$4.99',tag:'+10%'},{sku:'c1200',n:1200,price:'$9.99',tag:'+20%'},{sku:'c2600',n:2600,price:'$19.99',tag:'Best value'}];
 
-// ---- ads ----
+// ---- ads: one front for every provider. Load the provider's SDK once, at start-up ----
+const loadScript=(src,attrs={})=>new Promise((res,rej)=>{const el=document.createElement('script');el.src=src;el.async=true;for(const k in attrs)el.setAttribute(k,attrs[k]);el.onload=res;el.onerror=rej;document.head.appendChild(el)});
+const AdSdk={ready:false};
+AdSdk.init=(async()=>{try{
+  if(ADS_PROVIDER==='h5'){window.adsbygoogle=window.adsbygoogle||[];window.adBreak=window.adConfig=o=>window.adsbygoogle.push(o);
+    const at={'data-ad-client':ADS_CFG.adsenseClient,crossorigin:'anonymous'};if(ADS_CFG.adsenseTest)at['data-adbreak-test']='on';
+    window.adConfig({preloadAdBreaks:'on',sound:'on'});await loadScript('https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client='+ADS_CFG.adsenseClient,at)}
+  else if(ADS_PROVIDER==='crazygames'){await loadScript('https://sdk.crazygames.com/crazygames-sdk-v3.js');await window.CrazyGames.SDK.init()}
+  else if(ADS_PROVIDER==='poki'){await loadScript('https://game-cdn.poki.com/scripts/v2/poki-sdk.js');await window.PokiSDK.init();window.PokiSDK.gameLoadingFinished()}
+  AdSdk.ready=true}catch(e){AdSdk.ready=false/* an ad blocker or no connection: ad offers stay hidden and the game plays on */}})();
+// game audio goes quiet while an ad plays
+let adMuted=false;function muteForAd(on){if(!AC||on===adMuted)return;adMuted=on;(on?AC.suspend():AC.resume()).catch(()=>{})}
+// portals want to know when the player is actually driving (they time their ads around it)
+let adPlaying=null;function adGameplay(on){if(on===adPlaying||!AdSdk.ready)return;adPlaying=on;try{if(ADS_PROVIDER==='poki')window.PokiSDK[on?'gameplayStart':'gameplayStop']();else if(ADS_PROVIDER==='crazygames')window.CrazyGames.SDK.game[on?'gameplayStart':'gameplayStop']()}catch(e){}}
 const Ads={
-  on:()=>ADS_CFG.provider!=='none',
+  on:()=>ADS_PROVIDER!=='none',
+  noFill:false,
+  // is a rewarded ad ready to offer right now? Google doesn't always have one; the portals and the placeholder always say yes
+  async available(placement){if(!this.on())return false;await Promise.race([AdSdk.init,new Promise(r=>setTimeout(r,3000))]);if(!AdSdk.ready)return false;
+    if(ADS_PROVIDER!=='h5')return true;
+    if(this._pending&&this._pending.placement===placement)return true;
+    return new Promise(res=>{let done=false;const fin=v=>{if(!done){done=true;res(v)}};this._pending=null;
+      window.adBreak({type:'reward',name:placement,beforeAd:()=>muteForAd(true),afterAd:()=>muteForAd(false),
+        beforeReward:show=>{this._pending={placement,show,viewed:false,resolve:null};fin(true)},
+        adViewed:()=>{if(this._pending)this._pending.viewed=true},adDismissed:()=>{},
+        adBreakDone:()=>{const p=this._pending;if(p&&p.resolve){this._pending=null;p.resolve(p.viewed)}fin(false)}});
+      setTimeout(()=>fin(false),2500)})},
   // resolves true only if the player watched to the end and earned the reward
-  rewarded(placement){return this.show(placement,true)},
-  interstitial(placement){return this.show(placement,false)},
+  async rewarded(placement){this.noFill=false;if(!(await this.available(placement))){this.noFill=true;return false}return this.show(placement,true)},
+  async interstitial(placement){if(!this.on()){return false}await Promise.race([AdSdk.init,new Promise(r=>setTimeout(r,3000))]);if(!AdSdk.ready&&ADS_PROVIDER!=='placeholder')return false;return this.show(placement,false)},
   show(placement,reward){
-    if(ADS_CFG.provider==='h5'&&typeof window.adBreak==='function')return new Promise(res=>{let got=false;
-      window.adBreak(reward?{type:'reward',name:placement,beforeReward:show=>show(),adViewed:()=>{got=true},adDismissed:()=>{},adBreakDone:()=>res(got)}:{type:'next',name:placement,adBreakDone:()=>res(true)})});
-    if(ADS_CFG.provider==='none')return Promise.resolve(false);
+    if(ADS_PROVIDER==='h5'){if(reward){const p=this._pending;if(!p)return Promise.resolve(false);return new Promise(res=>{p.resolve=res;p.show()})}
+      return new Promise(res=>window.adBreak({type:'next',name:placement,beforeAd:()=>muteForAd(true),afterAd:()=>muteForAd(false),adBreakDone:()=>{muteForAd(false);res(true)}}))}
+    if(ADS_PROVIDER==='crazygames')return new Promise(res=>window.CrazyGames.SDK.ad.requestAd(reward?'rewarded':'midgame',{adStarted:()=>muteForAd(true),adFinished:()=>{muteForAd(false);res(true)},adError:()=>{muteForAd(false);if(reward)this.noFill=true;res(!reward)}}));
+    if(ADS_PROVIDER==='poki'){muteForAd(true);return(reward?window.PokiSDK.rewardedBreak():window.PokiSDK.commercialBreak().then(()=>true)).then(v=>{muteForAd(false);return reward?!!v:true}).catch(()=>{muteForAd(false);return!reward})}
+    if(ADS_PROVIDER==='none')return Promise.resolve(false);
     return placeholderAd(placement,reward)}};
+// an ad between runs where it's switched on (always on portals, which expect one)
+function startRun(li){const every=PORTAL?1:ADS_CFG.interstitialEvery;if(Ads.on()&&every>0&&(P.runs||0)>0&&P.runs%every===0){Ads.interstitial('next_run').finally(()=>startGame(li))}else startGame(li)}
 // the test ad: a full-screen card with a countdown. Watching to the end earns the reward; closing early doesn't
 function placeholderAd(placement,reward){return new Promise(res=>{const el=$('adOverlay'),secs=ADS_CFG.placeholderSecs;let left=secs,done=false,iv;
-  const wasMuted=AC&&AC.state==='running';if(wasMuted)AC.suspend().catch(()=>{});
-  const finish=ok=>{if(done)return;done=true;clearInterval(iv);el.hidden=true;if(wasMuted)AC.resume().catch(()=>{});res(ok)};
+  muteForAd(true);
+  const finish=ok=>{if(done)return;done=true;clearInterval(iv);el.hidden=true;muteForAd(false);res(ok)};
   el.innerHTML=`<div class="adcard"><div class="adtag">AD · placeholder · ${placement}</div><div class="adbody"><div class="adlogo">YOUR AD HERE</div><p>Test ad. A real ad network plugs in here (see SHOP.md).</p><div class="adbar"><i style="animation-duration:${secs}s"></i></div></div>
     <div class="adbtns"><span id="adCount">${reward?'Reward in':'Closes in'} ${left}s</span><button class="btn alt" id="adSkip">${reward?'Skip (no reward)':'Skip'}</button><button class="btn" id="adDone" disabled>${reward?'Claim reward':'Close'}</button></div></div>`;
   el.hidden=false;$('adSkip').onclick=()=>finish(!reward);$('adDone').onclick=()=>finish(true);
   iv=setInterval(()=>{left--;const c=$('adCount');if(left>0){if(c)c.textContent=`${reward?'Reward in':'Closes in'} ${left}s`}else{clearInterval(iv);if(c)c.textContent='Done';const d=$('adDone');if(d){d.disabled=false;d.focus()}}},1000)})}
 
 // ---- wallet: server-backed when api/shop.js answers, a local test wallet otherwise ----
-const ECON_API='/api/shop';
+const ECON_API=API_BASE+'/api/shop';
 const Econ={mode:'local',test:true,st:null,syncing:null,
   local(){P.econ=P.econ||{};const e=P.econ;e.crystals=e.crystals||0;e.skins=e.skins||{};return e},
   view(){const e=this.local(),today=new Date().toISOString().slice(0,10),adN=e.adDay===today?e.adN||0:0;
@@ -3419,6 +3467,7 @@ function renderStore(){const st=Econ.state(),now=Date.now(),skins=st.skins||{};$
   $('skinPrev').innerHTML=`<img src="${skinThumb(P.car,shopSkinView)}" alt=""><div><span class="rar" style="--r:${SKIN_RAR[sv.rar]}">${sv.rar}</span><b>${sv.name}</b><small>On your ${CARS[P.car].name}. Skins work on every car and cover any paint job.</small>
     <div class="skact">${own?(on?`<button class="btn alt" id="skOff">Take off</button>`:`<button class="btn" id="skOn">Put on ${CARS[P.car].name}</button>`):`<button class="btn" id="skBuy" ${(st.crystals||0)<sv.price?'disabled':''}>Buy · ${gemi}${sv.price.toLocaleString()}</button>${(st.crystals||0)<sv.price?`<span class="sub">${(sv.price-(st.crystals||0)).toLocaleString()} more crystals</span>`:''}`}</div></div>`;
   $('skinGrid').innerHTML=Object.keys(SKINS).map(k=>{const S_=SKINS[k];return`<button class="skin${k===shopSkinView?' sel':''}${skins[k]?' own':''}" data-skin="${k}" style="--r:${SKIN_RAR[S_.rar]}"><img src="${skinThumb(P.car,k)}" alt=""><b>${S_.name}</b><span>${skins[k]?((P.skin||{})[P.car]===k?'On this car':'Owned'):gemi+S_.price}</span></button>`}).join('');
+  $('stPacks').hidden=$('stPacksHead').hidden=!IAP_OK;
   $('stPacks').innerHTML=PACKS.map(p=>`<button class="pack" data-sku="${p.sku}">${p.tag?`<em>${p.tag}</em>`:''}<span class="gems">${'<i></i>'.repeat(Math.min(5,1+PACKS.indexOf(p)*1.4|0))}</span><b>${gemi}${p.n.toLocaleString()}</b><span class="price">${Econ.test?'TEST · free':p.price}</span></button>`).join('')}
 const skinThumbs={};
 function skinThumb(id,sk){const k=id+'|'+sk;if(skinThumbs[k])return skinThumbs[k];const S_=SKINS[sk];return skinThumbs[k]=carThumb(id,S_.col,Object.assign({id:sk},S_))}
@@ -3427,7 +3476,7 @@ async function storeClick(e){const t=e.target;
   if(t.closest('#coOk')){$('chestOpen').hidden=true;renderStore();return}
   if(t.closest('#stReset')){await Econ.act('testreset');toast('↺','Test limits reset','Chests can be opened again');renderStore();return}
   if(t.closest('#chDaily')){const r=await Econ.act('daily');if(!r.ok){toast('!','Chest',r.error);renderStore();return}chestReveal('Daily chest',grantChest(r.reward),'daily');refreshMenu();return}
-  if(t.closest('#chAd')){const b=t.closest('#chAd');b.disabled=true;const seen=await Ads.rewarded('sponsor_chest');if(!seen){toast('▶','Ad skipped','No chest this time');renderStore();return}
+  if(t.closest('#chAd')){const b=t.closest('#chAd');b.disabled=true;const seen=await Ads.rewarded('sponsor_chest');if(!seen){Ads.noFill?toast('▶','No ad right now','Try again in a little while'):toast('▶','Ad skipped','No chest this time');renderStore();return}
     const r=await Econ.act('adchest',{adToken:'placeholder'});if(!r.ok){toast('!','Chest',r.error);renderStore();return}chestReveal('Sponsor chest',grantChest(r.reward),'ad');refreshMenu();return}
   const sk=t.closest('.skin');if(sk){shopSkinView=sk.dataset.skin;renderStore();const f=$('skinGrid').querySelector(`[data-skin="${shopSkinView}"]`);if(f)f.focus();return}
   if(t.closest('#skBuy')){const r=await Econ.act('buyskin',{skin:shopSkinView});if(!r.ok){toast('!','Skin',r.error==='funds'?'Not enough crystals':r.error);renderStore();return}P.skin=P.skin||{};P.skin[P.car]=shopSkinView;saveProfile();sfx('buy');toast('✦','Skin unlocked',SKINS[shopSkinView].name);renderStore();return}
@@ -3440,14 +3489,15 @@ async function storeClick(e){const t=e.target;
 
 /* ---------- ads in the run: a revive once per run, double scrap on the report ---------- */
 function offerRevive(){if(!Ads.on()||G.adRevived||G.dbg||state!=='play')return false;G.adRevived=true;state='revive';updateHud();const el=$('reviveBox');let left=8;
-  el.innerHTML=`<div class="rvcard"><b>Wrecked!</b><span>Watch an ad to get back on the road with half your HP.</span><div class="rvbar"><i></i></div><div class="btns"><button class="btn" id="rvYes">▶ Watch ad</button><button class="btn alt" id="rvNo">No thanks</button></div></div>`;el.hidden=false;$('rvYes').focus();
+  el.innerHTML=`<div class="rvcard"><b>Wrecked!</b><span>Watch an ad to get back on the road with half your HP.</span><div class="rvbar"><i></i></div><div class="btns"><button class="btn" id="rvYes" disabled>Finding a sponsor…</button><button class="btn alt" id="rvNo">No thanks</button></div></div>`;el.hidden=false;$('rvNo').focus();
+  Ads.available('revive').then(ok=>{const y=$('rvYes');if(state!=='revive'||!y)return;if(!ok){decline();return}y.disabled=false;y.textContent='▶ Watch ad';y.focus()});
   const iv=setInterval(()=>{if(--left<=0){clearInterval(iv);decline()}},1000);
   const decline=()=>{clearInterval(iv);el.hidden=true;if(state==='revive'){state='play';gameOver()}};
   $('rvNo').onclick=decline;
   $('rvYes').onclick=async()=>{clearInterval(iv);el.hidden=true;const ok=await Ads.rewarded('revive');if(!ok||state!=='revive'){state='play';gameOver();return}
     const p=G.p;state='play';last=performance.now();p.hp=p.maxhp*.5;p.inv=3;const ds=DSRC;DSRC='revive';explode(p.x,p.y,220,80*G.stats.dmg,0);DSRC=ds;showBanner('Back in the race','Revived by your sponsor')};
   return true}
-async function adDoubleScrap(){const b=$('adDouble');if(!b||!G||G.adDoubled||!G.scrapGain)return;b.disabled=true;const ok=await Ads.rewarded('double_scrap');if(!ok){b.disabled=false;return}
+async function adDoubleScrap(){const b=$('adDouble');if(!b||!G||G.adDoubled||!G.scrapGain)return;b.disabled=true;const ok=await Ads.rewarded('double_scrap');if(!ok){if(Ads.noFill){b.hidden=true;toast('▶','No ad right now','Try again next run')}else b.disabled=false;return}
   G.adDoubled=true;P.scrap+=G.scrapGain;G.scrapGain*=2;saveProfile();b.hidden=true;$('oGain').innerHTML=`+${G.gain} XP · +${G.scrapGain} <span class="scrapi"></span>scrap (doubled)${G.drvGain!=null?` · ${DRIVERS[G.driver||'rook'].nick} +${G.drvGain} XP`:''}`;toast('✦','Scrap doubled','+'+(G.scrapGain/2)+' scrap');refreshMenu()}
 function renderLevels(){const lv=acctInfo(P.acctXp).lv;$('lvAcct').textContent='Account level '+lv;renderDrvPick();
   $('carPick').innerHTML=Object.keys(CARS).filter(id=>!CARS[id].secret||P.cars[id]).map(id=>carCard(id,'pick')).join('');
@@ -3532,7 +3582,7 @@ $('xFileIn').onchange=async e=>{const f=e.target.files&&e.target.files[0];e.targ
 
 /* ---------- online leaderboard (api/scores.js on Vercel, scores kept in Upstash Redis) ---------- */
 // each browser gets a random secret player id; your best run per track is queued locally and posted when the server is reachable
-const LB_API='/api/scores',lbOnline=/^https?:$/.test(location.protocol);
+const LB_API=API_BASE+'/api/scores',lbOnline=/^https?:$/.test(location.protocol)||IN_APP;
 if(!/^[a-f0-9]{32}$/.test(P.pid||'')){const a=new Uint8Array(16);crypto.getRandomValues(a);P.pid=[...a].map(x=>x.toString(16).padStart(2,'0')).join('')}
 
 const lbClean=s=>String(s||'').replace(/[^\w .\-]/g,'').replace(/\s+/g,' ').trim().slice(0,16);
@@ -3609,7 +3659,7 @@ function renderReport(){const od=G.odStart>=0?(G.escaped||G.forfeit?G.t-G.odStar
     return`<div class="wrow"><span class="wn">${esc(w?w.name:k==='__rest'?'Everything else':SRCNAME[k]||k)}${lv?` <small>Lv ${lv.lvl}</small>`:''}</span><span class="wbar"><i style="width:${(v/mx*100).toFixed(1)}%"></i></span><span class="wv">${Math.round(v).toLocaleString()} <small>${Math.round(v/tot*100)}%</small></span></div>`}).join(''):'<p class="sub">No damage dealt</p>'}
 function results(title){const T=P.tracks[G.L.id]||{best:G.t};$('overTitle').textContent=title;renderReport();
   $('rTime').textContent=fmt(G.t);$('rKills').textContent=G.kills;$('rLvl').textContent=G.level;$('rBest').textContent=fmt(T.best);
-  {const b=$('adDouble');b.hidden=!(Ads.on()&&G.scrapGain>0&&!G.adDoubled);b.disabled=false;b.innerHTML=`▶ Watch ad · 2× scrap (+${G.scrapGain})`}
+  {const b=$('adDouble');b.hidden=true;b.disabled=false;b.innerHTML=`▶ Watch ad · 2× scrap (+${G.scrapGain})`;const g=G;if(Ads.on()&&G.scrapGain>0&&!G.adDoubled)Ads.available('double_scrap').then(ok=>{if(ok&&G===g&&state==='over'&&!G.adDoubled)b.hidden=false})}
   fillAcct('oAcct',null,'oAcctFill');$('oGain').innerHTML=`+${G.gain} XP · +${G.scrapGain} <span class="scrapi"></span>scrap${G.drvGain!=null?` · ${DRIVERS[G.driver||'rook'].nick} +${G.drvGain} XP`:''}`;
   lbAfterRun();setTimeout(cloudBackup,1500);$('rAchWrap').hidden=!G.newAch.length;{const seen=new Set(),list=G.newAch.filter(a=>!seen.has(a.id)&&seen.add(a.id));$('rAch').innerHTML=list.slice(0,8).map(a=>`<span class="achip" title="${esc(a.desc)}"><i>${a.ic}</i>${esc(a.name)}</span>`).join('')+(list.length>8?`<span class="achip more">+${list.length-8} more</span>`:'')}}
 function gameOver(title){state='over';commitRun();results(title||(G.forfeit?'Run lost':'Wrecked'));$('tip').hidden=true;const p=G.p;
@@ -3675,7 +3725,7 @@ function pickChoice(i){const c=choices[i];if(!c||state!=='levelup')return;
   if(G.pending>0)openLevelup();else{state='play';show(null);last=performance.now();if(G.t<1)startBanner()}}
 $('cards').addEventListener('click',e=>{const b=e.target.closest('.card');if(b)pickChoice(+b.dataset.i)});
 $('shopCards').addEventListener('click',e=>{const b=e.target.closest('.card');if(b)buy(+b.dataset.i)});
-$('lvGrid').addEventListener('click',e=>{const b=e.target.closest('.lv');if(b&&!b.disabled)startGame(+b.dataset.i)});
+$('lvGrid').addEventListener('click',e=>{const b=e.target.closest('.lv');if(b&&!b.disabled)startRun(+b.dataset.i)});
 $('carGrid').addEventListener('click',garageClick);$('paintGrid').addEventListener('click',garageClick);$('upGrid').addEventListener('click',garageClick);
 $('carPick').addEventListener('click',e=>{const c=e.target.closest('.car');if(!c)return;const id=c.dataset.car;if(P.cars[id]){P.car=id;saveProfile();renderLevels();$('carPick').querySelector(`[data-car="${id}"]`).focus();newGame(curLevel)}else openSub('scrGarage',c)});
 $('garBtn').onclick=e=>openSub('scrGarage',e.currentTarget);
@@ -3689,7 +3739,7 @@ Econ.sync().then(()=>{if(state==='menu')refreshMenu()});
 $('scrDrivers').addEventListener('click',drvClick);
 $('drvPick').addEventListener('click',e=>{const c=e.target.closest('.drv');if(!c)return;if(c.id==='drvMore'){openSub('scrDrivers',c);return}P.driver=c.dataset.drv;saveProfile();sfx('pick');renderDrvPick();const f=$('drvPick').querySelector(`[data-drv="${P.driver}"]`);if(f)f.focus()});
 $('startBtn').onclick=e=>openSub('scrLevels',e.currentTarget);
-$('againBtn').onclick=()=>startGame();$('quitBtn').onclick=()=>startGame();
+$('againBtn').onclick=()=>startRun();$('quitBtn').onclick=()=>startRun();
 // quitting mid-run ends it like a wreck: the car blows up and the after-action report follows
 $('pMenuBtn').onclick=()=>{$('pMenuBtn').blur();if(G&&G.live&&state==='paused'){show(null);if(G.exitT>=0)escapeRun();else gameOver(G.portal?'Run lost':'Run ended')}else if(state!=='over')toMenu()};$('oMenuBtn').onclick=toMenu;
 $('shopLeave').onclick=closeShop;$('shopReroll').onclick=restock;$('tip').onclick=()=>{if(state==='play'&&G.near)openShop()};
@@ -3722,7 +3772,7 @@ let wxDt=0;
 let vclock=0;const REVEAL_T=2.7;
 // any key or tap cuts the fly-over short and swings the camera straight back
 addEventListener('keydown',()=>{if(G&&G.reveal&&G.reveal.t<2)G.reveal.t=2});addEventListener('pointerdown',()=>{if(G&&G.reveal&&G.reveal.t<2)G.reveal.t=2});
-function frame(now){requestAnimationFrame(frame);
+function frame(now){requestAnimationFrame(frame);adGameplay(state==='play');
   const ms=now-last,dt=clamp(ms/1000,0,0.05);last=now;vclock+=dt;wxDt=dt;updateWeatherSound();autoQuality(ms);
   DBG.ft=DBG.ft*.92+(dt*1000)*.08;if(DBG.msgT>0)DBG.msgT-=dt;
   if(state==='play'&&G.reveal){G.reveal.t+=dt;if(G.portal)G.portal.t+=dt;G.shake*=Math.exp(-5*dt);if(G.reveal.t>=REVEAL_T)G.reveal=null;updateHud()}

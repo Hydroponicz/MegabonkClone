@@ -6,7 +6,7 @@
 //
 //   state                         wallet, owned skins, chest timers, and whether the shop is in test mode
 //   daily                         open today's free chest (once per UTC day)
-//   adchest   {adToken}           open an ad chest (limited per day, with a cooldown); needs a verified ad view when live
+//   adchest   {adToken}           open an ad chest (limited per day, with a cooldown); when live, crystals need a verified ad view
 //   purchase  {sku, receipt}      buy a crystal pack; needs a verified store receipt when live
 //   buyskin   {skin}              spend crystals on a vehicle skin
 //   testreset                     test mode only: clear chest timers and ad limits so they can be tested again
@@ -81,6 +81,11 @@ function view(w) {
 
 module.exports = async (req, res) => {
   res.setHeader('Cache-Control', 'no-store');
+  // the portal and app-store builds call this from other origins; no cookies are involved, so any origin may
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, x-player');
+  if (req.method === 'OPTIONS') return res.status(204).end();
   if (!URL_ || !TOKEN) return res.status(503).json({ error: 'not_configured' });
   if (req.method !== 'POST') { res.setHeader('Allow', 'POST'); return res.status(405).json({ error: 'method' }); }
   try {
@@ -110,8 +115,9 @@ module.exports = async (req, res) => {
       const adN = w.adDay === today ? +w.adN || 0 : 0;
       if (adN >= AD_CHESTS_PER_DAY) return res.status(409).json({ error: 'limit', state: view(w) });
       if (now < (+w.adAt || 0) + AD_COOLDOWN * 1000) return res.status(409).json({ error: 'cooldown', state: view(w) });
-      if (LIVE && !(await verifyAd(b.adToken))) return res.status(402).json({ error: 'ad_not_verified' });
       const reward = rollChest('ad');
+      // live: an ad view the network can't vouch for (no SSV, e.g. H5 Games Ads) still opens the chest, but it pays scrap only
+      if (LIVE && !(await verifyAd(b.adToken))) { reward.crystals = 0; reward.unverified = true; }
       return save({ adDay: today, adN: adN + 1, adAt: now, crystals: (+w.crystals || 0) + reward.crystals }, { reward });
     }
     if (b.action === 'purchase') {

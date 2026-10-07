@@ -85,34 +85,46 @@ Before you set it, do the following.
 
 ### 1. Ads (client)
 
-`ADS_CFG.provider` near the top of the monetization code in `index.html`
-selects the ad provider:
+Ad settings live in `ADS_CFG`, near the top of the monetization code in
+`index.html`. With the default `provider: 'auto'`, the game picks the ad
+provider from where it is running.
 
-- `'placeholder'`: the built-in test ad.
-- `'h5'`: Google **H5 Games Ads** (the AdSense Ad Placement API). Add Google's
-  `adsbygoogle.js` script tag with your `data-ad-client` to `index.html`, apply
-  for H5 games ads in AdSense, then set `provider: 'h5'`. Rewarded ads use
-  `adBreak({type:'reward'})` and between-run ads use `adBreak({type:'next'})`.
-  Both are already wired in `Ads.show`.
-- `'none'`: no ads. Every ad offer is hidden.
+**Your own website: Google H5 Games Ads.**
 
-Another network (CrazyGames, Poki or GameDistribution SDKs, AppLixir) only
-needs a new branch in `Ads.show` that resolves `true` when a rewarded ad is
-completed.
+1. Get the site approved in AdSense. A custom domain is usually needed.
+2. Paste your publisher id: `adsenseClient: 'ca-pub-…'`.
+3. Put AdSense's line in `ads.txt` at the site root. The file is already there
+   with instructions.
+4. Turn on AdSense's GDPR consent message (Privacy & messaging).
+5. Test with `adsenseTest: true`, which shows Google's test ads. Set it to
+   `false` once you're approved.
+
+The game loads Google's script itself. It asks Google whether a rewarded ad is
+ready before offering one, so an empty ad slot never shows a dead button.
+
+**CrazyGames and Poki.** Nothing to set. On their domains the game loads the
+portal's SDK, uses its rewarded ads and its between-run ads (portals expect
+one), sends the "gameplay started/stopped" signals they ask for, and hides
+crystal packs, which portals don't allow. To try a portal's SDK in its own
+test mode, add `?portal=poki` or `?portal=crazygames` to the game's URL. The
+leaderboard and shop still reach your server, because the game calls
+`API_HOME` by its full address when it's served from elsewhere, and both APIs
+allow cross-site requests.
+
+**Ad blockers.** If an ad SDK can't load, the ad offers simply stay hidden and
+the game plays on.
+
+**Mobile apps.** An AdMob adapter is needed (see `STORES.md`). Until then the
+app build uses the placeholder.
 
 ### 2. Ad verification (server)
 
-For sponsor chests in live mode, fill in `verifyAd(token)` in `api/shop.js`.
-Networks that support **server-side verification (SSV)** send your server a
-signed callback for each completed rewarded view. Check that signature here.
-
-If your network has no SSV (H5 Games Ads doesn't), you have two options:
-
-- accept the client's word and rely on the daily limit and cooldown;
-- keep sponsor chests scrap-only, without crystals.
-
-The in-run revive and double-scrap rewards only touch the local save, so they
-don't need the server.
+`verifyAd(token)` in `api/shop.js` is where server-side verification (SSV)
+goes, for networks that support it. In live mode, an unverified sponsor chest
+still opens but pays **scrap only, no crystals**. Google H5 Games Ads and the
+portals don't offer SSV, so this is how sponsor chests work with them. The
+in-run revive and double-scrap rewards only touch the local save, so they don't
+need the server.
 
 ### 3. Payments (server)
 
@@ -131,8 +143,10 @@ dialog.
 
 ### 4. Before launch
 
-- **Policies:** a privacy policy and terms of sale, including a refund policy
-  for crystals.
+- **Policies:** `privacy.html` is a draft privacy policy written around what
+  the game actually stores. It's linked from the main menu and Settings. Fill
+  in the bracketed name and contact email and have it reviewed. Terms of sale,
+  including a refund policy for crystals, are still needed.
 - **EU/UK ad consent:** a consent banner (CMP) if you show personalised ads
   there. Google's ad tags require one.
 - **Store labels:** check age-rating and loot-box rules for the regions you

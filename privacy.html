@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Privacy policy · Carnage Loop</title>
+<meta name="robots" content="index,follow">
+<style>
+  :root{--bg:#141318;--panel:#1c1a21;--line:#3a3644;--fg:#efeaf4;--dim:#a29cb0;--hazard:#ffc21a}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.65 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+  main{max-width:760px;margin:0 auto;padding:40px 20px 80px}
+  h1{font-size:34px;margin:0 0 4px;color:var(--hazard)}
+  h2{font-size:21px;margin:36px 0 8px;padding-top:12px;border-top:1px solid var(--line)}
+  p,li{color:#d8d3e0}
+  a{color:var(--hazard)}
+  .meta{color:var(--dim);margin:0 0 28px}
+  table{width:100%;border-collapse:collapse;margin:10px 0;font-size:14px}
+  th,td{text-align:left;padding:8px 10px;border:1px solid var(--line);vertical-align:top}
+  th{background:var(--panel)}
+  .note{background:var(--panel);border-left:3px solid var(--hazard);padding:10px 14px;color:var(--dim);font-size:14px}
+  .back{display:inline-block;margin-bottom:24px}
+</style>
+</head>
+<body>
+<main>
+<a class="back" href="./">‹ Back to the game</a>
+<h1>Privacy policy</h1>
+<p class="meta">Carnage Loop · Last updated 7 October 2026</p>
+
+<p>This policy explains what information Carnage Loop (“the game”, “we”) collects, why, and what you can do about it.
+The game is run by <strong>[YOUR NAME OR STUDIO]</strong>. Contact: <strong>[YOUR CONTACT EMAIL]</strong>.</p>
+
+<p>The short version: there are no accounts and no analytics. Your progress lives in your browser. A small amount of
+game data goes to our server for the leaderboards, backups and the shop. Ads on our website are served by Google,
+who may use cookies.</p>
+
+<h2>1. What stays on your device</h2>
+<p>Your save (progress, unlocks, settings, the name you choose, a random player ID and your recovery code) is kept in
+your browser's local storage. It never leaves your device unless one of the features below sends it. Clearing this site's data in your browser deletes it.
+(<em>Reset progress</em> in Settings starts you over but keeps a local backup copy in case you change your mind.)</p>
+
+<h2>2. What we store on our server</h2>
+<p>The game's server runs on Vercel and keeps data in an Upstash Redis database.</p>
+<table>
+<tr><th>Feature</th><th>What is stored</th><th>How long</th></tr>
+<tr><td>Leaderboards</td><td>Your display name, a random player ID, and your best run on each track (time, wrecks, level, car, whether you escaped, date)</td><td>Until you ask us to delete it</td></tr>
+<tr><td>Cloud backup</td><td>A copy of your save, filed under a one-way hash of your recovery code</td><td>1 year after your last backup</td></tr>
+<tr><td>Save transfer codes</td><td>A copy of your save under a 6-letter code</td><td>Deleted when used, or after 15 minutes</td></tr>
+<tr><td>Shop wallet</td><td>Your Nitro Crystal balance, owned skins and chest timers, filed under a hash of your recovery code</td><td>2 years after last use</td></tr>
+<tr><td>Abuse protection</td><td>Your IP address, used to limit how fast requests can be sent</td><td>About one minute</td></tr>
+</table>
+<p>Vercel, our host, also keeps standard technical logs (such as IP addresses and request times) for security and
+reliability. We don't use the player ID or recovery code to identify who you are, and we don't combine this data with
+other sources.</p>
+
+<h2>3. Advertising</h2>
+<p><strong>On our website</strong>, ads are provided by Google (AdSense / H5 Games Ads). Google and its partners may use
+cookies or similar technologies to show ads, measure them, and, where you allow it, personalise them based on your
+visits to this and other sites. In the European Economic Area, the UK and Switzerland we ask for your consent first,
+through Google's consent message. Learn more at
+<a href="https://policies.google.com/technologies/partner-sites" rel="noopener">How Google uses information from sites that use its services</a>.
+You can manage ad personalisation at <a href="https://adssettings.google.com" rel="noopener">adssettings.google.com</a>.</p>
+<p><strong>On game portals</strong> such as CrazyGames or Poki, the portal serves the ads and its own privacy policy applies.
+<strong>In the mobile apps</strong>, ads (if any) are served by the ad network named in the app's store listing, under its policy.</p>
+<p>Watching an ad is always optional. Rewarded ads (a revive, double scrap, a sponsor chest) only start when you choose to watch them.</p>
+
+<h2>4. Purchases</h2>
+<p>Nitro Crystals can be bought with real money. Payments are handled by the payment provider (for example Stripe on our
+website, or Apple / Google in the mobile apps). We never see or store your card details. We only receive a
+confirmation of what was bought so we can add the crystals to your wallet, and we keep a record of that for accounting.</p>
+
+<h2>5. Children</h2>
+<p>The game isn't directed at children under 13, and we don't knowingly collect personal information from them. If you
+believe a child has given us personal information (for example a real name used as a leaderboard name), contact us and
+we will delete it.</p>
+
+<h2>6. Your choices and rights</h2>
+<ul>
+<li><strong>Change your leaderboard name</strong> on the Leaderboards screen at any time.</li>
+<li><strong>Delete your data</strong> by emailing us with your recovery code (shown in Settings → Transfer save). We will remove
+your leaderboard entries, backups and wallet. Local data you can delete yourself, as described in section 1.</li>
+<li>Depending on where you live (for example under the GDPR or the CCPA), you may have the right to access, correct,
+delete or port your data, and to object to or restrict processing. Contact us to use these rights. EU and UK
+residents can also complain to their data protection authority.</li>
+<li><strong>We don't sell your personal information.</strong> Advertising partners may use cookies as described in section 3, and you
+can refuse personalised ads through the consent message or Google's ad settings.</li>
+</ul>
+
+<h2>7. Legal bases (EU/UK)</h2>
+<p>We process game data to provide the features you use (performance of a contract), keep the service safe from abuse
+(legitimate interests), and show personalised ads only with your consent.</p>
+
+<h2>8. Changes</h2>
+<p>If this policy changes, we'll update the date at the top. Significant changes will be announced in the game.</p>
+
+<p class="note">Draft prepared with the game's developer tools. Fill in the bracketed details and have it reviewed for
+the regions you publish in before relying on it.</p>
+</main>
+</body>
+</html>
