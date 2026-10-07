@@ -80,6 +80,25 @@ The game is already prepared for it:
 - **Ads and purchases:** the `'admob'` ad adapter, and store purchases via
   RevenueCat.
 
+## All ages: what the stores expect
+
+The game is made for everyone, children under 13 included. That brings a few store rules:
+
+- **Google Play**
+  - **Target audience:** in **Target audience and content**, include the under-13 age groups.
+  - **Families policy:** this makes the game subject to Google's **Families policy**. Every ad SDK must be
+    Families-certified (AdMob is), and you must declare that ads are shown.
+  - **Content rating:** the IARC questionnaire. Expect around "Everyone 10+" or "PEGI 7" for cartoon vehicle combat.
+- **Apple**
+  - **Kids category:** you don't have to put the game in the **Kids** category. That category bans most third-party
+    ads, so it's best to leave it out.
+  - **Age rating:** choose an age rating that fits, likely 9+ for mild cartoon violence.
+  - **Purchases:** Apple's Family Sharing "Ask to Buy" covers children's purchases. The game's own grown-up check
+    runs as well.
+- **AdMob** (both stores): request child-directed, non-personalised ads with `tagForChildDirectedTreatment: true`,
+  `tagForUnderAgeOfConsent: true` and `maxAdContentRating: 'G'` in the plugin's initialise call. Then you don't
+  need Apple's tracking prompt, because no tracking happens.
+
 ## Simpler alternative for Android only: a Trusted Web Activity
 
 [PWABuilder](https://www.pwabuilder.com) or Bubblewrap can turn the website

@@ -117,6 +117,18 @@ the game plays on.
 **Mobile apps.** An AdMob adapter is needed (see `STORES.md`). Until then the
 app build uses the placeholder.
 
+### All ages
+
+The game is for everyone, including under-13s. In practice that means:
+
+- **Ads:** `ADS_CFG.kidSafe` is on, so Google is asked for non-personalised ads only (`requestNonPersonalizedAds`).
+  If AdSense offers child-directed tagging for the site, turn it on too.
+- **Leaderboard names:** generated from word lists, never typed.
+- **Purchases:** real-money crystal packs sit behind a grown-up check (a times-table question).
+- **Policy:** `privacy.html` describes all of this.
+
+The portals run their own ad settings for young players.
+
 ### 2. Ad verification (server)
 
 `verifyAd(token)` in `api/shop.js` is where server-side verification (SSV)
@@ -147,7 +159,8 @@ dialog.
   the game actually stores. It's linked from the main menu and Settings. Fill
   in the bracketed name and contact email and have it reviewed. Terms of sale,
   including a refund policy for crystals, are still needed.
-- **EU/UK ad consent:** a consent banner (CMP) if you show personalised ads
-  there. Google's ad tags require one.
+- **EU/UK ad consent:** turn on AdSense's consent message. Google uses it even
+  for non-personalised ads, for cookies used in measurement and fraud
+  prevention.
 - **Store labels:** check age-rating and loot-box rules for the regions you
   ship to. Chest odds are listed in `rollChest` if you need to publish them.
