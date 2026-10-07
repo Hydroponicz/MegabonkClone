@@ -157,8 +157,10 @@ dialog.
 
 - **Policies:** `privacy.html` is a draft privacy policy written around what
   the game actually stores. It's linked from the main menu and Settings. Fill
-  in the bracketed name and contact email and have it reviewed. Terms of sale,
-  including a refund policy for crystals, are still needed.
+  in the bracketed name and contact email and have it reviewed. `terms.html`
+  is the Terms of Service: purchases are final except where the law requires,
+  items can be lost if the game changes or closes, and cheaters can be banned.
+  Fill in its brackets too.
 - **EU/UK ad consent:** turn on AdSense's consent message. Google uses it even
   for non-personalised ads, for cookies used in measurement and fraud
   prevention.

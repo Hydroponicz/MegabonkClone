@@ -89,3 +89,30 @@ To rescue a save stuck at an old address from before Transfer save existed:
 1. Open that address.
 2. In the browser console, run `copy(localStorage.carnageProfile)`.
 3. Paste the result into Transfer save on the current site.
+
+## Dealing with cheaters
+
+The Terms of Service (`terms.html`) forbid cheating and let you remove scores and ban players. The API has
+owner-only tools for that.
+
+**Setup:** set an `ADMIN_TOKEN` environment variable in the Vercel project. Use a long random string, for example
+from `openssl rand -hex 24`, then redeploy. Keep the token secret. Without it, the tools are switched off.
+
+All tool calls are `POST /api/scores` with `{"action":"admin","token":"<ADMIN_TOKEN>","op":...}`:
+
+```sh
+SITE=https://vibecodingmegabonkclone.vercel.app; TOKEN=...   # your ADMIN_TOKEN
+# 1. look at a track's top runs with their player ids
+curl -s -X POST $SITE/api/scores -H 'content-type: application/json' -d "{\"action\":\"admin\",\"token\":\"$TOKEN\",\"op\":\"top\",\"track\":\"yard\"}"
+# 2. ban a player id (also wipes their runs on every track)
+curl -s -X POST $SITE/api/scores -H 'content-type: application/json' -d "{\"action\":\"admin\",\"token\":\"$TOKEN\",\"op\":\"ban\",\"pid\":\"<id>\",\"reason\":\"impossible time\"}"
+# other ops: unban {pid} · remove {pid,track} (delete one run, no ban) · bans (list bans with reasons)
+```
+
+**What a ban does:** a banned player id can't post runs, change its name, or use the shop. Cloud backups and
+save transfers keep working, so nobody's save is held hostage. In the game the player sees: "This device is banned
+from the online leaderboards for breaking the fair-play rules in the Terms of Service."
+
+**Limits:** a determined cheater can get around a ban with a fresh player id (by clearing storage or using a new
+device). Bans stop casual cheating, and you can re-ban as needed. The tools are rate-limited, so the token can't be
+guessed.

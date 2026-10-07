@@ -7,6 +7,12 @@
 //   POST /api/scores {pid,name,action:'xferGet',code}   claim a parked save (the code is deleted when used)
 //   POST /api/scores {pid,name,action:'cloudPut',key,data,xp}   automatic cloud backup under the player's permanent recovery code
 //   POST /api/scores {pid,name,action:'cloudGet',key}           restore: the latest backup and the one with the most progress
+//   POST /api/scores {action:'admin',token,op,...}   owner tools, enabled by the ADMIN_TOKEN environment variable:
+//        op:'top'    {track,limit}   the leaderboard with player ids, to find a cheater
+//        op:'ban'    {pid,reason}    ban a player id from posting runs and from the shop, and wipe their scores
+//        op:'unban'  {pid}           lift a ban
+//        op:'remove' {pid,track}     delete one run without banning
+//        op:'bans'                   list banned ids with reasons
 //
 // Ranking: longest survival time, then most wrecks. Player ids are random secrets made by the game and are never returned.
 // Storage: lb:<track> sorted set (pid -> score), lbrun:<track> hash (pid -> run JSON), lbname hash (pid -> name),
@@ -60,6 +66,38 @@ const shownName = n => nameOk(n) ? n : 'Driver';
 const validPid = s => typeof s === 'string' && /^[a-f0-9]{32}$/.test(s);
 // survival seconds first, wrecks as the tie-break
 const scoreOf = (t, kills) => Math.floor(t) * 100000 + Math.min(kills, 99999);
+// owner tools: compared in constant time so the token can't be guessed a character at a time
+const ADMIN = process.env.ADMIN_TOKEN || '';
+const adminOk = t => { if (!ADMIN || typeof t !== 'string' || t.length !== ADMIN.length) return false; return require('crypto').timingSafeEqual(Buffer.from(t), Buffer.from(ADMIN)); };
+async function admin(b, res) {
+  if (!adminOk(b.token)) return res.status(403).json({ error: 'forbidden' });
+  if (b.op === 'top') {
+    const track = String(b.track || ''); if (!TRACKS.includes(track)) return res.status(400).json({ error: 'track' });
+    const limit = Math.max(1, Math.min(200, Math.floor(+b.limit) || 50));
+    const [ids] = await redis([['ZREVRANGE', 'lb:' + track, 0, limit - 1]]);
+    const [runs, names] = await rows(track, ids);
+    return res.status(200).json({ track, top: ids.map((pid, i) => ({ rank: i + 1, pid, name: names[i], ...runs[i] })) });
+  }
+  if (b.op === 'bans') {
+    const [ids] = await redis([['SMEMBERS', 'banned']]);
+    const [log] = ids.length ? await redis([['HMGET', 'banlog', ...ids]]) : [[]];
+    return res.status(200).json({ bans: ids.map((pid, i) => ({ pid, ...(log[i] ? JSON.parse(log[i]) : {}) })) });
+  }
+  if (!validPid(b.pid)) return res.status(400).json({ error: 'pid' });
+  if (b.op === 'ban') {
+    const cmds = [['SADD', 'banned', b.pid], ['HSET', 'banlog', b.pid, JSON.stringify({ at: Date.now(), reason: String(b.reason || '').slice(0, 200) })]];
+    for (const t of TRACKS) cmds.push(['ZREM', 'lb:' + t, b.pid], ['HDEL', 'lbrun:' + t, b.pid]);
+    await redis(cmds);
+    return res.status(200).json({ ok: true, banned: b.pid });
+  }
+  if (b.op === 'unban') { await redis([['SREM', 'banned', b.pid], ['HDEL', 'banlog', b.pid]]); return res.status(200).json({ ok: true }); }
+  if (b.op === 'remove') {
+    const track = String(b.track || ''); if (!TRACKS.includes(track)) return res.status(400).json({ error: 'track' });
+    await redis([['ZREM', 'lb:' + track, b.pid], ['HDEL', 'lbrun:' + track, b.pid]]);
+    return res.status(200).json({ ok: true });
+  }
+  return res.status(400).json({ error: 'op' });
+}
 
 function readBody(req) {
   if (req.body && typeof req.body === 'object') return req.body;
@@ -118,6 +156,12 @@ module.exports = async (req, res) => {
 
     if (req.method === 'POST') {
       const b = readBody(req);
+      if (b.action === 'admin') {
+        const aip = String(req.headers['x-forwarded-for'] || '').split(',')[0].trim() || 'unknown';
+        const [tries] = await redis([['INCR', 'rla:' + aip], ['EXPIRE', 'rla:' + aip, 600, 'NX']]);
+        if (tries > 20) return res.status(429).json({ error: 'slow_down' });
+        return admin(b, res);
+      }
       if (!validPid(b.pid)) return res.status(400).json({ error: 'pid' });
       const name = cleanName(b.name);
       if (!nameOk(name)) return res.status(400).json({ error: 'name' });
@@ -163,6 +207,8 @@ module.exports = async (req, res) => {
         if (!data) return res.status(404).json({ error: 'no_code' });
         return res.status(200).json({ ok: true, data });
       }
+      // banned players (see the fair-play rules in terms.html) can't post runs or change names; backups still work so nobody loses a save
+      if (b.action === 'name' || !b.action) { const [isBanned] = await redis([['SISMEMBER', 'banned', b.pid]]); if (isBanned) return res.status(403).json({ error: 'banned' }); }
       if (b.action === 'name') {
         await redis([['HSET', 'lbname', b.pid, name]]);
         return res.status(200).json({ ok: true, name });

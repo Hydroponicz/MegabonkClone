@@ -34,7 +34,7 @@ The game is already prepared for it:
    npm init -y
    npm i @capacitor/core @capacitor/cli @capacitor/android @capacitor/ios @capacitor/app
    npx cap init "Carnage Loop" com.yourstudio.carnageloop --web-dir=www
-   mkdir -p www && cp index.html privacy.html www/
+   mkdir -p www && cp index.html privacy.html terms.html www/
    npx cap add android
    npx cap add ios          # on a Mac
    npx cap sync
@@ -60,6 +60,8 @@ The game is already prepared for it:
    4. Then turn the crystal packs back on for the app build.
 6. **Store listings:**
    - **Privacy policy URL:** the full address of `privacy.html` on your site.
+   - **Terms of use (EULA):** the full address of `terms.html`. Apple accepts a
+     custom EULA; otherwise its standard one applies.
    - **Privacy forms:** Google's **Data safety** form and Apple's **App Privacy**
      labels. List the leaderboard name, the random player ID, game data, and
      the ad identifiers used by AdMob.

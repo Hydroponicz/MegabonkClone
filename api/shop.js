@@ -94,6 +94,8 @@ module.exports = async (req, res) => {
     const ip = String(req.headers['x-forwarded-for'] || '').split(',')[0].trim() || 'unknown';
     const [hits] = await redis([['INCR', 'rls:' + ip], ['EXPIRE', 'rls:' + ip, 60, 'NX']]);
     if (hits > 40) return res.status(429).json({ error: 'slow_down' });
+    // a player id banned from the leaderboards for cheating is shut out of the shop too
+    if (/^[a-f0-9]{32}$/.test(b.pid || '')) { const [isBanned] = await redis([['SISMEMBER', 'banned', b.pid]]); if (isBanned) return res.status(403).json({ error: 'banned' }); }
     const id = walletId(b.key);
     const [raw] = await redis([['HGETALL', id]]);
     const w = {}; for (let i = 0; raw && i < raw.length; i += 2) w[raw[i]] = raw[i + 1];

@@ -491,6 +491,7 @@ body.nocursor,body.nocursor *{cursor:none!important}
 .hint a.privlink{color:var(--dim)}.hint a.privlink:hover{color:var(--hazard)}a.btn.privlink{text-decoration:none;display:inline-block}
 #gateBox{position:fixed;inset:0;z-index:70;display:grid;place-items:center;background:rgba(5,5,8,.9);padding:16px}#gateBox[hidden]{display:none}
 .gatecard{width:min(380px,100%);background:var(--panel);border:2px solid var(--xp);padding:20px;display:flex;flex-direction:column;gap:10px;text-align:center}.gatecard b{font-family:var(--display);font-weight:400;font-size:26px;color:var(--xp)}.gatecard span,.gatecard small{color:var(--dim);font-size:14px}
+.gterms{font-size:11px!important;line-height:1.45;color:var(--dim)}.gterms a,.fine a{color:var(--hazard)}
 .gq{font-family:var(--display);font-size:28px;display:flex;align-items:center;justify-content:center;gap:10px}.gq input{width:90px;font:inherit;text-align:center;background:var(--ink);color:var(--fg);border:2px solid var(--line);padding:4px}.gatecard .btns{justify-content:center}
 .lbname .lblab{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--dim)}.lbname #lbName{font-family:var(--display);font-weight:400;font-size:20px;color:var(--hazard)}
 @media (prefers-reduced-motion:reduce){.card,#banner,.mbtn,.toast{transition:none;animation:none}}
@@ -594,7 +595,7 @@ body.nocursor,body.nocursor *{cursor:none!important}
       <button class="mbtn" id="howBtn"><span>How to play</span><span class="arr">›</span></button>
       <button class="mbtn" id="restoreBtn" hidden><span>Played before? Restore your progress</span><span class="arr">›</span></button>
     </nav>
-    <p class="hint"><kbd>↑</kbd><kbd>↓</kbd> to choose · <kbd>Enter</kbd> to select · <a class="privlink" href="privacy.html" target="_blank" rel="noopener">Privacy</a></p>
+    <p class="hint"><kbd>↑</kbd><kbd>↓</kbd> to choose · <kbd>Enter</kbd> to select · <a class="privlink" href="privacy.html" target="_blank" rel="noopener">Privacy</a> · <a class="privlink" data-doc="terms" href="terms.html" target="_blank" rel="noopener">Terms</a></p>
     <div class="hazard-stripe"></div>
   </section>
 
@@ -626,7 +627,7 @@ body.nocursor,body.nocursor *{cursor:none!important}
     <div class="skinwrap"><div id="skinPrev"></div><div class="skingrid" id="skinGrid"></div></div>
     <p class="sub secthead" id="stPacksHead">Nitro Crystals</p>
     <div class="packs" id="stPacks"></div>
-    <p class="fine">Nitro Crystals are the premium currency for vehicle skins. Skins are cosmetic and change nothing about how a car drives.</p>
+    <p class="fine">Nitro Crystals are the premium currency for vehicle skins. Skins are cosmetic and change nothing about how a car drives. Crystals and all other in-game items have no cash value and can't be exchanged, and they may be lost if the game changes or shuts down; purchases are final except where the law says otherwise. Cheating can lead to a ban. See the <a class="privlink" data-doc="terms" href="terms.html" target="_blank" rel="noopener">Terms of Service</a>.</p>
   </section>
 
   <section id="scrLevels" class="panel" hidden>
@@ -669,6 +670,7 @@ body.nocursor,body.nocursor *{cursor:none!important}
       <div class="set-row"><div><b>Low-detail mode</b><span class="d">Fewer particles and lower resolution for slower devices</span></div><button class="switch" role="switch" data-set="lowFx" aria-label="Low-detail mode"></button></div>
       <div class="set-row"><div><b>Auto-pause</b><span class="d">Pause when the window loses focus</span></div><button class="switch" role="switch" data-set="autoPause" aria-label="Auto-pause"></button></div>
       <div class="set-row"><div><b>Transfer save</b><span class="d">Move your unlocks and progress to another phone or computer</span></div><button class="btn alt" id="xferBtn">Transfer</button></div>
+      <div class="set-row"><div><b>Terms of Service</b><span class="d">The rules: fair play, virtual items and purchases, and the game changing or closing</span></div><a class="btn alt privlink" data-doc="terms" href="terms.html" target="_blank" rel="noopener">Read</a></div>
       <div class="set-row"><div><b>Privacy policy</b><span class="d">What the game stores, ads, purchases and your choices</span></div><a class="btn alt privlink" href="privacy.html" target="_blank" rel="noopener">Read</a></div>
       <div class="set-row"><div><b>Input code</b><span class="d">Heard about a secret code? Punch it in here</span></div><button class="btn alt" id="codeBtn">Input code</button></div>
       <div class="set-row danger"><div><b>Reset progress</b><span class="d">Wipes account level, scrap, garage, stats and achievements. A backup is kept in Transfer save in case you change your mind.</span></div><button class="btn warn" id="resetBtn">Reset</button></div>
@@ -1477,7 +1479,7 @@ const ADS_PROVIDER=ADS_CFG.provider!=='auto'?ADS_CFG.provider:PORTAL||(!IN_APP&&
 // portals and the app stores don't allow your own in-game purchases, so crystal packs only show on your own site
 const IAP_OK=!PORTAL&&!IN_APP;
 // the privacy policy lives on the game's own site, wherever the game is being played
-if(API_BASE)addEventListener('DOMContentLoaded',()=>document.querySelectorAll('.privlink').forEach(a=>a.href=API_HOME+'/privacy.html'));
+if(API_BASE)addEventListener('DOMContentLoaded',()=>document.querySelectorAll('.privlink').forEach(a=>a.href=API_HOME+'/'+(a.dataset.doc||'privacy')+'.html'));
 const SKINS={
   stripes:{name:'Racing Stripes',pat:'stripes',col:'#1f4fd8',acc:'#f2f4f8',price:120,rar:'Common'},
   hazard:{name:'Hazard Wrap',pat:'hazard',col:'#ffc21a',acc:'#141318',price:150,rar:'Common'},
@@ -1549,7 +1551,7 @@ const Econ={mode:'local',test:true,st:null,syncing:null,
   view(){const e=this.local(),today=new Date().toISOString().slice(0,10),adN=e.adDay===today?e.adN||0:0;
     return{crystals:e.crystals,skins:e.skins,dailyReady:e.daily!==today,nextDayAt:Date.parse(today+'T00:00:00Z')+864e5,adLeft:Math.max(0,ADS_CFG.adChestsPerDay-adN),adReadyAt:(e.adAt||0)+ADS_CFG.adChestCooldown*1000,test:true,now:Date.now()}},
   apply(st){if(!st)return;this.st=st;this.test=st.test!==false;const e=this.local();e.crystals=st.crystals;e.skins=Object.assign({},st.skins);saveProfile()},
-  async post(body){const r=await fetch(ECON_API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(Object.assign({key:P.cloudKey},body))});let j={};try{j=await r.json()}catch(e){}return{status:r.status,j}},
+  async post(body){const r=await fetch(ECON_API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(Object.assign({key:P.cloudKey,pid:P.pid},body))});let j={};try{j=await r.json()}catch(e){}return{status:r.status,j}},
   // find out which mode we're in and pull the wallet
   sync(){if(this.syncing)return this.syncing;this.syncing=(async()=>{if(lbOnline){try{const {status,j}=await this.post({action:'state'});if(status===200&&j.ok){this.mode='server';this.apply(j.state);return}}catch(e){}}
       this.mode='local';this.st=this.view();this.test=true})().finally(()=>{this.syncing=null});return this.syncing},
@@ -3480,22 +3482,23 @@ function chestReveal(title,lines,cls){const el=$('chestOpen');el.innerHTML=`<div
 async function storeClick(e){const t=e.target;
   if(t.closest('#coOk')){$('chestOpen').hidden=true;renderStore();return}
   if(t.closest('#stReset')){await Econ.act('testreset');toast('↺','Test limits reset','Chests can be opened again');renderStore();return}
-  if(t.closest('#chDaily')){const r=await Econ.act('daily');if(!r.ok){toast('!','Chest',r.error);renderStore();return}chestReveal('Daily chest',grantChest(r.reward),'daily');refreshMenu();return}
+  if(t.closest('#chDaily')){const r=await Econ.act('daily');if(!r.ok){toast('!','Chest',shopErr(r.error));renderStore();return}chestReveal('Daily chest',grantChest(r.reward),'daily');refreshMenu();return}
   if(t.closest('#chAd')){const b=t.closest('#chAd');b.disabled=true;const seen=await Ads.rewarded('sponsor_chest');if(!seen){Ads.noFill?toast('▶','No ad right now','Try again in a little while'):toast('▶','Ad skipped','No chest this time');renderStore();return}
-    const r=await Econ.act('adchest',{adToken:'placeholder'});if(!r.ok){toast('!','Chest',r.error);renderStore();return}chestReveal('Sponsor chest',grantChest(r.reward),'ad');refreshMenu();return}
+    const r=await Econ.act('adchest',{adToken:'placeholder'});if(!r.ok){toast('!','Chest',shopErr(r.error));renderStore();return}chestReveal('Sponsor chest',grantChest(r.reward),'ad');refreshMenu();return}
   const sk=t.closest('.skin');if(sk){shopSkinView=sk.dataset.skin;renderStore();const f=$('skinGrid').querySelector(`[data-skin="${shopSkinView}"]`);if(f)f.focus();return}
-  if(t.closest('#skBuy')){const r=await Econ.act('buyskin',{skin:shopSkinView});if(!r.ok){toast('!','Skin',r.error==='funds'?'Not enough crystals':r.error);renderStore();return}P.skin=P.skin||{};P.skin[P.car]=shopSkinView;saveProfile();sfx('buy');toast('✦','Skin unlocked',SKINS[shopSkinView].name);renderStore();return}
+  if(t.closest('#skBuy')){const r=await Econ.act('buyskin',{skin:shopSkinView});if(!r.ok){toast('!','Skin',shopErr(r.error));renderStore();return}P.skin=P.skin||{};P.skin[P.car]=shopSkinView;saveProfile();sfx('buy');toast('✦','Skin unlocked',SKINS[shopSkinView].name);renderStore();return}
   if(t.closest('#skOn')){P.skin=P.skin||{};P.skin[P.car]=shopSkinView;saveProfile();sfx('pick');renderStore();return}
   if(t.closest('#skOff')){delete P.skin[P.car];saveProfile();sfx('pick');renderStore();return}
   const pk=t.closest('.pack');if(pk){const p=PACKS.find(x=>x.sku===pk.dataset.sku);
     if(!(await grownUpGate()))return;
     if(!Econ.test){toast('!','Store','Payments are not connected yet');return}
     if(!confirm(`TEST PURCHASE\n\n${p.n.toLocaleString()} Nitro Crystals (${p.price} when live).\nNo money is charged in test mode.`))return;
-    const r=await Econ.act('purchase',{sku:p.sku,receipt:'test'});if(r.ok){sfx('buy');chestReveal('Crystals added',[['gem',`+${p.n.toLocaleString()} Nitro Crystals`]],'pack')}else toast('!','Store',r.error);renderStore();return}}
+    const r=await Econ.act('purchase',{sku:p.sku,receipt:'test'});if(r.ok){sfx('buy');chestReveal('Crystals added',[['gem',`+${p.n.toLocaleString()} Nitro Crystals`]],'pack')}else toast('!','Store',shopErr(r.error));renderStore();return}}
 
 // a grown-up check before real-money purchases: a times-table question younger players can't just tap through
+const shopErr=e=>({banned:'Banned for breaking the fair-play rules (see Terms)',funds:'Not enough crystals',claimed:'Already opened today',limit:'No more today',cooldown:'Not ready yet',offline:'Can\'t reach the shop right now',owned:'Already owned'}[e]||e);
 function grownUpGate(){return new Promise(res=>{const a=6+Math.floor(Math.random()*4),b=6+Math.floor(Math.random()*4),el=$('gateBox');
-  el.innerHTML=`<div class="gatecard"><b>Ask a grown-up</b><span>This costs real money. To carry on, a grown-up can answer:</span><div class="gq">${a} × ${b} = <input id="gateIn" inputmode="numeric" maxlength="3" autocomplete="off" aria-label="Answer"></div><div class="btns"><button class="btn" id="gateOk">Continue</button><button class="btn alt" id="gateNo">Cancel</button></div><small id="gateMsg"></small></div>`;el.hidden=false;$('gateIn').focus();
+  el.innerHTML=`<div class="gatecard"><b>Ask a grown-up</b><span>This costs real money. To carry on, a grown-up can answer:</span><div class="gq">${a} × ${b} = <input id="gateIn" inputmode="numeric" maxlength="3" autocomplete="off" aria-label="Answer"></div><div class="btns"><button class="btn" id="gateOk">Continue</button><button class="btn alt" id="gateNo">Cancel</button></div><small id="gateMsg"></small><small class="gterms">By continuing you agree to the <a href="${API_BASE?API_HOME+'/':''}terms.html" target="_blank" rel="noopener">Terms of Service</a>. Crystals have no cash value, are delivered straight away, aren\u2019t refundable except where the law requires, and can be lost if the game changes or closes.</small></div>`;el.hidden=false;$('gateIn').focus();
   const done=v=>{el.hidden=true;res(v)};$('gateNo').onclick=()=>done(false);
   const check=()=>{if(+$('gateIn').value===a*b)done(true);else{$('gateMsg').textContent='That’s not right. Ask a grown-up to help.';$('gateIn').value='';setTimeout(()=>done(false),1200)}};
   $('gateOk').onclick=check;$('gateIn').addEventListener('keydown',e=>{if(e.code==='Enter'||e.code==='NumpadEnter'){e.preventDefault();check()}if(e.code==='Escape')done(false)})})}
@@ -3618,12 +3621,13 @@ let lbBusy=null;
 function lbFlush(){if(!lbOnline)return Promise.resolve({});if(lbBusy)return lbBusy.then(lbFlush);
   const job=(async()=>{const out={};for(const id of Object.keys(P.lbQueue)){
     // only clear the entry we actually sent: a better run may have been queued while this one was in flight
-    const sent=P.lbQueue[id];try{out[id]=await lbPost(sent);if(P.lbQueue[id]===sent)delete P.lbQueue[id]}
-    catch(e){out[id]={error:e.code};if(/^implausible|^track$/.test(e.code)&&P.lbQueue[id]===sent)delete P.lbQueue[id];if(e.code==='not_configured'||e.code===429)break}}
+    const sent=P.lbQueue[id];try{out[id]=await lbPost(sent);delete P.lbBanned;if(P.lbQueue[id]===sent)delete P.lbQueue[id]}
+    catch(e){out[id]={error:e.code};if(e.code==='banned')P.lbBanned=1;if(/^implausible|^track$|^banned$/.test(e.code)&&P.lbQueue[id]===sent)delete P.lbQueue[id];if(e.code==='not_configured'||e.code===429)break}}
     saveProfile();return out})();
   lbBusy=job;job.finally(()=>{if(lbBusy===job)lbBusy=null});return job}
 const lbErrText=(c,env)=>!lbOnline?'Online leaderboards work on the deployed site, not when the file is opened directly.':
   c==='not_configured'?`The leaderboard database isn't connected to this ${env?env+' ':''}deployment yet. Your runs are saved and will post once it is.`:
+  c==='banned'?'This device is banned from the online leaderboards for breaking the fair-play rules in the Terms of Service.':
   c===429?'Too many requests. Try again in a minute.':'Can\'t reach the leaderboard right now. Your runs are saved and will post later.';
 // results screen line
 function lbAfterRun(){const el=$('rRank'),g=G,L=G.L;
@@ -3647,7 +3651,7 @@ function renderBoard(){if(lbTrack===null)lbTrack=G&&G.L?G.L.id:LEVELS[0].id;
     const row=r=>`<tr class="${r.you?'you':''}"><td>${r.rank}</td><td class="nm">${esc(r.name)}${r.you?' <small>you</small>':''}</td><td>${fmt(r.t||0)}${r.escaped?' <span class="lbesc" title="Escaped through the exit portal">◎</span>':r.cleared?' <span class="clr" title="Track cleared">✓</span>':''}</td><td>${r.kills||0}</td><td>${r.level||1}</td><td class="lbcar">${esc((CARS[r.car]||CARS.interceptor).name)}</td></tr>`;
     let h=j.top.map(row).join('');if(j.me&&j.me.rank>j.top.length)h+='<tr class="gap"><td colspan="6">⋯</td></tr>'+row(j.me);
     body.innerHTML=h||'<tr><td colspan="6" class="lbinfo">No runs yet. Survive 10 seconds to claim first place.</td></tr>';
-    msg.textContent=`${j.total} driver${j.total===1?'':'s'} on this track`+(best?` · your best here: ${fmt(best)}`:'')})
+    msg.textContent=P.lbBanned?lbErrText('banned'):`${j.total} driver${j.total===1?'':'s'} on this track`+(best?` · your best here: ${fmt(best)}`:'')})
   .catch(e=>{if(n!==lbReq)return;body.innerHTML='';msg.textContent=lbErrText(e.code,e.env)})}
 $('lbTabs').addEventListener('click',e=>{const b=e.target.closest('.lbtab');if(!b)return;lbTrack=b.dataset.t;renderBoard();$('lbTabs').querySelector(`[data-t="${lbTrack}"]`).focus()});
 function lbSaveName(){const nm=genName();
