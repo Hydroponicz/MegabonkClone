@@ -713,7 +713,7 @@ body.nocursor,body.nocursor *{cursor:none!important}
 <script>
 'use strict';
 const $=id=>document.getElementById(id);
-const TAU=Math.PI*2, ARENA=3000;
+const TAU=Math.PI*2, ARENA=4200;
 const rand=(a,b)=>a+Math.random()*(b-a);
 const clamp=(v,a,b)=>v<a?a:v>b?b:v;
 const d2=(ax,ay,bx,by)=>{const dx=ax-bx,dy=ay-by;return dx*dx+dy*dy};
@@ -1565,7 +1565,7 @@ function gridAdd(o){const r=o.rect?Math.max(o.w,o.h)/2:o.r;const x0=clamp((o.x-r
   for(let cx=x0;cx<=x1;cx++)for(let cy=y0;cy<=y1;cy++)ocells[cx*ON+cy].push(o)}
 // juggernauts and level bosses flatten what they drive into (not city buildings or tesla pylons), leaving wreckage.
 // The cleared ground opens up in the flow field so regular cars can use the new gap too
-const UNBREAKABLE={building:1,pylon:1};
+const UNBREAKABLE={building:1,pylon:1,crusher:1,fountain:1,obelisk:1};
 function bossSmash(e){const r=e.r*.85,x0=clamp((e.x-r)/OG|0,0,ON-1),x1=clamp((e.x+r)/OG|0,0,ON-1),y0=clamp((e.y-r)/OG|0,0,ON-1),y1=clamp((e.y+r)/OG|0,0,ON-1);
   for(let cx=x0;cx<=x1;cx++)for(let cy=y0;cy<=y1;cy++)for(const o of ocells[cx*ON+cy])if(o.solid&&!o.prop&&!UNBREAKABLE[o.k]&&hitsShape(o,e.x,e.y,r))wreckObs(o,e)}
 function wreckCol(o){const th=G.L.theme;return o.k==='container'?['#a23a2a','#2a6aa2','#3a8a4a','#c98a2a'][Math.floor(o.seed*4)]:o.k==='parked'?o.col:o.k==='barn'?'#8a2a22':o.k==='cabin'?'#5a3a26':o.k==='ruin'?'#3a2a26':
@@ -1683,26 +1683,70 @@ function buildWorld(L){
   const strips=n=>{for(let i=0,t=0;i<n&&t<n*30;t++){const v=Math.random()<.5,w=v?18:150,h=v?150:18,x=rand(200,ARENA-200),y=rand(200,ARENA-200);if(d2(x,y,sx,sy)<500*500||solidAt(x,y,80))continue;W.zones.push({k:'spikes',x,y,w,h,rect:true,r:80});i++}};
   const pylons=n=>{for(let i=0,t=0;i<n&&t<n*30;t++){const x=rand(200,ARENA-200),y=rand(200,ARENA-200);if(!free(x,y,60))continue;const py={x,y,t:rand(0,4)};W.pylons.push(py);add({k:'pylon',x,y,r:16,solid:true,py});i++}};
   const th=L.theme;
+  // the maps were 3000px square; counts scale with area so a bigger map keeps the same density
+  const AF=(ARENA/3000)**2,N=n=>Math.round(n*AF);
+  // landmarks: hand-built set pieces dropped first, well away from the start and from each other. Every gap
+  // between their pieces is at least 110px, so any car can drive through
+  const sites=[],site=(R)=>{for(let t=0;t<300;t++){const x=rand(R+180,ARENA-R-180),y=rand(R+180,ARENA-R-180);
+      if(d2(x,y,sx,sy)<(R+620)**2||sites.some(q=>d2(x,y,q[0],q[1])<(R+q[2]+260)**2)||W.obs.some(o=>hitsShape(o,x,y,R)))continue;sites.push([x,y,R]);return[x,y]}return null};
+  const at=(o,ex={})=>add(Object.assign({solid:true,seed:Math.random()},o,ex));
+  const rock=(k,x,y,r)=>at({k,x,y,r,pts:blob(r)});
+  const fence=(x,y,len,vert)=>at({k:'fence',x,y,w:vert?12:len,h:vert?len:12,rect:true});
+  const ring=(cx,cy,R,n,gaps,make)=>{const skip=new Set();while(skip.size<gaps)skip.add(Math.floor(Math.random()*n));for(let i=0;i<n;i++)if(!skip.has(i)){const a=i/n*TAU;make(cx+Math.cos(a)*R,cy+Math.sin(a)*R,a)}};
+  const propAt=(k,x,y,r)=>{if(solidAt(x,y,r+6))return;const o={k,x,y,r,prop:true,rot:rand(0,TAU),seed:Math.random()};W.props.push(o);gridAdd(o)};
+  const zoneAt=(k,x,y,r)=>W.zones.push({k,x,y,r,rot:rand(0,TAU),pts:blob(r,10,.3)});
   if(th==='city'){
     // city blocks between the painted roads every 600px, with wide boulevards (~330px) so even bosses can drive them.
-    // one compact building per block, no alleys; the middle block and a couple of random lots stay open
-    const E=[0,600,1200,1800,2400,3000],pal=['#2a2540','#30284a','#222a44','#3a2440','#262236'],M=165,EDGE=175;
-    const open=new Set(['2,2']);while(open.size<4){const b=Math.floor(Math.random()*5),c=Math.floor(Math.random()*5);if(Math.abs(b-2)+Math.abs(c-2)>1)open.add(b+','+c)}
-    for(let bx=0;bx<5;bx++)for(let by=0;by<5;by++){// outer blocks stop short of the wall, leaving a ring road
-      const x0=E[bx]+(bx?M:EDGE),x1=E[bx+1]-(bx<4?M:EDGE),y0=E[by]+(by?M:EDGE),y1=E[by+1]-(by<4?M:EDGE);
-      W.deco.push({x:(x0+x1)/2,y:(y0+y1)/2,w:x1-x0,h:y1-y0});if(open.has(bx+','+by))continue;
+    // one compact building per block, no alleys; the middle block stays open and a few lots become plazas
+    const NB=Math.round(ARENA/600),E=Array.from({length:NB+1},(_,i)=>i*600),mid=NB>>1,pal=['#2a2540','#30284a','#222a44','#3a2440','#262236'],M=165,EDGE=175;
+    const open=new Set([mid+','+mid]),plazas=new Set();while(open.size<1+Math.round(3*AF)){const b=Math.floor(Math.random()*NB),c=Math.floor(Math.random()*NB);if(Math.abs(b-mid)+Math.abs(c-mid)>1&&!open.has(b+','+c)){open.add(b+','+c);if(plazas.size<Math.round(1.5*AF))plazas.add(b+','+c)}}
+    for(let bx=0;bx<NB;bx++)for(let by=0;by<NB;by++){// outer blocks stop short of the wall, leaving a ring road
+      const x0=E[bx]+(bx?M:EDGE),x1=E[bx+1]-(bx<NB-1?M:EDGE),y0=E[by]+(by?M:EDGE),y1=E[by+1]-(by<NB-1?M:EDGE);
+      W.deco.push({x:(x0+x1)/2,y:(y0+y1)/2,w:x1-x0,h:y1-y0});
+      if(plazas.has(bx+','+by)){// plaza: a neon fountain in the middle, benches facing it, lamps on the corners
+        const cx=(x0+x1)/2,cy=(y0+y1)/2;at({k:'fountain',x:cx,y:cy,r:52});for(const [dx,dy,v] of [[0,-125,0],[0,125,0],[-125,0,1],[125,0,1]])at({k:'bench',x:cx+dx,y:cy+dy,w:v?12:46,h:v?46:12,rect:true});
+        for(const [dx,dy] of [[-1,-1],[1,-1],[-1,1],[1,1]])at({k:'lamp',x:cx+dx*(x1-x0)/2*.78,y:cy+dy*(y1-y0)/2*.78,r:7});continue}
+      if(open.has(bx+','+by))continue;
       const aw=x1-x0-24,ah=y1-y0-24,w=aw*rand(.62,1),h=ah*rand(.62,1),x=x0+12+rand(0,aw-w),y=y0+12+rand(0,ah-h);
       add({k:'building',x:x+w/2,y:y+h/2,w,h,rect:true,solid:true,col:pal[Math.floor(Math.random()*pal.length)],seed:Math.random()})}
     // tesla pylons sit in the middle of street intersections
-    {const X=[];for(let i=1;i<5;i++)for(let j=1;j<5;j++)X.push([E[i],E[j]]);shuffle(X);let n=0;for(const [x,y] of X){if(n>=5)break;if(d2(x,y,sx,sy)<500*500||!free(x,y,16))continue;const py={x,y,t:rand(0,4)};W.pylons.push(py);add({k:'pylon',x,y,r:16,solid:true,py});n++}}
+    {const X=[];for(let i=1;i<NB;i++)for(let j=1;j<NB;j++)X.push([E[i],E[j]]);shuffle(X);let n=0;for(const [x,y] of X){if(n>=N(5))break;if(d2(x,y,sx,sy)<500*500||!free(x,y,16))continue;const py={x,y,t:rand(0,4)};W.pylons.push(py);add({k:'pylon',x,y,r:16,solid:true,py});n++}}
     // street lamps along the curbs
-    for(let i=1;i<5;i++)for(let s=120;s<ARENA-60;s+=300)for(const off of[-138,138]){if(Math.random()<.45)continue;const a=E[i]+off;if(!solidAt(a,s,40)&&d2(a,s,sx,sy)>300*300)add({k:'lamp',x:a,y:s,r:7,solid:true});if(!solidAt(s,a,40)&&d2(s,a,sx,sy)>300*300)add({k:'lamp',x:s,y:a,r:7,solid:true})}
-    prop('cone',50,9);prop('hydrant',22,8);prop('crate',20,13);zone('oil',10,40,80);
-  }else if(th==='yard'){rect('container',22,120,160,44,52);circ('junk',16,34,58);prop('tires',24,16);zone('oil',10,40,80)}
-  else if(th==='outskirts'){grove('tree',14,3,16,28);circ('rock',18,16,44);rect('barn',4,140,180,90,120);circ('silo',3,32,40);prop('hay',30,15);prop('crate',20,13);zone('oil',5,40,60)}
-  else if(th==='frost'){grove('pine',16,3,16,26);circ('rock',16,18,46);rect('cabin',5,90,120,70,90);prop('snowman',22,14);prop('crate',20,13);zone('ice',14,60,140)}
-  else{circ('rock',26,20,56);grove('burnt',8,3,12,20);rect('ruin',8,80,140,60,100);prop('crate',25,13);zone('lava',12,50,110);strips(8);pylons(4)}
-  for(let i=0,t=0;i<30&&t<600;t++){const k=L.barrels[Math.floor(Math.random()*L.barrels.length)],B=BTYPES[k],x=rand(120,ARENA-120),y=rand(120,ARENA-120);
+    for(let i=1;i<NB;i++)for(let s=120;s<ARENA-60;s+=300)for(const off of[-138,138]){if(Math.random()<.45)continue;const a=E[i]+off;if(!solidAt(a,s,40)&&d2(a,s,sx,sy)>300*300)add({k:'lamp',x:a,y:s,r:7,solid:true});if(!solidAt(s,a,40)&&d2(s,a,sx,sy)>300*300)add({k:'lamp',x:s,y:a,r:7,solid:true})}
+    prop('cone',N(50),9);prop('hydrant',N(22),8);prop('crate',N(20),13);zone('oil',N(10),40,80);
+  }else if(th==='yard'){
+    // the crusher: a hydraulic press ringed by junk piles, tires stacked round the gaps
+    {const c=site(300);if(c){const [x,y]=c;at({k:'crusher',x,y,w:190,h:130,rect:true});ring(x,y,250,9,3,(px,py)=>rock('junk',px,py,rand(34,46)));for(let i=0;i<8;i++){const a=rand(0,TAU),d=rand(150,320);propAt('tires',x+Math.cos(a)*d,y+Math.sin(a)*d,16)}}}
+    // container mazes: three rows of containers with 120px lanes and a couple of boxes missing
+    for(let m=0;m<2;m++){const c=site(330);if(!c)continue;const [x,y]=c,v=Math.random()<.5;const miss=new Set([Math.floor(rand(0,9)),Math.floor(rand(0,9))]);
+      for(let r=0;r<3;r++)for(let q=0;q<3;q++){if(miss.has(r*3+q))continue;const a=(q-1)*275,b=(r-1)*170;at({k:'container',x:x+(v?b:a),y:y+(v?a:b),w:v?48:155,h:v?155:48,rect:true})}}
+    rect('container',N(16),120,160,44,52);circ('junk',N(12),34,58);prop('tires',N(24),16);zone('oil',N(10),40,80)}
+  else if(th==='outskirts'){
+    // farmsteads: a barn and its silos, fenced on two sides with a gate, hay bales about the yard
+    for(let f=0;f<2;f++){const c=site(320);if(!c)continue;const [x,y]=c,sxn=Math.random()<.5?-1:1,syn=Math.random()<.5?-1:1;
+      at({k:'barn',x,y,w:170,h:110,rect:true});rock('silo',x-sxn*190,y-syn*55,36);rock('silo',x-sxn*190,y+syn*75,32);
+      fence(x-110,y+syn*200,150,0);fence(x+140,y+syn*200,150,0);fence(x+sxn*250,y-60,150,1);fence(x+sxn*250,y+115,80,1);
+      for(let i=0;i<7;i++){const a=rand(0,TAU),d=rand(130,300);propAt('hay',x+Math.cos(a)*d,y+Math.sin(a)*d,15)}}
+    // the quarry: a ring of boulders round a dusty pit, with two ways in
+    {const c=site(260);if(c){const [x,y]=c;ring(x,y,230,9,2,(px,py)=>rock('rock',px,py,rand(30,44)));rock('rock',x+rand(-30,30),y+rand(-30,30),26);for(let i=0;i<4;i++)propAt('crate',x+rand(-120,120),y+rand(-120,120),13)}}
+    grove('tree',N(12),3,16,28);circ('rock',N(14),16,44);rect('barn',N(2),140,180,90,120);circ('silo',N(2),32,40);prop('hay',N(30),15);prop('crate',N(20),13);zone('oil',N(5),40,60)}
+  else if(th==='frost'){
+    // frozen lakes: wide sheets of ice with a rocky shore and snowmen on the bank
+    for(let l=0;l<2;l++){const c=site(360);if(!c)continue;const [x,y]=c,R=rand(250,320);zoneAt('ice',x,y,R);ring(x,y,R+70,10,5,(px,py)=>rock('rock',px,py,rand(22,36)));for(let i=0;i<5;i++){const a=rand(0,TAU);propAt('snowman',x+Math.cos(a)*(R+130),y+Math.sin(a)*(R+130),14)}}
+    // a cabin village round a frozen square, pines between the houses
+    {const c=site(330);if(c){const [x,y]=c;ring(x,y,230,4,0,(px,py,a)=>{const v=Math.abs(Math.cos(a))<.5;at({k:'cabin',x:px,y:py,w:v?110:80,h:v?80:110,rect:true})});
+      ring(x,y,250,4,0,(px,py,a)=>{const b=a+Math.PI/4;rock('pine',x+Math.cos(b)*250,y+Math.sin(b)*250,22)});propAt('crate',x+30,y-20,13);propAt('snowman',x-30,y+30,14)}}
+    grove('pine',N(12),3,16,26);circ('rock',N(12),18,46);rect('cabin',N(3),90,120,70,90);prop('snowman',N(22),14);prop('crate',N(20),13);zone('ice',N(10),60,140)}
+  else{
+    // a lava river winds across the map with two cooled crossings
+    {const v=Math.random()<.5,c0=rand(ARENA*.25,ARENA*.75),amp=rand(180,320),ph=rand(0,TAU),len=ARENA-500,gapAt=[rand(.2,.4),rand(.6,.8)];
+      for(let s2=0;s2<=len;s2+=105){const f=s2/len;if(gapAt.some(g=>Math.abs(f-g)<.05))continue;const along=250+s2,across=c0+Math.sin(f*TAU*1.3+ph)*amp,x=v?across:along,y=v?along:across;
+        if(d2(x,y,sx,sy)<720*720)continue;zoneAt('lava',x,y,rand(66,84))}}
+    // the old arena: a ring of rubble round a glowing obelisk, four ways in
+    {const c=site(330);if(c){const [x,y]=c;ring(x,y,290,11,3,(px,py)=>rock('rock',px,py,rand(28,40)));at({k:'obelisk',x,y,r:34});
+      ring(x,y,170,4,0,(px,py)=>{const py2={x:px,y:py,t:rand(0,4)};W.pylons.push(py2);add({k:'pylon',x:px,y:py,r:16,solid:true,py:py2})})}}
+    circ('rock',N(20),20,56);grove('burnt',N(7),3,12,20);rect('ruin',N(7),80,140,60,100);prop('crate',N(25),13);zone('lava',N(8),50,110);strips(N(8));pylons(N(4))}
+  for(let i=0,t=0;i<Math.round(30*(ARENA/3000)**2)&&t<1200;t++){const k=L.barrels[Math.floor(Math.random()*L.barrels.length)],B=BTYPES[k],x=rand(120,ARENA-120),y=rand(120,ARENA-120);
     if(d2(x,y,sx,sy)<320*320||solidAt(x,y,B.r+6)||W.zones.some(z=>d2(x,y,z.x,z.y)<z.r*z.r))continue;W.barrels.push({x,y,r:B.r,t:k,alive:true,respawn:0,fuse:-1});i++}
   buildFlowBlock();if(L.bossWalls)buildBossBlock();return W}
 // props that get knocked over (and tumble away) instead of smashing
@@ -1766,6 +1810,16 @@ function drawObstacles(vis){const th=G.L.theme;
       if(k==='building'){drawNeonBuilding(o,x,y)}
       else if(k==='container'){const cols=['#a23a2a','#2a6aa2','#3a8a4a','#c98a2a'];ctx.fillStyle=cols[Math.floor(o.seed*4)];ctx.fillRect(x,y,o.w,o.h);ctx.strokeStyle='rgba(0,0,0,.3)';ctx.lineWidth=2;ctx.beginPath();
         if(o.w>o.h)for(let i=8;i<o.w;i+=10){ctx.moveTo(x+i,y+3);ctx.lineTo(x+i,y+o.h-3)}else for(let i=8;i<o.h;i+=10){ctx.moveTo(x+3,y+i);ctx.lineTo(x+o.w-3,y+i)}ctx.stroke()}
+      else if(k==='crusher'){// hazard-striped frame round a steel press plate
+        ctx.save();ctx.beginPath();ctx.rect(x,y,o.w,o.h);ctx.clip();ctx.fillStyle='#ffc21a';ctx.fillRect(x,y,o.w,o.h);ctx.strokeStyle='#141318';ctx.lineWidth=9;ctx.beginPath();for(let i=-o.h;i<o.w;i+=22){ctx.moveTo(x+i,y+o.h);ctx.lineTo(x+i+o.h,y)}ctx.stroke();ctx.restore();
+        ctx.fillStyle='#3a3842';ctx.fillRect(x+14,y+14,o.w-28,o.h-28);ctx.fillStyle='#6e6a78';ctx.fillRect(x+24,y+24,o.w-48,o.h-48);ctx.strokeStyle='rgba(0,0,0,.35)';ctx.lineWidth=2;ctx.beginPath();for(let i=x+34;i<x+o.w-30;i+=14){ctx.moveTo(i,y+26);ctx.lineTo(i,y+o.h-26)}ctx.stroke();
+        ctx.fillStyle='#2a2830';for(const [bx,by] of [[x+20,y+20],[x+o.w-20,y+20],[x+20,y+o.h-20],[x+o.w-20,y+o.h-20]]){ctx.beginPath();ctx.arc(bx,by,5,0,TAU);ctx.fill()}
+        ctx.fillStyle='rgba(255,59,78,.55)';ctx.beginPath();ctx.arc(x+o.w/2,y+o.h/2,6+Math.sin(vclock*5)*2,0,TAU);ctx.fill()}
+      else if(k==='fence'){// posts and rails: wood on the farm, chain-link in the yard, frosted on the ice
+        const col=th==='outskirts'?'#8a6a44':th==='frost'?'#c8d6e0':'#8f8a9c',v=o.h>o.w,len=v?o.h:o.w;ctx.strokeStyle=col;ctx.lineWidth=3;ctx.beginPath();
+        if(v){ctx.moveTo(o.x-3,y);ctx.lineTo(o.x-3,y+len);ctx.moveTo(o.x+3,y);ctx.lineTo(o.x+3,y+len)}else{ctx.moveTo(x,o.y-3);ctx.lineTo(x+len,o.y-3);ctx.moveTo(x,o.y+3);ctx.lineTo(x+len,o.y+3)}ctx.stroke();
+        ctx.fillStyle=col;for(let i=0;i<=len;i+=25){const px=v?o.x:x+i,py=v?y+i:o.y;ctx.fillRect(px-4,py-4,8,8)}}
+      else if(k==='bench'){ctx.fillStyle='#5a3a26';ctx.fillRect(x,y,o.w,o.h);ctx.strokeStyle='#3a2414';ctx.lineWidth=1.5;ctx.beginPath();if(o.w>o.h)for(let i=3;i<o.h;i+=4){ctx.moveTo(x+2,y+i);ctx.lineTo(x+o.w-2,y+i)}else for(let i=3;i<o.w;i+=4){ctx.moveTo(x+i,y+2);ctx.lineTo(x+i,y+o.h-2)}ctx.stroke()}
       else if(k==='parked'){ctx.fillStyle=o.col;rr(x,y,o.w,o.h,5);ctx.fill();ctx.fillStyle='rgba(12,14,22,.8)';if(o.w>o.h)ctx.fillRect(x+o.w*.3,y+3,o.w*.4,o.h-6);else ctx.fillRect(x+3,y+o.h*.3,o.w-6,o.h*.4)}
       else{const roof={barn:'#8a2a22',cabin:'#5a3a26',ruin:'#3a2a26'}[k]||'#555';ctx.fillStyle=roof;ctx.fillRect(x,y,o.w,o.h);ctx.strokeStyle='rgba(0,0,0,.4)';ctx.lineWidth=3;ctx.beginPath();if(o.w>o.h){ctx.moveTo(x,o.y);ctx.lineTo(x+o.w,o.y)}else{ctx.moveTo(o.x,y);ctx.lineTo(o.x,y+o.h)}ctx.stroke();
         if(th==='frost'){ctx.fillStyle='rgba(240,248,255,.55)';ctx.fillRect(x,y,o.w,o.h*.4)}if(k==='ruin'){ctx.fillStyle=G.L.ground;ctx.fillRect(x+o.w*.3,y+o.h*.25,o.w*.45,o.h*.5)}}
@@ -1777,6 +1831,14 @@ function drawObstacles(vis){const th=G.L.theme;
     else if(k==='tree'||k==='pine'||k==='burnt'){const c=k==='tree'?['#2e5a2a','#3e7a36','#58994a']:k==='pine'?['#1e3a32','#2a5244',th==='frost'?'#dfeaf2':'#3a6a56']:['#1c1614','#2a201c','#3a2a24'];
       for(let i=0;i<3;i++){ctx.fillStyle=c[i];ctx.beginPath();if(k==='pine'){const s=o.r*(1-i*.28);for(let j=0;j<8;j++){const a=j/8*TAU+o.seed,r2=j%2?s*.6:s;j?ctx.lineTo(o.x+Math.cos(a)*r2,o.y+Math.sin(a)*r2):ctx.moveTo(o.x+Math.cos(a)*r2,o.y+Math.sin(a)*r2)}ctx.closePath()}else poly(o.x-i*2,o.y-i*2,o.pts,1-i*.25);ctx.fill()}}
     else if(k==='silo'){ctx.fillStyle='#9aa0a8';ctx.beginPath();ctx.arc(o.x,o.y,o.r,0,TAU);ctx.fill();ctx.strokeStyle='#6a7078';ctx.lineWidth=3;ctx.beginPath();ctx.arc(o.x,o.y,o.r*.6,0,TAU);ctx.stroke()}
+    else if(k==='fountain'){// stone bowl, rippling water, a neon rim and a spout in the middle
+      ctx.fillStyle='#4a4558';ctx.beginPath();ctx.arc(o.x,o.y,o.r,0,TAU);ctx.fill();ctx.fillStyle='#1e4a7a';ctx.beginPath();ctx.arc(o.x,o.y,o.r-9,0,TAU);ctx.fill();
+      ctx.strokeStyle='rgba(160,220,255,.35)';ctx.lineWidth=2;for(let i=0;i<3;i++){const ph=(vclock*.5+i/3)%1;ctx.globalAlpha=1-ph;ctx.beginPath();ctx.arc(o.x,o.y,8+ph*(o.r-18),0,TAU);ctx.stroke()}ctx.globalAlpha=1;
+      ctx.fillStyle='#bfe6ff';ctx.beginPath();ctx.arc(o.x,o.y,6,0,TAU);ctx.fill();ctx.save();ctx.globalCompositeOperation='lighter';ctx.strokeStyle=G.L.wall;ctx.globalAlpha=.5+.25*Math.sin(vclock*2);ctx.lineWidth=3;ctx.beginPath();ctx.arc(o.x,o.y,o.r-4,0,TAU);ctx.stroke();ctx.restore()}
+    else if(k==='obelisk'){// black stone with a molten core that pulses
+      ctx.fillStyle='#1c1416';ctx.beginPath();for(let i=0;i<6;i++){const a=i/6*TAU+.3;i?ctx.lineTo(o.x+Math.cos(a)*o.r,o.y+Math.sin(a)*o.r):ctx.moveTo(o.x+Math.cos(a)*o.r,o.y+Math.sin(a)*o.r)}ctx.closePath();ctx.fill();ctx.strokeStyle='#3a2a28';ctx.lineWidth=3;ctx.stroke();
+      ctx.save();ctx.globalCompositeOperation='lighter';const pu=.6+.4*Math.sin(vclock*3);const g2=ctx.createRadialGradient(o.x,o.y,2,o.x,o.y,o.r*2.2);g2.addColorStop(0,`rgba(255,140,40,${.55*pu})`);g2.addColorStop(1,'rgba(255,80,20,0)');ctx.fillStyle=g2;ctx.beginPath();ctx.arc(o.x,o.y,o.r*2.2,0,TAU);ctx.fill();
+      ctx.strokeStyle=`rgba(255,180,80,${.7*pu})`;ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(o.x-10,o.y-12);ctx.lineTo(o.x,o.y-2);ctx.lineTo(o.x+10,o.y-12);ctx.moveTo(o.x,o.y-2);ctx.lineTo(o.x,o.y+14);ctx.moveTo(o.x-8,o.y+8);ctx.lineTo(o.x+8,o.y+8);ctx.stroke();ctx.restore()}
     else if(k==='lamp'){ctx.fillStyle='#55525d';ctx.beginPath();ctx.arc(o.x,o.y,o.r,0,TAU);ctx.fill();ctx.fillStyle='rgba(255,220,150,.035)';ctx.beginPath();ctx.arc(o.x,o.y,38,0,TAU);ctx.fill();ctx.fillStyle='#fff3c0';ctx.beginPath();ctx.arc(o.x,o.y,3,0,TAU);ctx.fill()}
     else if(k==='pylon'){const py=o.py,ch=py.t>3.6?(py.t-3.6)/0.9:0;
       if(ch>0){ctx.strokeStyle=`rgba(140,230,255,${.25+.5*ch})`;ctx.lineWidth=2;ctx.setLineDash([10,8]);ctx.beginPath();ctx.arc(o.x,o.y,170,0,TAU);ctx.stroke();ctx.setLineDash([])}
@@ -1923,7 +1985,7 @@ function newGame(li){const L=LEVELS[li];curLevel=li;const wk=FORECAST[L.id]||rol
     stats:{},weapons:start,passives:Object.assign({},C.start.p),
     enemies:[],bullets:[],ebullets:[],missiles:[],mines:[],gems:[],pickups:[],parts:[],texts:[],rings:[],booms:[],barrels:Wd.barrels,decals:[],arcs:[],beams:[],shells:[],
     spawnT:0,nextMini:100,nextElite:70,nextAmbush:50,cam:{x:ARENA/2,y:ARENA/2+200},view:{ox:0,oy:0}};
-  for(let i=0;i<70;i++)G.decals.push({x:rand(0,ARENA),y:rand(0,ARENA),r:rand(18,60),rot:rand(0,TAU),k:'oil'});
+  for(let i=0;i<Math.round(70*(ARENA/3000)**2);i++)G.decals.push({x:rand(0,ARENA),y:rand(0,ARENA),r:rand(18,60),rot:rand(0,TAU),k:'oil'});
   G.wx=makeWeather(wk);
   G.bolts=8*gl('wallet');G.pending=gl('kit');
   // the driver: traits and learned skills for the whole run
@@ -2345,8 +2407,9 @@ const roman=n=>ROMAN[Math.min(ROMAN.length-1,n-1)]||String(n);
 function openPortal(){const p=G.p,m=230;
   // the corner farthest from the player, nudged inward until there is open ground
   const cs=[[m,m],[ARENA-m,m],[m,ARENA-m],[ARENA-m,ARENA-m]].sort((a,b)=>d2(b[0],b[1],p.x,p.y)-d2(a[0],a[1],p.x,p.y));
-  let spot=null;for(const [cx,cy] of cs){const ix=cx<ARENA/2?1:-1,iy=cy<ARENA/2?1:-1;
-    for(let k=0;k<40&&!spot;k++){const x=cx+ix*rand(0,k*22),y=cy+iy*rand(0,k*22);if(!solidAt(x,y,80)&&!G.zones.some(z=>zoneHit(z,x,y,80)))spot=[x,y]}if(spot)break}
+  // aim toward that corner, but no further than ~2,200px from you, so the bigger maps don't turn the escape into a trek
+  let spot=null;for(const [c0,c1] of cs){const D=Math.hypot(c0-p.x,c1-p.y),f=Math.min(1,2200/D),cx=p.x+(c0-p.x)*f,cy=p.y+(c1-p.y)*f,ix=cx<ARENA/2?1:-1,iy=cy<ARENA/2?1:-1;
+    for(let k=0;k<40&&!spot;k++){const x=clamp(cx+ix*rand(-k,k)*22,m,ARENA-m),y=clamp(cy+iy*rand(-k,k)*22,m,ARENA-m);if(!solidAt(x,y,80)&&!G.zones.some(z=>zoneHit(z,x,y,80)))spot=[x,y]}if(spot)break}
   if(!spot)spot=[clamp(ARENA-p.x,m,ARENA-m),clamp(ARENA-p.y,m,ARENA-m)];
   const [x,y]=spot;
   // clear loose props off the pad
@@ -2988,7 +3051,7 @@ const ENEMY_INFO={buggy:['Dune Buggy','Rammer','Fast and flimsy. Twitchy, quick 
   truck:['Box Truck','Bruiser','Slow and tanky. Lurches in and hits hard when it connects.'],gunner:['Gun Car','Shooter','Circles at about 330px and fires at you whenever it has a clear line.'],
   mini:['Juggernaut','Mini boss','Charges in bursts and ploughs through walls. Wreck enough of them to draw out the level boss.']};
 const ABIL={charge:'charges',ring:'fires bullet rings',burst:'fires aimed bursts',summon:'summons buggies'};
-const OBS_INFO={container:'Shipping container',junk:'Junk pile',tires:'Tire stack',tree:'Tree',pine:'Pine tree',burnt:'Burnt tree',rock:'Rock',barn:'Barn',silo:'Silo',cabin:'Cabin',ruin:'Ruined wall',building:'Building',lamp:'Street lamp',parked:'Parked car'};
+const OBS_INFO={container:'Shipping container',junk:'Junk pile',tires:'Tire stack',tree:'Tree',pine:'Pine tree',burnt:'Burnt tree',rock:'Rock',barn:'Barn',silo:'Silo',cabin:'Cabin',ruin:'Ruined wall',building:'Building',lamp:'Street lamp',parked:'Parked car',crusher:'Car crusher',fence:'Fence',bench:'Bench',fountain:'Fountain',obelisk:'Obelisk'};
 const PROP_INFO={crate:['Wooden crate','Smash it: 60% chance of a random power-up.'],tires:['Tire stack','Knock it over: it tumbles away and is gone in a few seconds. Small chance of a drop.'],hay:['Hay bale','Knock it over: it rolls away and is gone in a few seconds. Small chance of a drop.'],cone:['Traffic cone','Knock it over: it skids away and is gone in a few seconds. Small chance of a drop.'],hydrant:['Fire hydrant','Knock it over: it skids away and is gone in a few seconds. Small chance of a drop.'],snowman:['Snowman','Knock it over: it tumbles away and is gone in a few seconds. Small chance of a drop.']};
 const BARREL_INFO={barrel:['Explosive barrel','Goes off when shot, rammed, burned or caught in a blast. Chains into other barrels.'],propane:['Propane tank','A much bigger blast than a barrel. Chains into other barrels.'],toxic:['Toxic drum','Explodes and leaves a burning acid pool for 8 seconds.']};
 const ZONE_INFO={napalm:['Napalm fire','From your Napalm Tank: burns cars, never you.'],oil:['Oil slick','Your tires lose most of their grip while you\'re on it.'],ice:['Black ice','Almost no grip. Brake early and steer gently.'],lava:['Lava pool','Burns you and every car that drives in.'],acid:['Acid pool','Burns you and every car inside until it dries up.'],spikes:['Spike strip','Shreds tires: damages and slows you, and hurts cars too.']};
