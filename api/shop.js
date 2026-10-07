@@ -30,6 +30,8 @@ function findCreds(env) {
 const CREDS = findCreds(process.env);
 const URL_ = CREDS && CREDS.url.replace(/\/+$/, ''), TOKEN = CREDS && CREDS.token;
 const LIVE = process.env.SHOP_LIVE === '1';
+// set PAYMENTS_LIVE=1 once verifyPurchase (or a payment webhook) really takes money; until then a live shop hides its crystal packs
+const PAYMENTS = !LIVE || process.env.PAYMENTS_LIVE === '1';
 const KEY_ABC = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789', validKey = k => typeof k === 'string' && new RegExp('^[' + KEY_ABC + ']{12}$').test(k);
 const walletId = k => 'wallet:' + crypto.createHash('sha256').update('carnage-loop-wallet|' + k).digest('hex');
 const TTL = 2 * 365 * 86400;
@@ -75,7 +77,7 @@ function view(w) {
   return {
     crystals: +w.crystals || 0, skins: w.skins ? JSON.parse(w.skins) : {},
     dailyReady: w.daily !== today, nextDayAt: Date.parse(today + 'T00:00:00Z') + 86400000,
-    adLeft: Math.max(0, AD_CHESTS_PER_DAY - adN), adReadyAt: (+w.adAt || 0) + AD_COOLDOWN * 1000, test: !LIVE, now,
+    adLeft: Math.max(0, AD_CHESTS_PER_DAY - adN), adReadyAt: (+w.adAt || 0) + AD_COOLDOWN * 1000, test: !LIVE, payments: PAYMENTS, now,
   };
 }
 

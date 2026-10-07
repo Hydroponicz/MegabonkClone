@@ -80,6 +80,9 @@ environment variables. Once it is set:
 
 - free purchases, unverified sponsor chests and `testreset` are refused;
 - the TEST MODE bar disappears.
+- crystal packs are hidden until you also set **`PAYMENTS_LIVE=1`**, which you
+  do once real payments are wired up (step 3). Until then a live shop runs on
+  ads and chests only, with no buttons that can't take money.
 
 Before you set it, do the following.
 
@@ -156,11 +159,10 @@ dialog.
 ### 4. Before launch
 
 - **Policies:** `privacy.html` is a draft privacy policy written around what
-  the game actually stores. It's linked from the main menu and Settings. Fill
-  in the bracketed name and contact email and have it reviewed. `terms.html`
-  is the Terms of Service: purchases are final except where the law requires,
-  items can be lost if the game changes or closes, and cheaters can be banned.
-  Fill in its brackets too.
+  the game actually stores. It's linked from the main menu and Settings.
+  `terms.html` is the Terms of Service: purchases are final except where the
+  law requires, items can be lost if the game changes or closes, and cheaters
+  can be banned. Both are worth a legal review before real money is involved.
 - **EU/UK ad consent:** turn on AdSense's consent message. Google uses it even
   for non-personalised ads, for cookies used in measurement and fraud
   prevention.
