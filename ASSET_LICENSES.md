@@ -92,6 +92,7 @@ Preconnect hints to `fonts.googleapis.com` and `fonts.gstatic.com` are at lines 
 | I23 | Neon District buildings: glowing neon tube trim, lit windows, rooftop air-con units and water tanks, flickering rooftop signs (BAR, HOTEL, 24/7, RAMEN...) | `neonSprite()` and `drawNeonBuilding()` in `index.html` | Procedural · Claude |
 | I24 | Driver portraits (Rook, Ma "Torque", Vex "Hex", Dusty "Brick", Juno "Ghost", Lou "Lucky"): faces, hair, outfits and accessories on striped cards; plus the driver characters, names, stories and skill trees | `drvPortrait()` and `DRIVERS` in `index.html` | Procedural SVG + original writing · Claude |
 | I25 | Landmarks: car crusher (hazard-striped press), farm fences, plaza benches, neon fountain with ripples, molten obelisk; plus the layouts of container mazes, farmsteads, the quarry, frozen lakes, the cabin village, the lava river and the ruined arena | `buildWorld()` and the obstacle pass in `draw()` | Procedural · Claude |
+| I26 | Shop art: vehicle skin patterns (racing stripes, hazard wrap, checkered flag, camo, hot rod flames, carbon fiber, tiger, storm, neon underglow, galaxy, liquid chrome, gold rush), CSS treasure chests, Nitro Crystal icon, placeholder ad card | `drawSkin()` and the shop CSS in `index.html` | Procedural · Claude |
 
 ### UI graphics (CSS)
 

@@ -444,6 +444,50 @@ body.nocursor,body.nocursor *{cursor:none!important}
 @keyframes dshake{0%,100%{transform:skewX(6deg) scale(1.08) translateX(0)}25%{transform:skewX(6deg) scale(1.08) translateX(-2px)}75%{transform:skewX(6deg) scale(1.08) translateX(2px)}}
 @media (max-width:720px){.dface{width:46px;height:46px}.dtag{font-size:9px}}
 @media (prefers-reduced-motion:reduce){.dface svg,.dface .eyes,.dface .sweat,.dface .aura,.dface.m-low{animation:none}}
+
+/* shop, ads and skins */
+.gemi{display:inline-block;width:.8em;height:.8em;margin:0 .22em -.04em .1em;background:linear-gradient(135deg,#e6fbff 0%,#5fd8ff 35%,#2f7bff 70%,#1a2a8a 100%);transform:rotate(45deg) scale(.92);box-shadow:0 0 8px rgba(95,216,255,.7);border:1px solid #0b1640}
+#scrStore{width:min(1040px,100%)}
+.testbar{width:100%;box-sizing:border-box;display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center;margin:0;padding:8px 12px;border:1px dashed #ffc21a;background:repeating-linear-gradient(-45deg,rgba(255,194,26,.07) 0 10px,transparent 10px 20px);font-size:12px;color:var(--dim)}.testbar b{color:var(--hazard)}.testbar .btn{padding:4px 10px;font-size:11px}
+.chests{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;width:100%}
+.chest{display:grid;grid-template-columns:76px 1fr;grid-template-rows:auto 1fr auto;gap:4px 14px;align-items:start;text-align:left;background:var(--panel);border:2px solid var(--line);padding:12px}
+.chest .cbox{grid-row:1/4;width:76px;height:64px;position:relative;align-self:center}.chest b{font-family:var(--display);font-weight:400;font-size:20px}.chest span{font-size:13px;color:var(--dim);line-height:1.4}.chest .btn{justify-self:start;padding:8px 14px;font-size:14px}
+.cbox i,.cobox i{position:absolute;inset:14px 4px 0;background:linear-gradient(180deg,#8a5a32,#5a3a1c);border:3px solid #2a1a0a;border-radius:4px}
+.cbox i::before,.cobox i::before{content:'';position:absolute;left:-3px;right:-3px;top:-16px;height:18px;background:linear-gradient(180deg,#a06a3a,#6a4422);border:3px solid #2a1a0a;border-radius:6px 6px 2px 2px}
+.cbox i::after,.cobox i::after{content:'';position:absolute;left:50%;top:-6px;width:12px;height:14px;margin-left:-6px;background:#ffc21a;border:2px solid #2a1a0a}
+.chest.ad .cbox i{background:linear-gradient(180deg,#3a4a8a,#1c2450)}.chest.ad .cbox i::before{background:linear-gradient(180deg,#5a6ac0,#2a3470)}.chest.ad .cbox i::after{background:#5fd8ff}
+.chest.ready{border-color:var(--hazard);box-shadow:0 0 22px -8px var(--hazard)}.chest.ready .cbox{animation:cwobble 1.6s ease-in-out infinite}
+@keyframes cwobble{0%,70%,100%{transform:rotate(0)}75%{transform:rotate(-6deg)}85%{transform:rotate(6deg)}92%{transform:rotate(-3deg)}}
+.skinwrap{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr);gap:12px;width:100%;text-align:left}
+#skinPrev{background:var(--panel);border:1px solid var(--line);padding:12px;display:flex;flex-direction:column;gap:8px}#skinPrev img{width:100%;max-width:340px;align-self:center;background:radial-gradient(ellipse at center,rgba(255,255,255,.07),transparent 70%)}
+#skinPrev b{display:block;font-family:var(--display);font-weight:400;font-size:24px}#skinPrev small{color:var(--dim);font-size:12px;line-height:1.4;display:block}.skact{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:8px}
+.rar{font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--r)}
+.skingrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px;align-content:start}
+.skin{display:flex;flex-direction:column;gap:2px;background:var(--panel);border:2px solid var(--line);border-top-color:var(--r);color:var(--fg);font-family:var(--body);padding:6px 8px 8px;cursor:pointer;text-align:left}.skin img{width:100%;height:auto}.skin b{font-size:12px}.skin span{font-size:11px;font-weight:700;color:var(--dim)}
+.skin.own span{color:#5cf08a}.skin.sel,.skin:hover,.skin:focus-visible{border-color:var(--r);outline:none;box-shadow:0 0 14px -6px var(--r)}
+.packs{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;width:100%}
+.pack{position:relative;display:flex;flex-direction:column;align-items:center;gap:6px;background:linear-gradient(180deg,#14203a,var(--panel));border:2px solid #2f7bff;color:var(--fg);font-family:var(--body);padding:14px 10px 12px;cursor:pointer}
+.pack em{position:absolute;top:-10px;right:8px;font-style:normal;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;background:var(--hazard);color:var(--ink);padding:2px 7px}
+.pack .gems{display:flex;gap:2px;height:22px;align-items:flex-end}.pack .gems i{width:12px;height:12px;background:linear-gradient(135deg,#e6fbff,#5fd8ff 40%,#2f7bff);transform:rotate(45deg);box-shadow:0 0 8px rgba(95,216,255,.6)}
+.pack b{font-family:var(--display);font-weight:400;font-size:22px}.pack .price{font-size:12px;font-weight:700;letter-spacing:.1em;color:#5fd8ff}.pack:hover,.pack:focus-visible{border-color:#5fd8ff;outline:none;box-shadow:0 0 20px -6px #5fd8ff}
+.fine{font-size:11px;color:var(--dim);max-width:640px;line-height:1.5}
+#adOverlay,#chestOpen{position:fixed;inset:0;z-index:60;display:grid;place-items:center;background:rgba(5,5,8,.92);padding:16px}#adOverlay[hidden],#chestOpen[hidden],#reviveBox[hidden]{display:none}
+.adcard{width:min(560px,100%);background:#f2f0e8;color:#1a1a1a;border:3px solid #141318;box-shadow:6px 6px 0 #000}.adtag{background:#141318;color:#ffc21a;font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;padding:6px 10px}
+.adbody{padding:26px 20px;text-align:center;background:repeating-linear-gradient(45deg,#e8e4da 0 14px,#f2f0e8 14px 28px)}.adlogo{font-family:var(--display);font-size:38px;color:#2f7bff}.adbody p{margin:8px 0 14px;font-size:13px}
+.adbar{height:6px;background:#d0ccc0}.adbar i{display:block;height:100%;width:0;background:#2f7bff;animation:adfill linear forwards}@keyframes adfill{to{width:100%}}
+.adbtns{display:flex;align-items:center;gap:10px;padding:10px;justify-content:flex-end;background:#e2ded2}.adbtns span{margin-right:auto;font-size:12px;font-weight:700}
+.cocard{width:min(420px,100%);background:var(--panel);border:2px solid var(--hazard);padding:22px;display:flex;flex-direction:column;align-items:center;gap:12px;box-shadow:0 0 50px -10px var(--hazard);animation:copop .35s cubic-bezier(.2,1.5,.4,1) both}
+.cocard.ad,.cocard.pack{border-color:#5fd8ff;box-shadow:0 0 50px -10px #5fd8ff}@keyframes copop{from{transform:scale(.6);opacity:0}to{transform:none;opacity:1}}
+.cobox{position:relative;width:110px;height:90px}.cobox i::before{animation:colid .5s .15s ease-out forwards}@keyframes colid{to{transform:translateY(-22px) rotate(-14deg)}}
+.cobox .burst{position:absolute;left:50%;top:30%;width:10px;height:10px;margin:-5px;border-radius:50%;box-shadow:0 0 40px 30px rgba(255,214,90,.55);animation:coburst .8s ease-out both}@keyframes coburst{from{transform:scale(0);opacity:1}to{transform:scale(3);opacity:0}}
+.cocard>b{font-family:var(--display);font-weight:400;font-size:26px}.cocard ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;width:100%}
+.cocard li{display:flex;align-items:center;gap:10px;background:var(--ink);padding:8px 12px;font-weight:700;animation:coli .3s both}.cocard li:nth-child(2){animation-delay:.12s}.cocard li:nth-child(3){animation-delay:.24s}.cocard li:nth-child(4){animation-delay:.36s}@keyframes coli{from{opacity:0;transform:translateX(-10px)}}
+.cocard li i{width:14px;height:14px;flex:none}.cocard li.scrap i{background:var(--xp);transform:rotate(45deg) scale(.8)}.cocard li.gem i{background:linear-gradient(135deg,#e6fbff,#5fd8ff 40%,#2f7bff);transform:rotate(45deg) scale(.85)}.cocard li.paint i{background:var(--pc)}.cocard li.xp i{background:var(--hazard);border-radius:50%}
+#reviveBox{position:fixed;inset:0;z-index:40;display:grid;place-items:center;background:rgba(40,4,8,.55)}
+.rvcard{width:min(380px,92vw);background:var(--panel);border:2px solid var(--hp);padding:18px;display:flex;flex-direction:column;gap:10px;text-align:center;box-shadow:0 0 40px -8px var(--hp)}.rvcard b{font-family:var(--display);font-weight:400;font-size:32px;color:var(--hp)}.rvcard span{color:var(--dim);font-size:14px}
+.rvbar{height:5px;background:var(--ink)}.rvbar i{display:block;height:100%;background:var(--hp);animation:rvdrain 8s linear forwards}@keyframes rvdrain{from{width:100%}to{width:0}}.rvcard .btns{justify-content:center}
+.mbtn small.free{background:var(--hazard);color:var(--ink);padding:1px 6px;font-weight:700;letter-spacing:.1em;animation:tpulse 1s ease-in-out infinite alternate}
+@media (max-width:820px){.skinwrap{grid-template-columns:1fr}}
 @media (prefers-reduced-motion:reduce){.card,#banner,.mbtn,.toast{transition:none;animation:none}}
 /* level-up flair: the cards never move, only their borders, glow and the backdrop do */
 @property --lva{syntax:'<angle>';inherits:false;initial-value:0deg}
@@ -481,6 +525,7 @@ body.nocursor,body.nocursor *{cursor:none!important}
 
 <canvas id="cv"></canvas>
 
+<div id="adOverlay" hidden></div><div id="chestOpen" hidden></div><div id="reviveBox" hidden></div>
 <div id="hud" hidden>
   <div class="top">
     <div class="xp" data-tip="Experience|Run level|Scrap you pick up fills this bar. When it's full you level up and pick a bolt-on."><div id="xpfill"></div></div>
@@ -536,6 +581,7 @@ body.nocursor,body.nocursor *{cursor:none!important}
     <nav class="menu-list" aria-label="Main menu">
       <button class="btn" id="startBtn">Start engine</button>
       <button class="mbtn" id="garBtn"><span>Garage</span><span><small id="mScrap">0 scrap</small><span class="arr">›</span></span></button>
+      <button class="mbtn" id="shopBtn"><span>Shop</span><span><small id="mShop">Chests &amp; skins</small><span class="arr">›</span></span></button>
       <button class="mbtn" id="drvBtn"><span>Drivers</span><span><small id="mDrv">Rook Reyes</small><span class="arr">›</span></span></button>
       <button class="mbtn" id="lbBtn"><span>Leaderboards</span><span><small>Online</small><span class="arr">›</span></span></button>
       <button class="mbtn" id="achBtn"><span>Achievements</span><span><small id="mAch">0 / 0</small><span class="arr">›</span></span></button>
@@ -564,6 +610,18 @@ body.nocursor,body.nocursor *{cursor:none!important}
     <p class="tagline">Who's behind the wheel matters. Every driver brings their own strengths, levels up from the runs they drive, and spends skill points on a skill tree of their own.</p>
     <div class="drvlist" id="drvList"></div>
     <div id="drvBody"></div>
+  </section>
+
+  <section id="scrStore" class="panel" hidden>
+    <div class="subhead"><button class="back">‹ Back</button><h2 class="big">Shop</h2><span class="wallet"><span class="gemi"></span><span id="stGems">0</span> Nitro Crystals</span></div>
+    <p class="testbar" id="stMode" hidden></p>
+    <p class="sub secthead">Free chests</p>
+    <div class="chests" id="stChests"></div>
+    <p class="sub secthead">Vehicle skins</p>
+    <div class="skinwrap"><div id="skinPrev"></div><div class="skingrid" id="skinGrid"></div></div>
+    <p class="sub secthead">Nitro Crystals</p>
+    <div class="packs" id="stPacks"></div>
+    <p class="fine">Nitro Crystals are the premium currency for vehicle skins. Skins are cosmetic and change nothing about how a car drives.</p>
   </section>
 
   <section id="scrLevels" class="panel" hidden>
@@ -725,6 +783,7 @@ body.nocursor,body.nocursor *{cursor:none!important}
         <div class="btns">
           <button class="btn" id="againBtn">Drive again</button>
           <button class="btn alt" id="oMenuBtn">Main menu</button>
+          <button class="btn alt" id="adDouble" hidden>▶ Watch ad · 2× scrap</button>
         </div>
       </div>
       <details class="repR" id="rDetails" open>
@@ -772,7 +831,7 @@ let P=(()=>{const main=readKey(PKEY),bak=readKey(PBAK);if(!main&&bak&&bak.p&&typ
 let bakXp=(readKey(PBAK)||{p:{}}).p.acctXp??-1,cloudDirty=false;
 // permanent recovery code: the cloud backup is filed under it, and typing it into Transfer save on any device brings the progress back.
 // every profile gets one (fresh, loaded, reset or imported)
-function normProfile(){if(!new RegExp('^['+KEY_ABC+']{12}$').test(P.cloudKey||'')){const a=new Uint8Array(12);crypto.getRandomValues(a);P.cloudKey=[...a].map(x=>KEY_ABC[x%KEY_ABC.length]).join('')}P.ach=Object.assign({},P.ach);/* Vandal was retired (30 achievements): drop it, but keep the Burnout Trail it unlocked */if(P.ach.vandal){delete P.ach.vandal;P.trailKept=1}P.tracks=Object.assign({},P.tracks);P.garage=Object.assign({},P.garage);P.cars=Object.assign({interceptor:1},P.cars);if(!P.cars[P.car])P.car='interceptor';P.lbQueue=Object.assign({},P.lbQueue);P.drivers=Object.assign({},P.drivers);if(!P.driver)P.driver='rook';P.paints=Object.assign({},P.paints);P.paint=Object.assign({},P.paint)}
+function normProfile(){if(!new RegExp('^['+KEY_ABC+']{12}$').test(P.cloudKey||'')){const a=new Uint8Array(12);crypto.getRandomValues(a);P.cloudKey=[...a].map(x=>KEY_ABC[x%KEY_ABC.length]).join('')}P.ach=Object.assign({},P.ach);/* Vandal was retired (30 achievements): drop it, but keep the Burnout Trail it unlocked */if(P.ach.vandal){delete P.ach.vandal;P.trailKept=1}P.tracks=Object.assign({},P.tracks);P.garage=Object.assign({},P.garage);P.cars=Object.assign({interceptor:1},P.cars);if(!P.cars[P.car])P.car='interceptor';P.lbQueue=Object.assign({},P.lbQueue);P.drivers=Object.assign({},P.drivers);if(!P.driver)P.driver='rook';P.paints=Object.assign({},P.paints);P.paint=Object.assign({},P.paint);P.econ=Object.assign({crystals:0,skins:{}},P.econ);P.skin=Object.assign({},P.skin)}
 if(!P.best){try{P.best=+localStorage.getItem('carnageBest')||0}catch(e){}}
 const saveSettings=()=>save('carnageSettings',S);
 function saveProfile(){save(PKEY,P);if((P.acctXp||0)>=bakXp&&save(PBAK,{at:Date.now(),p:P}))bakXp=P.acctXp||0;cloudDirty=true}
@@ -1059,6 +1118,9 @@ addEventListener('keydown',e=>{
   keys[e.code]=true;
   // held keys repeat: never let that toggle pause, re-trigger a pick, or click a button that just took focus
   if(e.repeat&&(/^(Digit[1-4]|KeyP|KeyF|KeyR|Escape)$/.test(e.code)||(state!=='play'&&/^(Space|Enter|NumpadEnter)$/.test(e.code)))){if(state!=='play')e.preventDefault();return}
+  // an ad, the revive offer or a chest reveal has the screen: only its own buttons (and Esc to close a reveal) work
+  if(!$('adOverlay').hidden||state==='revive')return;
+  if(!$('chestOpen').hidden){if(e.code==='Escape'){$('chestOpen').hidden=true;renderStore()}return}
   if(state!=='play'&&(e.code==='ArrowUp'||e.code==='ArrowDown'))menuNav(e);
   if(SUBS.includes(cur)){if(e.code==='Escape')goBack();return}
   if(e.code==='KeyN'&&!e.repeat&&!(e.target&&e.target.tagName==='INPUT')){skipSong();if(state==='play')return}
@@ -1382,6 +1444,87 @@ const PAINTS={factory:{name:'Factory',cost:0},black:{name:'Midnight',col:'#2b2a3
   pink:{name:'Hot Pink',col:'#ff4fd8',cost:600},teal:{name:'Lagoon',col:'#21c7b8',cost:600},camo:{name:'Army Drab',col:'#5a6a3a',cost:600},chrome:{name:'Chrome',col:'#c9d1db',cost:1500},kick:{name:'Kick Green',col:'#53fc18',cost:2000},gold:{name:'24K Gold',col:'#e3b234',cost:3000}};
 const paintOf=id=>{const k=(P.paint||{})[id];return k&&PAINTS[k]&&PAINTS[k].col&&(P.paints||{})[k]?k:'factory'};
 const paintCol=id=>{const k=paintOf(id);return k==='factory'?CARS[id].col:PAINTS[k].col};
+/* ---------- monetization framework: ads, the Nitro Crystal wallet, chests and vehicle skins ----------
+   ADS_CFG.provider picks how ads are shown:
+     'placeholder'  a built-in test ad with a countdown (default, so the whole loop can be played before integration)
+     'h5'           Google H5 Games Ads (Ad Placement API): add their adsbygoogle script with your data-ad-client to
+                    index.html, then set provider:'h5'. adBreak/adConfig are called below.
+     'none'         ads switched off: ad buttons hide and nothing is offered
+   The wallet talks to api/shop.js when the site has a backend. Without one (opened as a file, or no database yet)
+   it runs on a local test wallet kept in the save, so everything stays testable. See SHOP.md. */
+const ADS_CFG={provider:'placeholder',placeholderSecs:5,adChestsPerDay:3,adChestCooldown:300,interstitialEvery:0/* runs between interstitials, 0 = off */};
+const SKINS={
+  stripes:{name:'Racing Stripes',pat:'stripes',col:'#1f4fd8',acc:'#f2f4f8',price:120,rar:'Common'},
+  hazard:{name:'Hazard Wrap',pat:'hazard',col:'#ffc21a',acc:'#141318',price:150,rar:'Common'},
+  checker:{name:'Checkered Flag',pat:'checker',col:'#f2f4f8',acc:'#141318',price:200,rar:'Common'},
+  camo:{name:'Jungle Camo',pat:'camo',col:'#4f6a34',acc:'#2c3a1c',acc2:'#8a8a5a',price:200,rar:'Common'},
+  flames:{name:'Hot Rod Flames',pat:'flames',col:'#141318',acc:'#ff5a1f',acc2:'#ffd23f',price:300,rar:'Rare'},
+  carbon:{name:'Carbon Fiber',pat:'carbon',col:'#22232a',acc:'#3a3c46',acc2:'#ff3b4e',price:300,rar:'Rare'},
+  tiger:{name:'Tiger Stripe',pat:'tiger',col:'#ff8a1f',acc:'#141318',price:350,rar:'Rare'},
+  storm:{name:'Storm Chaser',pat:'storm',col:'#2a2f4a',acc:'#bfe6ff',acc2:'#7a5cff',price:400,rar:'Epic'},
+  neon:{name:'Neon Runner',pat:'neon',col:'#1a1428',acc:'#ff4fd8',acc2:'#3fe0d0',price:500,rar:'Epic',glow:'#ff4fd8'},
+  galaxy:{name:'Galaxy',pat:'galaxy',col:'#16122e',acc:'#b07aff',acc2:'#4fa8ff',price:650,rar:'Epic',glow:'#7a5cff'},
+  chrome:{name:'Liquid Chrome',pat:'chrome',col:'#aeb6c2',acc:'#ffffff',acc2:'#5a6270',price:800,rar:'Legendary'},
+  goldrush:{name:'Gold Rush',pat:'gold',col:'#d9a520',acc:'#fff2b0',acc2:'#7a5410',price:1200,rar:'Legendary',glow:'#ffd23f'}};
+const SKIN_RAR={Common:'#c9c6d0',Rare:'#4fa8ff',Epic:'#b07aff',Legendary:'#ffd23f'};
+const PACKS=[{sku:'c100',n:100,price:'$0.99'},{sku:'c550',n:550,price:'$4.99',tag:'+10%'},{sku:'c1200',n:1200,price:'$9.99',tag:'+20%'},{sku:'c2600',n:2600,price:'$19.99',tag:'Best value'}];
+
+// ---- ads ----
+const Ads={
+  on:()=>ADS_CFG.provider!=='none',
+  // resolves true only if the player watched to the end and earned the reward
+  rewarded(placement){return this.show(placement,true)},
+  interstitial(placement){return this.show(placement,false)},
+  show(placement,reward){
+    if(ADS_CFG.provider==='h5'&&typeof window.adBreak==='function')return new Promise(res=>{let got=false;
+      window.adBreak(reward?{type:'reward',name:placement,beforeReward:show=>show(),adViewed:()=>{got=true},adDismissed:()=>{},adBreakDone:()=>res(got)}:{type:'next',name:placement,adBreakDone:()=>res(true)})});
+    if(ADS_CFG.provider==='none')return Promise.resolve(false);
+    return placeholderAd(placement,reward)}};
+// the test ad: a full-screen card with a countdown. Watching to the end earns the reward; closing early doesn't
+function placeholderAd(placement,reward){return new Promise(res=>{const el=$('adOverlay'),secs=ADS_CFG.placeholderSecs;let left=secs,done=false,iv;
+  const wasMuted=AC&&AC.state==='running';if(wasMuted)AC.suspend().catch(()=>{});
+  const finish=ok=>{if(done)return;done=true;clearInterval(iv);el.hidden=true;if(wasMuted)AC.resume().catch(()=>{});res(ok)};
+  el.innerHTML=`<div class="adcard"><div class="adtag">AD · placeholder · ${placement}</div><div class="adbody"><div class="adlogo">YOUR AD HERE</div><p>Test ad. A real ad network plugs in here (see SHOP.md).</p><div class="adbar"><i style="animation-duration:${secs}s"></i></div></div>
+    <div class="adbtns"><span id="adCount">${reward?'Reward in':'Closes in'} ${left}s</span><button class="btn alt" id="adSkip">${reward?'Skip (no reward)':'Skip'}</button><button class="btn" id="adDone" disabled>${reward?'Claim reward':'Close'}</button></div></div>`;
+  el.hidden=false;$('adSkip').onclick=()=>finish(!reward);$('adDone').onclick=()=>finish(true);
+  iv=setInterval(()=>{left--;const c=$('adCount');if(left>0){if(c)c.textContent=`${reward?'Reward in':'Closes in'} ${left}s`}else{clearInterval(iv);if(c)c.textContent='Done';const d=$('adDone');if(d){d.disabled=false;d.focus()}}},1000)})}
+
+// ---- wallet: server-backed when api/shop.js answers, a local test wallet otherwise ----
+const ECON_API='/api/shop';
+const Econ={mode:'local',test:true,st:null,syncing:null,
+  local(){P.econ=P.econ||{};const e=P.econ;e.crystals=e.crystals||0;e.skins=e.skins||{};return e},
+  view(){const e=this.local(),today=new Date().toISOString().slice(0,10),adN=e.adDay===today?e.adN||0:0;
+    return{crystals:e.crystals,skins:e.skins,dailyReady:e.daily!==today,nextDayAt:Date.parse(today+'T00:00:00Z')+864e5,adLeft:Math.max(0,ADS_CFG.adChestsPerDay-adN),adReadyAt:(e.adAt||0)+ADS_CFG.adChestCooldown*1000,test:true,now:Date.now()}},
+  apply(st){if(!st)return;this.st=st;this.test=st.test!==false;const e=this.local();e.crystals=st.crystals;e.skins=Object.assign({},st.skins);saveProfile()},
+  async post(body){const r=await fetch(ECON_API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(Object.assign({key:P.cloudKey},body))});let j={};try{j=await r.json()}catch(e){}return{status:r.status,j}},
+  // find out which mode we're in and pull the wallet
+  sync(){if(this.syncing)return this.syncing;this.syncing=(async()=>{if(lbOnline){try{const {status,j}=await this.post({action:'state'});if(status===200&&j.ok){this.mode='server';this.apply(j.state);return}}catch(e){}}
+      this.mode='local';this.st=this.view();this.test=true})().finally(()=>{this.syncing=null});return this.syncing},
+  state(){return this.mode==='server'&&this.st?this.st:this.view()},
+  // one action through the server, or the same rules locally. Resolves {ok, reward?, error?}
+  async act(action,extra={}){
+    if(this.mode==='server'){try{const {status,j}=await this.post(Object.assign({action},extra));if(j.state)this.apply(j.state);return status===200?Object.assign({ok:true},j):{ok:false,error:j.error||'server'}}catch(e){return{ok:false,error:'offline'}}}
+    const e=this.local(),v=this.view(),now=Date.now(),today=new Date().toISOString().slice(0,10);let reward=null;
+    if(action==='daily'){if(!v.dailyReady)return{ok:false,error:'claimed'};reward=rollChestLocal('daily');e.daily=today}
+    else if(action==='adchest'){if(!v.adLeft)return{ok:false,error:'limit'};if(now<v.adReadyAt)return{ok:false,error:'cooldown'};reward=rollChestLocal('ad');e.adN=(e.adDay===today?e.adN||0:0)+1;e.adDay=today;e.adAt=now}
+    else if(action==='purchase'){const pk=PACKS.find(p=>p.sku===extra.sku);if(!pk)return{ok:false,error:'sku'};e.crystals+=pk.n;saveProfile();return{ok:true,granted:pk.n}}
+    else if(action==='buyskin'){const S_=SKINS[extra.skin];if(!S_)return{ok:false,error:'skin'};if(e.skins[extra.skin])return{ok:false,error:'owned'};if(e.crystals<S_.price)return{ok:false,error:'funds'};e.crystals-=S_.price;e.skins[extra.skin]=now;saveProfile();return{ok:true}}
+    else if(action==='testreset'){e.daily='';e.adDay='';e.adN=0;e.adAt=0;saveProfile();return{ok:true}}
+    if(reward){e.crystals+=reward.crystals;saveProfile();return{ok:true,reward}}return{ok:false,error:'action'}}};
+// same odds as the server's rollChest
+function rollChestLocal(kind){const r=(a,b)=>a+Math.floor(Math.random()*(b-a+1));if(kind==='daily'){const o={scrap:r(150,400),crystals:0};if(Math.random()<.35)o.crystals=r(10,25);if(Math.random()<.25)o.paint=true;if(Math.random()<.25)o.drvxp=r(200,400);return o}
+  const o={scrap:r(80,200),crystals:0};if(Math.random()<.4)o.crystals=r(5,12);return o}
+// the parts of a chest that live in the save: scrap, a paint job, driver XP. Returns the lines to show
+function grantChest(rw){const lines=[];P.scrap+=rw.scrap;lines.push(['scrap',`+${rw.scrap.toLocaleString()} scrap`]);
+  if(rw.crystals)lines.push(['gem',`+${rw.crystals} Nitro Crystals`]);
+  if(rw.paint){const left=Object.keys(PAINTS).filter(k=>k!=='factory'&&!(P.paints||{})[k]);if(left.length){const k=left[Math.floor(Math.random()*left.length)];P.paints=P.paints||{};P.paints[k]=1;lines.push(['paint',`Paint job: ${PAINTS[k].name}`,PAINTS[k].col])}else{P.scrap+=150;lines.push(['scrap','+150 scrap (every paint owned)'])}}
+  if(rw.drvxp){const id=curDriver(),st=drvState(id),l0=drvLevel(st.xp).lv;st.xp+=rw.drvxp;const l1=drvLevel(st.xp).lv;lines.push(['xp',`+${rw.drvxp} XP for ${DRIVERS[id].nick}${l1>l0?` · level ${l1}!`:''}`])}
+  saveProfile();return lines}
+// the car as it will be driven: a skin wins over a paint job
+function rigFor(id){const C=CARS[id],sk=(P.skin||{})[id],own=sk&&SKINS[sk]&&(Econ.state().skins||{})[sk];
+  if(own){const S_=SKINS[sk];return Object.assign({},C,{col:S_.col,skin:Object.assign({id:sk},S_)})}
+  return paintOf(id)==='factory'?C:Object.assign({},C,{col:paintCol(id)})}
+
 
 /* ---------- drivers: who's behind the wheel. Each has their own traits, levels up from the XP of runs they drive,
    and spends a skill point per level on their own three-branch skill tree ---------- */
@@ -1975,7 +2118,7 @@ function drawPickup(k){const D=DROPS[k.type],bob=Math.sin(k.t*4)*3;ctx.save();ct
 
 /* ---------- the player's rig: body style plus every bolt-on it carries ---------- */
 function drawRig(x,y,a,C,W,Pa,blink,t,flameOn){const len=C.len,wid=C.wid,st=C.style,lv=k=>W[k]?W[k].lvl:0,pv=k=>Pa[k]||0;
-  drawCar(x,y,a,len,wid,C.col,blink,()=>{
+  skinNow=C.skin||null;drawCar(x,y,a,len,wid,C.col,blink,()=>{
     if(st==='coupe'){ctx.fillStyle='#141318';ctx.fillRect(-len*.5,-3,len*.36,6);ctx.fillRect(len*.24,-3,len*.26,6)}
     else if(st==='dozer'){ctx.fillStyle='#8f8a9c';ctx.beginPath();ctx.moveTo(len/2,-wid/2-7);ctx.lineTo(len/2+9,-wid/2-3);ctx.lineTo(len/2+9,wid/2+3);ctx.lineTo(len/2,wid/2+7);ctx.closePath();ctx.fill();ctx.fillStyle='#141318';ctx.fillRect(-len*.45,-wid*.3-2,len*.3,4);ctx.fillRect(-len*.45,wid*.3-2,len*.3,4)}
     else if(st==='rod'){ctx.fillStyle='#141318';ctx.fillRect(-len/2-4,-wid/2-2,5,wid+4);ctx.fillStyle='#b9b6c2';ctx.fillRect(len*.18,-wid*.24,len*.24,wid*.48);ctx.fillStyle='#fff';ctx.fillRect(-len*.45,-1.5,len*.6,3)}
@@ -2017,13 +2160,13 @@ function drawRig(x,y,a,C,W,Pa,blink,t,flameOn){const len=C.len,wid=C.wid,st=C.st
   },st==='monster'?1.6:st==='dozer'?1.2:1)}
 const thumbs={};
 // small preview of a car with its starting loadout, rendered once to an image
-function carThumb(id,col){col=col||paintCol(id);const key=id+col;if(thumbs[key])return thumbs[key];const C=col===CARS[id].col?CARS[id]:Object.assign({},CARS[id],{col}),c=document.createElement('canvas');c.width=240;c.height=130;const keep=ctx;ctx=c.getContext('2d');
+function carThumb(id,col,skin){if(!col){const r=rigFor(id);col=r.col;skin=r.skin}const key=id+col+(skin?skin.id:'');if(thumbs[key])return thumbs[key];const C=col===CARS[id].col&&!skin?CARS[id]:Object.assign({},CARS[id],{col,skin}),c=document.createElement('canvas');c.width=240;c.height=130;const keep=ctx;ctx=c.getContext('2d');
   ctx.setTransform(2.6,0,0,2.6,120,62);const W={};for(const k in C.start.w)W[k]={lvl:C.start.w[k],aim:-0.35};drawRig(0,0,-0.35,C,W,C.start.p||{},false,0,false);ctx=keep;return thumbs[key]=c.toDataURL()}
 
 /* ---------- state ---------- */
 let state='menu',G=null,choices=[],curLevel=clamp(P.lastLevel|0,0,LEVELS.length-1),eid=0;
 
-function newGame(li){const L=LEVELS[li];curLevel=li;const wk=FORECAST[L.id]||rollWeather(L);groundPat=makeGround(L);const CID=P.cars[P.car]?P.car:'interceptor',C=paintOf(CID)==='factory'?CARS[CID]:Object.assign({},CARS[CID],{col:paintCol(CID)}),Wd=buildWorld(L),start={};
+function newGame(li){const L=LEVELS[li];curLevel=li;const wk=FORECAST[L.id]||rollWeather(L);groundPat=makeGround(L);const CID=P.cars[P.car]?P.car:'interceptor',C=rigFor(CID),Wd=buildWorld(L),start={};
   for(const k in C.start.w)start[k]={lvl:C.start.w[k],cd:0.4,aim:-Math.PI/2};
   G={L,t:0,kills:0,level:1,xp:0,xpNeed:6,pending:0,shake:0,hurtFlash:0,live:false,
     miniKills:0,minisSpawned:0,eliteKills:0,ramKills:0,barrelBooms:0,lowAt:-1,newAch:[],achT:0,
@@ -2111,7 +2254,7 @@ function hurt(amt){const p=G.p,s=G.stats;if(DBG.god||G.exitT>=0||p.inv>0||state!
   if(s.dodge&&Math.random()<s.dodge){p.inv=0.35;addText(p.x,p.y-34,'DODGED','#c9b0ff');tone(1200,.08,'triangle',.03,1800);return}
   p.hp-=amt*s.taken;G.dmgTaken+=amt*s.taken;p.inv=0.45;crumple();G.shake=Math.min(18,G.shake+6);G.hurtFlash=0.3;sfx('hurt');
   if(p.hp<=0){if(G.tk.tire>0){G.tk.tire--;updateLoadout();p.hp=p.maxhp*0.5;p.inv=2;const ds=DSRC;DSRC='revive';explode(p.x,p.y,180,60*s.dmg,0);DSRC=ds;showBanner('Spare tire','Back on the road');return}
-    if(G.revives>0){G.revives--;p.hp=p.maxhp*0.5;p.inv=2;const ds=DSRC;DSRC='revive';explode(p.x,p.y,180,60*s.dmg,0);DSRC=ds;showBanner('Second wind','Back on the road');return}p.hp=0;gameOver()}
+    if(G.revives>0){G.revives--;p.hp=p.maxhp*0.5;p.inv=2;const ds=DSRC;DSRC='revive';explode(p.x,p.y,180,60*s.dmg,0);DSRC=ds;showBanner('Second wind','Back on the road');return}p.hp=0;if(!offerRevive())gameOver()}
   else if(p.hp<p.maxhp*0.1&&G.lowAt<0)G.lowAt=G.t}
 // damage over time from hazards: no i-frames, but bubble and armor still apply
 function chip(amt){const p=G.p;if(DBG.god)return;if(G.tk.runflat)amt*=0.5;if(G.exitT>=0||G.buffs.bubble>0||state!=='play')return;p.hp-=amt*G.stats.taken;G.dmgTaken+=amt*G.stats.taken;G.hurtFlash=Math.max(G.hurtFlash,0.12);if(p.hp<=0){p.hp=0.01;p.inv=0;hurt(1)}else if(p.hp<p.maxhp*0.1&&G.lowAt<0)G.lowAt=G.t}
@@ -2818,12 +2961,16 @@ function update(dt){
 function rr(x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath()}
 const shadeCache={};
 function shade(hex,f){const key=hex+f;if(shadeCache[key])return shadeCache[key];const n=parseInt(hex.slice(1),16);let r=n>>16,g=n>>8&255,b=n&255;r=clamp(r*f,0,255)|0;g=clamp(g*f,0,255)|0;b=clamp(b*f,0,255)|0;return shadeCache[key]=`rgb(${r},${g},${b})`}
-function drawCar(x,y,a,len,wid,col,flash,extra,ws=1){
+let skinNow=null;
+function drawCar(x,y,a,len,wid,col,flash,extra,ws=1){const sk=skinNow;skinNow=null;
   ctx.save();ctx.translate(x,y);ctx.rotate(a);
+  // glowing skins light the road under the car
+  if(sk&&sk.glow&&!flash){const tt=performance.now()/1000,g=ctx.createRadialGradient(0,0,2,0,0,len*.85);g.addColorStop(0,sk.glow+'aa');g.addColorStop(1,sk.glow+'00');ctx.save();ctx.globalCompositeOperation='lighter';ctx.globalAlpha=.55+.2*Math.sin(tt*4);ctx.fillStyle=g;ctx.beginPath();ctx.ellipse(0,0,len*.85,wid*1.15,0,0,TAU);ctx.fill();ctx.restore()}
   ctx.fillStyle='rgba(0,0,0,.4)';rr(-len/2+3,-wid/2+5,len,wid,wid*.25);ctx.fill();
   ctx.fillStyle='#09090b';const wl=len*.24*ws,ww=wid*.26*ws,wo=wid/2+(ws-1)*ww*.35;
   for(const sx of[-1,1])for(const sy of[-1,1])ctx.fillRect(sx*len*.3-wl/2,sy*wo-ww/2,wl,ww);
   ctx.fillStyle=flash?'#ffffff':col;rr(-len/2,-wid/2,len,wid,wid*.25);ctx.fill();
+  if(sk&&!flash){ctx.save();rr(-len/2,-wid/2,len,wid,wid*.25);ctx.clip();drawSkin(sk,len,wid,performance.now()/1000);ctx.restore()}
   if(!flash){ctx.fillStyle=shade(col,.72);rr(-len*.22,-wid*.36,len*.3,wid*.72,3);ctx.fill();
     ctx.fillStyle='rgba(12,14,22,.85)';rr(len*.08,-wid*.34,len*.14,wid*.68,2);ctx.fill();rr(-len*.3,-wid*.3,len*.08,wid*.6,2);ctx.fill();
     ctx.fillStyle='#fff6c8';ctx.fillRect(len/2-3,-wid*.38,3,wid*.18);ctx.fillRect(len/2-3,wid*.2,3,wid*.18);
@@ -3170,17 +3317,17 @@ function updateHover(){const tip=$('hoverTip');if(tapTipT){if(performance.now()<
   const w=tip.offsetWidth,h=tip.offsetHeight;let x=mouse.x+18,y=mouse.y+18;if(x+w>VW-8)x=mouse.x-w-14;if(y+h>VH-8)y=mouse.y-h-14;tip.style.transform=`translate(${Math.max(8,x)}px,${Math.max(8,y)}px)`}
 
 /* ---------- screens ---------- */
-const SCREENS=['scrMenu','scrGarage','scrLevels','scrLevel','scrShop','scrPause','scrOver','scrAch','scrSet','scrHow','scrBoard','scrXfer','scrDrivers'],SUBS=['scrLevels','scrGarage','scrAch','scrSet','scrHow','scrBoard','scrXfer','scrDrivers'];
+const SCREENS=['scrMenu','scrGarage','scrLevels','scrLevel','scrShop','scrPause','scrOver','scrAch','scrSet','scrHow','scrBoard','scrXfer','scrDrivers','scrStore'],SUBS=['scrLevels','scrGarage','scrAch','scrSet','scrHow','scrBoard','scrXfer','scrDrivers','scrStore'];
 let cur='scrMenu';const navStack=[];
 function show(id){if(id&&$('hud').classList.contains('loadOpen'))setLoadOpen(false);if(codeOpen){codeOpen=false;$('codeBox').hidden=true}cur=id;for(const s of SCREENS)$(s).hidden=s!==id;$('overlay').hidden=!id;$('overlay').classList.toggle('attract',state==='menu');if(id){$('tip').hidden=true;$('banner').classList.remove('show')}}
-function openSub(id,opener){navStack.push({id:cur||'scrMenu',focus:opener});if(id==='scrDrivers'){drvView=curDriver();renderDrivers()}if(id==='scrXfer')renderXfer();if(id==='scrLevels')rollForecasts();if(id==='scrAch')renderAch();if(id==='scrBoard')renderBoard();if(id==='scrSet')renderSettings();if(id==='scrLevels')renderLevels();if(id==='scrGarage')renderGarage();show(id);
+function openSub(id,opener){navStack.push({id:cur||'scrMenu',focus:opener});if(id==='scrDrivers'){drvView=curDriver();renderDrivers()}if(id==='scrStore'){renderStore();Econ.sync().then(()=>{if(cur==='scrStore'&&$('chestOpen').hidden)renderStore()})}if(id==='scrXfer')renderXfer();if(id==='scrLevels')rollForecasts();if(id==='scrAch')renderAch();if(id==='scrBoard')renderBoard();if(id==='scrSet')renderSettings();if(id==='scrLevels')renderLevels();if(id==='scrGarage')renderGarage();show(id);
   const f=id==='scrLevels'?$('lv'+curLevel):null;(f&&!f.disabled?f:$(id).querySelector('.back')).focus()}
 function goBack(){const top=navStack.pop()||{id:'scrMenu',focus:null},id=top.id;if(id==='scrLevels')renderLevels();if(id==='scrGarage')renderGarage();show(id);if(id==='scrMenu')refreshMenu();
   // re-rendered screens replace their buttons; find the matching one again
   let f=top.focus;if(f&&!f.isConnected)f=f.dataset&&f.dataset.car?$(id).querySelector(`[data-car="${f.dataset.car}"]`):null;(f||$(id).querySelector('button')).focus()}
 function fillAcct(lvId,xpId,fillId){const a=acctInfo(P.acctXp);$(lvId).textContent=a.lv;if(xpId)$(xpId).textContent=`${a.into} / ${a.need} XP`;$(fillId).style.width=(a.into/a.need*100)+'%';return a}
 function refreshMenu(){fillAcct('mAcct','mAcctXp','mAcctFill');$('restoreBtn').hidden=(P.runs||0)>0;
-  $('mBest').textContent=fmt(P.best);$('mKills').textContent=P.kills.toLocaleString();$('mClears').textContent=clearedCount()+' / '+LEVELS.length;$('mAch').textContent=achCount(P)+' / '+ACH.length;$('mScrap').textContent=P.scrap.toLocaleString()+' scrap';$('mDrv').textContent=DRIVERS[curDriver()].name}
+  $('mBest').textContent=fmt(P.best);$('mKills').textContent=P.kills.toLocaleString();$('mClears').textContent=clearedCount()+' / '+LEVELS.length;$('mAch').textContent=achCount(P)+' / '+ACH.length;$('mScrap').textContent=P.scrap.toLocaleString()+' scrap';$('mDrv').textContent=DRIVERS[curDriver()].name;{const st=Econ.state(),m=$('mShop');if(st.dailyReady){m.textContent='Free chest';m.className='free'}else{m.innerHTML=`<span class="gemi"></span>${(st.crystals||0).toLocaleString()}`;m.className=''}}}
 function carCard(id,mode){const C=CARS[id],own=!!P.cars[id],sel=P.car===id,bar=(v,m)=>`<i style="width:${clamp(v/m,0,1)*100}%"></i>`;
   const gear=[...Object.keys(C.start.w).map(k=>WDEF[k].name),...Object.keys(C.start.p||{}).map(k=>PDEF[k].name)].join(' + ');
   const btn=mode==='pick'?(own?(sel?'Driving':'Drive this'):`Garage · <span class="scrapi"></span>${C.cost}`):own?(sel?'Selected':'Select'):`Buy · <span class="scrapi"></span>${C.cost}`;
@@ -3236,6 +3383,72 @@ function drvClick(e){const c=e.target.closest('.drv'),n=e.target.closest('.node'
   if(n&&drvOwned(id)){const [bi,t]=n.dataset.node.split(',').map(Number);if(!drvCanLearn(id,bi,t))return;drvState(id).sk[DRIVERS[id].tree[bi].nodes[t].id]=1;sfx('buy');saveProfile();renderDrivers();
     const f=$('drvBody').querySelector(`[data-node="${bi},${t}"]`);if(f)f.focus()}}
 function renderDrvPick(){$('drvPick').innerHTML=Object.keys(DRIVERS).filter(drvOwned).map(id=>drvCard(id,'pick')).join('')+(Object.keys(DRIVERS).some(k=>!drvOwned(k))?`<button class="drv more" id="drvMore"><span class="dn">More drivers</span><span class="dk">Hire them in Drivers</span><span class="dt">Drivers ›</span></button>`:'')}
+// skin patterns, painted onto the car body in its own frame (x runs nose-ward, the body is clipped already)
+function drawSkin(sk,len,wid,t){const L=len/2,Wd=wid/2,a=sk.acc,b=sk.acc2||sk.acc;ctx.save();
+  if(sk.pat==='stripes'){ctx.fillStyle=a;ctx.fillRect(-L,-wid*.17,len,wid*.11);ctx.fillRect(-L,wid*.06,len,wid*.11)}
+  else if(sk.pat==='hazard'){ctx.strokeStyle=a;ctx.lineWidth=wid*.16;ctx.beginPath();for(let i=-len;i<len;i+=wid*.42){ctx.moveTo(i,-Wd);ctx.lineTo(i+wid,Wd)}ctx.stroke()}
+  else if(sk.pat==='checker'){const s=wid/4;ctx.fillStyle=a;for(let i=0;i*s<len;i++)for(let j=0;j<4;j++)if((i+j)%2)ctx.fillRect(-L+i*s,-Wd+j*s,s,s)}
+  else if(sk.pat==='camo'){const pts=[[-.35,-.2,.22],[.1,.25,.25],[.3,-.25,.2],[-.1,.05,.18],[-.42,.3,.16],[.42,.18,.15],[.0,-.38,.17]];pts.forEach(([x,y,r],i)=>{ctx.fillStyle=i%2?a:b;ctx.beginPath();ctx.ellipse(x*len,y*wid,r*len,r*wid*1.2,i,0,TAU);ctx.fill()})}
+  else if(sk.pat==='flames'){// licks of flame running back from the nose
+    for(const [c,k] of [[a,1],[b,.62]]){ctx.fillStyle=c;ctx.beginPath();ctx.moveTo(L,-Wd*.9*k);for(let i=0;i<4;i++){const y0=-Wd*.9*k+i*(Wd*1.8*k/4),y1=y0+Wd*1.8*k/8,y2=y0+Wd*1.8*k/4;ctx.quadraticCurveTo(L-len*.25*k,y0,-L*.2*k-(i%2)*len*.12,y1);ctx.quadraticCurveTo(L-len*.3*k,y2,L-len*.05,y2)}ctx.lineTo(L,Wd*.9*k);ctx.closePath();ctx.fill()}}
+  else if(sk.pat==='carbon'){ctx.strokeStyle=a;ctx.lineWidth=1.2;ctx.beginPath();for(let i=-len;i<len;i+=3){ctx.moveTo(i,-Wd);ctx.lineTo(i+wid,Wd)}ctx.stroke();ctx.fillStyle=b;ctx.fillRect(-L,-1.2,len,2.4)}
+  else if(sk.pat==='tiger'){ctx.fillStyle=a;for(let i=-L+4;i<L;i+=len/7){ctx.beginPath();ctx.moveTo(i,-Wd);ctx.lineTo(i+len*.07,-Wd*.2);ctx.lineTo(i+len*.02,0);ctx.lineTo(i+len*.08,Wd*.3);ctx.lineTo(i+len*.03,Wd);ctx.lineTo(i-len*.03,Wd);ctx.lineTo(i+len*.02,Wd*.3);ctx.lineTo(i-len*.03,0);ctx.lineTo(i+len*.02,-Wd*.2);ctx.lineTo(i-len*.04,-Wd);ctx.closePath();ctx.fill()}}
+  else if(sk.pat==='storm'){ctx.strokeStyle=b;ctx.lineWidth=3;ctx.globalAlpha=.6;ctx.beginPath();ctx.moveTo(L,-Wd*.5);ctx.lineTo(L*.3,-Wd*.1);ctx.lineTo(L*.4,Wd*.2);ctx.lineTo(-L*.4,Wd*.6);ctx.stroke();ctx.globalAlpha=1;ctx.strokeStyle=a;ctx.lineWidth=1.6;ctx.beginPath();ctx.moveTo(L,-Wd*.5);ctx.lineTo(L*.3,-Wd*.1);ctx.lineTo(L*.4,Wd*.2);ctx.lineTo(-L*.4,Wd*.6);ctx.moveTo(-L*.1,-Wd*.7);ctx.lineTo(-L*.4,-Wd*.2);ctx.lineTo(-L*.3,0);ctx.lineTo(-L*.8,Wd*.1);ctx.stroke()}
+  else if(sk.pat==='neon'){ctx.strokeStyle=a;ctx.lineWidth=2;rr(-L+2,-Wd+2,len-4,wid-4,wid*.2);ctx.stroke();ctx.strokeStyle=b;ctx.lineWidth=1.4;ctx.beginPath();ctx.moveTo(-L+5,0);ctx.lineTo(L-5,0);ctx.stroke()}
+  else if(sk.pat==='galaxy'){const g=ctx.createRadialGradient(-L*.3,0,1,-L*.3,0,len*.6);g.addColorStop(0,a+'aa');g.addColorStop(1,'rgba(0,0,0,0)');ctx.fillStyle=g;ctx.fillRect(-L,-Wd,len,wid);const g2=ctx.createRadialGradient(L*.4,Wd*.3,1,L*.4,Wd*.3,len*.4);g2.addColorStop(0,b+'99');g2.addColorStop(1,'rgba(0,0,0,0)');ctx.fillStyle=g2;ctx.fillRect(-L,-Wd,len,wid);
+    ctx.fillStyle='#fff';for(let i=0;i<14;i++){const x=((i*37)%100/100-.5)*len,y=((i*53)%100/100-.5)*wid,tw=.5+.5*Math.sin((t||0)*3+i);ctx.globalAlpha=.4+.6*tw;ctx.fillRect(x,y,1.4,1.4)}ctx.globalAlpha=1}
+  else if(sk.pat==='chrome'||sk.pat==='gold'){const g=ctx.createLinearGradient(-L,-Wd,L,Wd);g.addColorStop(0,b);g.addColorStop(.35,sk.col);g.addColorStop(.5,a);g.addColorStop(.62,sk.col);g.addColorStop(1,b);ctx.fillStyle=g;ctx.fillRect(-L,-Wd,len,wid);
+    const sh=(((t||0)*.6)%2)-.5;ctx.fillStyle='rgba(255,255,255,.35)';ctx.beginPath();ctx.moveTo(-L+sh*len,-Wd);ctx.lineTo(-L+sh*len+wid*.5,-Wd);ctx.lineTo(-L+sh*len,Wd);ctx.lineTo(-L+sh*len-wid*.5,Wd);ctx.closePath();ctx.fill();
+    if(sk.pat==='gold'){ctx.fillStyle=b;ctx.fillRect(-L,-wid*.14,len,wid*.06);ctx.fillRect(-L,wid*.08,len,wid*.06)}}
+  ctx.restore()}
+
+/* ---------- Shop screen ---------- */
+let shopSkinView=null;
+const gemi='<span class="gemi"></span>';
+function fmtWait(ms){const s=Math.max(0,Math.ceil(ms/1000)),h=Math.floor(s/3600),m=Math.floor(s%3600/60);return h?`${h}h ${m}m`:m?`${m}m ${s%60}s`:`${s}s`}
+function renderChests(st){st=st||Econ.state();const now=Date.now(),adWait=st.adReadyAt-now;
+  $('stChests').innerHTML=`<div class="chest daily${st.dailyReady?' ready':''}"><div class="cbox"><i></i></div><b>Daily chest</b><span>Free once a day: scrap, and a chance of crystals, a paint job or driver XP.</span>
+      <button class="btn" id="chDaily" ${st.dailyReady?'':'disabled'}>${st.dailyReady?'Open free':'Next in '+fmtWait(st.nextDayAt-now)}</button></div>
+    ${Ads.on()?`<div class="chest ad${st.adLeft&&adWait<=0?' ready':''}"><div class="cbox"><i></i></div><b>Sponsor chest</b><span>Watch a short ad to open. ${st.adLeft} of ${ADS_CFG.adChestsPerDay} left today.</span>
+      <button class="btn" id="chAd" ${st.adLeft&&adWait<=0?'':'disabled'}>${!st.adLeft?'Come back tomorrow':adWait>0?'Ready in '+fmtWait(adWait):'▶ Watch ad'}</button></div>`:''}`;}
+function renderStore(){const st=Econ.state(),now=Date.now(),skins=st.skins||{};$('stGems').textContent=(st.crystals||0).toLocaleString();
+  $('stMode').innerHTML=Econ.test?`<b>TEST MODE</b> · ${Econ.mode==='server'?'server wallet':'local test wallet (no backend here)'} · ads are placeholders and purchases are free <button class="btn alt" id="stReset">Reset test limits</button>`:'';$('stMode').hidden=!Econ.test;
+  renderChests(st);
+  if(!SKINS[shopSkinView])shopSkinView=(P.skin||{})[P.car]||'flames';
+  const sv=SKINS[shopSkinView],own=!!skins[shopSkinView],on=(P.skin||{})[P.car]===shopSkinView&&own;
+  $('skinPrev').innerHTML=`<img src="${skinThumb(P.car,shopSkinView)}" alt=""><div><span class="rar" style="--r:${SKIN_RAR[sv.rar]}">${sv.rar}</span><b>${sv.name}</b><small>On your ${CARS[P.car].name}. Skins work on every car and cover any paint job.</small>
+    <div class="skact">${own?(on?`<button class="btn alt" id="skOff">Take off</button>`:`<button class="btn" id="skOn">Put on ${CARS[P.car].name}</button>`):`<button class="btn" id="skBuy" ${(st.crystals||0)<sv.price?'disabled':''}>Buy · ${gemi}${sv.price.toLocaleString()}</button>${(st.crystals||0)<sv.price?`<span class="sub">${(sv.price-(st.crystals||0)).toLocaleString()} more crystals</span>`:''}`}</div></div>`;
+  $('skinGrid').innerHTML=Object.keys(SKINS).map(k=>{const S_=SKINS[k];return`<button class="skin${k===shopSkinView?' sel':''}${skins[k]?' own':''}" data-skin="${k}" style="--r:${SKIN_RAR[S_.rar]}"><img src="${skinThumb(P.car,k)}" alt=""><b>${S_.name}</b><span>${skins[k]?((P.skin||{})[P.car]===k?'On this car':'Owned'):gemi+S_.price}</span></button>`}).join('');
+  $('stPacks').innerHTML=PACKS.map(p=>`<button class="pack" data-sku="${p.sku}">${p.tag?`<em>${p.tag}</em>`:''}<span class="gems">${'<i></i>'.repeat(Math.min(5,1+PACKS.indexOf(p)*1.4|0))}</span><b>${gemi}${p.n.toLocaleString()}</b><span class="price">${Econ.test?'TEST · free':p.price}</span></button>`).join('')}
+const skinThumbs={};
+function skinThumb(id,sk){const k=id+'|'+sk;if(skinThumbs[k])return skinThumbs[k];const S_=SKINS[sk];return skinThumbs[k]=carThumb(id,S_.col,Object.assign({id:sk},S_))}
+function chestReveal(title,lines,cls){const el=$('chestOpen');el.innerHTML=`<div class="cocard ${cls||''}"><div class="cobox"><i></i><div class="burst"></div></div><b>${title}</b><ul>${lines.map(([k,t,c])=>`<li class="${k}"${c?` style="--pc:${c}"`:''}><i></i>${t}</li>`).join('')}</ul><button class="btn" id="coOk">Nice</button></div>`;el.hidden=false;sfx('level');setTimeout(()=>{const b=$('coOk');if(b)b.focus()},50)}
+async function storeClick(e){const t=e.target;
+  if(t.closest('#coOk')){$('chestOpen').hidden=true;renderStore();return}
+  if(t.closest('#stReset')){await Econ.act('testreset');toast('↺','Test limits reset','Chests can be opened again');renderStore();return}
+  if(t.closest('#chDaily')){const r=await Econ.act('daily');if(!r.ok){toast('!','Chest',r.error);renderStore();return}chestReveal('Daily chest',grantChest(r.reward),'daily');refreshMenu();return}
+  if(t.closest('#chAd')){const b=t.closest('#chAd');b.disabled=true;const seen=await Ads.rewarded('sponsor_chest');if(!seen){toast('▶','Ad skipped','No chest this time');renderStore();return}
+    const r=await Econ.act('adchest',{adToken:'placeholder'});if(!r.ok){toast('!','Chest',r.error);renderStore();return}chestReveal('Sponsor chest',grantChest(r.reward),'ad');refreshMenu();return}
+  const sk=t.closest('.skin');if(sk){shopSkinView=sk.dataset.skin;renderStore();const f=$('skinGrid').querySelector(`[data-skin="${shopSkinView}"]`);if(f)f.focus();return}
+  if(t.closest('#skBuy')){const r=await Econ.act('buyskin',{skin:shopSkinView});if(!r.ok){toast('!','Skin',r.error==='funds'?'Not enough crystals':r.error);renderStore();return}P.skin=P.skin||{};P.skin[P.car]=shopSkinView;saveProfile();sfx('buy');toast('✦','Skin unlocked',SKINS[shopSkinView].name);renderStore();return}
+  if(t.closest('#skOn')){P.skin=P.skin||{};P.skin[P.car]=shopSkinView;saveProfile();sfx('pick');renderStore();return}
+  if(t.closest('#skOff')){delete P.skin[P.car];saveProfile();sfx('pick');renderStore();return}
+  const pk=t.closest('.pack');if(pk){const p=PACKS.find(x=>x.sku===pk.dataset.sku);
+    if(!Econ.test){toast('!','Store','Payments are not connected yet');return}
+    if(!confirm(`TEST PURCHASE\n\n${p.n.toLocaleString()} Nitro Crystals (${p.price} when live).\nNo money is charged in test mode.`))return;
+    const r=await Econ.act('purchase',{sku:p.sku,receipt:'test'});if(r.ok){sfx('buy');chestReveal('Crystals added',[['gem',`+${p.n.toLocaleString()} Nitro Crystals`]],'pack')}else toast('!','Store',r.error);renderStore();return}}
+
+/* ---------- ads in the run: a revive once per run, double scrap on the report ---------- */
+function offerRevive(){if(!Ads.on()||G.adRevived||G.dbg||state!=='play')return false;G.adRevived=true;state='revive';updateHud();const el=$('reviveBox');let left=8;
+  el.innerHTML=`<div class="rvcard"><b>Wrecked!</b><span>Watch an ad to get back on the road with half your HP.</span><div class="rvbar"><i></i></div><div class="btns"><button class="btn" id="rvYes">▶ Watch ad</button><button class="btn alt" id="rvNo">No thanks</button></div></div>`;el.hidden=false;$('rvYes').focus();
+  const iv=setInterval(()=>{if(--left<=0){clearInterval(iv);decline()}},1000);
+  const decline=()=>{clearInterval(iv);el.hidden=true;if(state==='revive'){state='play';gameOver()}};
+  $('rvNo').onclick=decline;
+  $('rvYes').onclick=async()=>{clearInterval(iv);el.hidden=true;const ok=await Ads.rewarded('revive');if(!ok||state!=='revive'){state='play';gameOver();return}
+    const p=G.p;state='play';last=performance.now();p.hp=p.maxhp*.5;p.inv=3;const ds=DSRC;DSRC='revive';explode(p.x,p.y,220,80*G.stats.dmg,0);DSRC=ds;showBanner('Back in the race','Revived by your sponsor')};
+  return true}
+async function adDoubleScrap(){const b=$('adDouble');if(!b||!G||G.adDoubled||!G.scrapGain)return;b.disabled=true;const ok=await Ads.rewarded('double_scrap');if(!ok){b.disabled=false;return}
+  G.adDoubled=true;P.scrap+=G.scrapGain;G.scrapGain*=2;saveProfile();b.hidden=true;$('oGain').innerHTML=`+${G.gain} XP · +${G.scrapGain} <span class="scrapi"></span>scrap (doubled)${G.drvGain!=null?` · ${DRIVERS[G.driver||'rook'].nick} +${G.drvGain} XP`:''}`;toast('✦','Scrap doubled','+'+(G.scrapGain/2)+' scrap');refreshMenu()}
 function renderLevels(){const lv=acctInfo(P.acctXp).lv;$('lvAcct').textContent='Account level '+lv;renderDrvPick();
   $('carPick').innerHTML=Object.keys(CARS).filter(id=>!CARS[id].secret||P.cars[id]).map(id=>carCard(id,'pick')).join('');
   $('lvGrid').innerHTML=LEVELS.map((L,i)=>{const T=P.tracks[L.id]||{},open=lv>=L.req;
@@ -3396,6 +3609,7 @@ function renderReport(){const od=G.odStart>=0?(G.escaped||G.forfeit?G.t-G.odStar
     return`<div class="wrow"><span class="wn">${esc(w?w.name:k==='__rest'?'Everything else':SRCNAME[k]||k)}${lv?` <small>Lv ${lv.lvl}</small>`:''}</span><span class="wbar"><i style="width:${(v/mx*100).toFixed(1)}%"></i></span><span class="wv">${Math.round(v).toLocaleString()} <small>${Math.round(v/tot*100)}%</small></span></div>`}).join(''):'<p class="sub">No damage dealt</p>'}
 function results(title){const T=P.tracks[G.L.id]||{best:G.t};$('overTitle').textContent=title;renderReport();
   $('rTime').textContent=fmt(G.t);$('rKills').textContent=G.kills;$('rLvl').textContent=G.level;$('rBest').textContent=fmt(T.best);
+  {const b=$('adDouble');b.hidden=!(Ads.on()&&G.scrapGain>0&&!G.adDoubled);b.disabled=false;b.innerHTML=`▶ Watch ad · 2× scrap (+${G.scrapGain})`}
   fillAcct('oAcct',null,'oAcctFill');$('oGain').innerHTML=`+${G.gain} XP · +${G.scrapGain} <span class="scrapi"></span>scrap${G.drvGain!=null?` · ${DRIVERS[G.driver||'rook'].nick} +${G.drvGain} XP`:''}`;
   lbAfterRun();setTimeout(cloudBackup,1500);$('rAchWrap').hidden=!G.newAch.length;{const seen=new Set(),list=G.newAch.filter(a=>!seen.has(a.id)&&seen.add(a.id));$('rAch').innerHTML=list.slice(0,8).map(a=>`<span class="achip" title="${esc(a.desc)}"><i>${a.ic}</i>${esc(a.name)}</span>`).join('')+(list.length>8?`<span class="achip more">+${list.length-8} more</span>`:'')}}
 function gameOver(title){state='over';commitRun();results(title||(G.forfeit?'Run lost':'Wrecked'));$('tip').hidden=true;const p=G.p;
@@ -3466,6 +3680,12 @@ $('carGrid').addEventListener('click',garageClick);$('paintGrid').addEventListen
 $('carPick').addEventListener('click',e=>{const c=e.target.closest('.car');if(!c)return;const id=c.dataset.car;if(P.cars[id]){P.car=id;saveProfile();renderLevels();$('carPick').querySelector(`[data-car="${id}"]`).focus();newGame(curLevel)}else openSub('scrGarage',c)});
 $('garBtn').onclick=e=>openSub('scrGarage',e.currentTarget);
 $('drvBtn').onclick=e=>openSub('scrDrivers',e.currentTarget);
+$('shopBtn').onclick=e=>openSub('scrStore',e.currentTarget);
+$('scrStore').addEventListener('click',storeClick);$('chestOpen').addEventListener('click',storeClick);
+$('adDouble').onclick=adDoubleScrap;
+// chest timers count down while the shop is open
+setInterval(()=>{if(cur==='scrStore'&&$('chestOpen').hidden&&$('adOverlay').hidden&&!(document.activeElement&&document.activeElement.closest&&document.activeElement.closest('.chest')))renderChests()},1000);
+Econ.sync().then(()=>{if(state==='menu')refreshMenu()});
 $('scrDrivers').addEventListener('click',drvClick);
 $('drvPick').addEventListener('click',e=>{const c=e.target.closest('.drv');if(!c)return;if(c.id==='drvMore'){openSub('scrDrivers',c);return}P.driver=c.dataset.drv;saveProfile();sfx('pick');renderDrvPick();const f=$('drvPick').querySelector(`[data-drv="${P.driver}"]`);if(f)f.focus()});
 $('startBtn').onclick=e=>openSub('scrLevels',e.currentTarget);
